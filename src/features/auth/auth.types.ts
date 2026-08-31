@@ -13,7 +13,7 @@ export const registerSchema = z
     confirmPassword: z.string(),
     optOutNewsletter: z.boolean().optional(),
     acceptTerms: z.literal(true, {
-      errorMap: () => ({ message: "Debes aceptar los términos para continuar" }),
+      message: "Debes aceptar los términos y condiciones",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {

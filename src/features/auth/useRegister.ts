@@ -5,7 +5,7 @@ import {
   updateProfile,
   type UserCredential,
 } from "firebase/auth";
-import { auth, googleProvider } from "../../lib/firebase";
+import { auth, googleProvider } from "../../firebase";
 import { api, ApiError } from "../../lib/api";
 import type { RegisterFormValues, UserProfile } from "./auth.types";
 
