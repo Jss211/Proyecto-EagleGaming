@@ -24,7 +24,7 @@ const GradientText = memo(function GradientText({
     <>
       <style dangerouslySetInnerHTML={{ __html: keyframesStyle }} />
       <span
-        className={cn("inline-block text-transparent bg-clip-text", className)}
+        className={cn("inline-block text-transparent bg-clip-text pb-1", className)}
         style={{
           backgroundImage: "linear-gradient(90deg, #cc0000, #1a1a1a, #ff3333, #000000, #cc0000)",
           backgroundSize: "300% 300%",

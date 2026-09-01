@@ -31,23 +31,24 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md p-8">
       {/* Encabezado */}
-      <div className="mb-8">
+      <div className="mb-4">
         <img
-          src="/logo-eagle-gaming.webp"
+          src="/logo-Eagle.png"
           alt="Eagle Gaming"
-          className="h-16 w-auto mb-4"
+          className="h-20 w-auto mb-4"
         />
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        <h1 className="text-4xl font-bold text-gray-900 mb-2">
           Bienvenido a{' '}
-          <GradientText className="text-3xl font-bold">
+          <GradientText className="text-4xl font-bold">
             Eagle Gaming
           </GradientText>
         </h1>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mt-2">
           ¿No tienes una cuenta?{' '}
           <button
             onClick={() => navigate('/signup')}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="font-medium hover:opacity-80 transition-opacity"
+            style={{ color: '#d30202cc' }}
           >
             Regístrate
           </button>
@@ -64,7 +65,7 @@ export function LoginForm() {
             type="email"
             name="email"
             value={formData.email}
-            onChange={handleChange}
+            onChange={handleChange} 
             placeholder="Correo electrónico"
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
             required
@@ -104,7 +105,8 @@ export function LoginForm() {
         <div className="flex justify-end">
           <button
             type="button"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm font-medium hover:opacity-80 transition-opacity"
+            style={{ color: '#cc0000' }}
           >
             ¿Olvidaste tu contraseña?
           </button>
@@ -119,7 +121,7 @@ export function LoginForm() {
         </button>
 
         {/* Divisor */}
-        <div className="relative my-6">
+        <div className="relative my-4 -mt-2">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300" />
           </div>
