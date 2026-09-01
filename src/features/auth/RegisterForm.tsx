@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterFormValues } from "./auth.types";
 import { useRegister } from "./useRegister";
+import { Link } from "react-router-dom";
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -31,19 +32,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       <h1 className="auth-card__title">Crea tu cuenta</h1>
       <p className="auth-card__subtitle">Únete a EagleGaming en segundos</p>
 
-      <button
-        type="button"
-        className="oauth-button"
-        onClick={handleGoogleClick}
-        disabled={isSubmitting}
-      >
-        <GoogleIcon />
-        Registrarme con Google
-      </button>
-
-      <div className="auth-divider">
-        <span>o</span>
-      </div>
+      
 
       <form className="register-form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="name-row">
@@ -81,6 +70,20 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           {...registerField("confirmPassword")}
         />
 
+      <div className="auth-divider">
+        <span>o</span>
+      </div>
+
+      <button
+        type="button"
+        className="oauth-button"
+        onClick={handleGoogleClick}
+        disabled={isSubmitting}
+      >
+      <GoogleIcon/>
+        Registrarme con Google
+      </button>
+    
         <label className="checkbox-row">
           <input type="checkbox" {...registerField("optOutNewsletter")} />
           <span>No quiero recibir novedades de EagleGaming por correo</span>
@@ -89,8 +92,8 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         <label className="checkbox-row">
           <input type="checkbox" {...registerField("acceptTerms")} />
           <span>
-            Acepto los <a href="/terminos">Términos</a> y la{" "}
-            <a href="/privacidad">Política de privacidad</a>
+            Acepto los <Link to="/terminos">Términos</Link> y la{" "}
+            <Link to="/privacidad">Política de privacidad</Link>
           </span>
         </label>
         {errors.acceptTerms && (
@@ -107,6 +110,12 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           {isSubmitting ? "Creando cuenta…" : "Crear cuenta"}
         </button>
       </form>
+            <p className="back-link-row">
+        ¿Ya tienes cuenta?{" "}
+        <Link to="/login" className="back-link">
+          Inicia sesión
+        </Link>
+      </p>
     </div>
   );
 }

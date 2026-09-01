@@ -7,9 +7,9 @@ export function RegisterPage() {
 
       <aside className="auth-panel auth-panel--visual">
         <p className="auth-visual__headline">
-          Tu escuadrón
+          img
           <br />
-          te está esperando.
+          de la empresa.
         </p>
       </aside>
       <main className="auth-panel auth-panel--form">
