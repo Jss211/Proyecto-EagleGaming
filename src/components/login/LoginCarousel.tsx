@@ -1,35 +1,35 @@
-import { useEffect, useState } from 'react'
+import gamerChair from '@/assets/gamer-chair-with-multicolored-neon-lights.jpg'
+import monitor from '@/assets/modern-monitor-elegant-table.jpg'
+import tech from '@/assets/technology-integrated-everyday-life.jpg'
+import gamer1 from '@/assets/pexels-sulimansallehi-758532.jpg'
+import gamer2 from '@/assets/pexels-umudicreative-31862215.jpg'
+import { useCarousel } from '../../context/CarouselContext'
 
 const IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-    alt: 'Gamer con auriculares en torneo'
+    src: gamerChair,
+    alt: 'Silla gaming con luces neon multicolores'
   },
   {
-    src: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=2071&q=80',
-    alt: 'Setup gaming con luces RGB'
+    src: monitor,
+    alt: 'Monitor gaming moderno en escritorio elegante'
   },
   {
-    src: 'https://images.unsplash.com/photo-1593305841991-05c297ba4575?ixlib=rb-4.0.3&auto=format&fit=crop&w=2057&q=80',
-    alt: 'Controlador de videojuegos'
+    src: tech,
+    alt: 'Tecnología integrada en la vida cotidiana'
   },
   {
-    src: 'https://images.unsplash.com/photo-1560253023-3ec5d502959f?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
-    alt: 'Arena de esports'
+    src: gamer1,
+    alt: 'Jugador concentrado en acción'
+  },
+  {
+    src: gamer2,
+    alt: 'Equipo gaming profesional'
   }
 ]
 
-const AUTOPLAY_INTERVAL = 4000
-
 export function LoginCarousel() {
-  const [current, setCurrent] = useState(0)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent(prev => (prev + 1) % IMAGES.length)
-    }, AUTOPLAY_INTERVAL)
-    return () => clearInterval(timer)
-  }, [])
+  const { current, setCurrent } = useCarousel()
 
   return (
     <div className="flex-1 relative overflow-hidden">
