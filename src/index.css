@@ -1,14 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
 
 :root {
-  --color-bg: #fbf9f6;
-  --color-ink: #1b1f23;
-  --color-ink-soft: #565c63;
-  --color-primary: #3d3a6b;
-  --color-primary-hover: #2e2b52;
-  --color-accent: #c9a227;
-  --color-error: #b3261e;
-  --color-border: #e2ded4;
+  --auth-bg: #ffffff;
+  --auth-panel: #f9fafb;
+  --auth-border: #e5e7eb;
+  --auth-text: #1b1f23;
+  --auth-text-muted: #6b7280;
+  --auth-accent: #3d3a6b;
+  --auth-error: #dc2626;
 
   --font-display: "Sora", sans-serif;
   --font-body: "Inter", sans-serif;
@@ -20,149 +19,12 @@
 
 body {
   margin: 0;
-  background: var(--color-bg);
-  color: var(--color-ink);
+  background: var(--auth-bg);
+  color: var(--auth-text);
   font-family: var(--font-body);
 }
 
-.register-page {
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 900px) {
-  .register-page {
-    grid-template-columns: 0.9fr 1fr;
-  }
-}
-
-.register-page__brand {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  padding: 4rem;
-  background: var(--color-primary);
-  color: #fff;
-}
-
-@media (min-width: 900px) {
-  .register-page__brand {
-    display: flex;
-  }
-}
-
-.register-page__eyebrow {
-  font-size: 0.85rem;
-  color: var(--color-accent);
-  margin: 0 0 1.5rem;
-}
-
-.register-page__title {
-  font-family: var(--font-display);
-  font-size: 2.75rem;
-  line-height: 1.1;
-  margin: 0 0 1.25rem;
-}
-
-.register-page__lede {
-  max-width: 34ch;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.6;
-}
-
-.register-page__form-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1.5rem;
-}
-
-.register-page__form-card {
-  width: 100%;
-  max-width: 380px;
-}
-
-.register-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.field__label {
-  font-size: 0.9rem;
-  color: var(--color-ink-soft);
-}
-
-.field__input {
-  padding: 0.7rem 0.85rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 1rem;
-  font-family: var(--font-body);
-  background: #fff;
-}
-
-.field__input:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 1px;
-}
-
-.field__input[aria-invalid="true"] {
-  border-color: var(--color-error);
-}
-
-.field__error {
-  margin: 0;
-  font-size: 0.82rem;
-  color: var(--color-error);
-}
-
-.register-form__error {
-  margin: 0;
-  padding: 0.7rem 0.85rem;
-  border-radius: 6px;
-  background: #fbeceb;
-  color: var(--color-error);
-  font-size: 0.88rem;
-}
-
-.register-form__submit {
-  margin-top: 0.5rem;
-  padding: 0.8rem;
-  border: none;
-  border-radius: 6px;
-  background: var(--color-primary);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.register-form__submit:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.register-form__submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-:root {
-  --auth-bg: #0e0f13;
-  --auth-panel: #17191f;
-  --auth-border: #2a2d35;
-  --auth-text: #f5f5f4;
-  --auth-text-muted: #9a9ea6;
-  --auth-accent: #ff4d2e;
-  --auth-error: #ff6b6b;
-}
+/* ---------- Layout: página con panel visual + panel de formulario ---------- */
 
 .auth-page {
   min-height: 100vh;
@@ -210,10 +72,12 @@ body {
   max-width: 14ch;
 }
 
+/* ---------- Tarjeta del formulario ---------- */
+
 .auth-card {
   width: 100%;
   max-width: 400px;
-  margin: 0 auto
+  margin: 0 auto;
 }
 
 .auth-card__title {
@@ -227,46 +91,13 @@ body {
   margin: 0 0 1.5rem;
 }
 
-.oauth-button {
-  width: 100%;
+.register-form {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  padding: 0.75rem;
-  border: 1px solid var(--auth-border);
-  border-radius: 8px;
-  background: var(--auth-panel);
-  color: var(--auth-text);
-  font-size: 0.95rem;
-  cursor: pointer;
+  flex-direction: column;
+  gap: 0rem;
 }
 
-.oauth-button:hover:not(:disabled) {
-  border-color: var(--auth-accent);
-}
-
-.oauth-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  margin: 0.15rem;
-  color: var(--auth-text-muted);
-  font-size: 0.85rem;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--auth-border);
-}
+/* ---------- Campos de texto ---------- */
 
 .name-row {
   display: grid;
@@ -275,25 +106,10 @@ body {
 }
 
 .field-inline-wrap {
-  margin-bottom: 0.9rem;
-}
-
-.field-inline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.7rem;
-  padding: 0.7rem 0.7rem;
-  border: 1px solid var(--auth-border);
-  border-radius: 9px;
-  background: var(--auth-panel);
-}
-
-.field-inline-wrap {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.5rem;
 }
 
 .field-inline__label {
@@ -309,6 +125,7 @@ body {
   background: var(--auth-panel);
   color: var(--auth-text);
   font-size: 0.95rem;
+  font-family: var(--font-body);
   outline: none;
 }
 
@@ -320,31 +137,68 @@ body {
   border-color: var(--auth-error);
 }
 
-.field-inline input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  color: var(--auth-text);
-  font-size: 0.95rem;
-  outline: none;
+.field__error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--auth-error);
 }
 
-.field-inline label {
+/* ---------- Botón de Google / divisor ---------- */
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.7rem 0rem;
   color: var(--auth-text-muted);
-  font-size: 0.85rem;
-  white-space: nowrap;
+  font-size: 0.80rem;
 }
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--auth-border);
+  
+}
+
+.oauth-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border: 1px solid var(--auth-border);
+  border-radius: 8px;
+  background: var(--auth-panel);
+  color: var(--auth-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.oauth-button:hover:not(:disabled) {
+  border-color: var(--auth-accent);
+}
+
+.oauth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Checkboxes ---------- */
 
 .checkbox-row {
   display: flex;
   align-items: flex-start;
-  gap: 0.3rem;
+  gap: 0.5rem;
   margin-bottom: 0.1rem;
-  font-size: 0.85rem;
+  font-size: 0.80rem;
   color: var(--auth-text-muted);
   cursor: pointer;
-  margin-top: 0.5rem;
+  margin-top: 0.9rem;
 }
 
 .checkbox-row input {
@@ -356,21 +210,23 @@ body {
   color: var(--auth-text);
 }
 
+/* ---------- Botón principal / errores ---------- */
+
 .register-form__submit {
   width: 100%;
   margin-top: 0.5rem;
-  padding: 0.8rem;
+  padding: 0.85rem;
   border: none;
   border-radius: 8px;
-  background: #fff;
-  color: #0e0f13;
+  background: var(--auth-text);
+  color: #fff;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .register-form__submit:hover:not(:disabled) {
-  background: #e8e8e8;
+  background: #333743;
 }
 
 .register-form__submit:disabled {
@@ -381,16 +237,18 @@ body {
 .register-form__error {
   padding: 0.7rem 0.85rem;
   border-radius: 8px;
-  background: rgba(255, 107, 107, 0.12);
+  background: #fdecec;
   color: var(--auth-error);
   font-size: 0.88rem;
   margin-bottom: 1rem;
 }
 
+/* ---------- Link de volver ---------- */
+
 .back-link-row {
   margin-top: 1.25rem;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.80rem;
   color: var(--auth-text-muted);
 }
 
@@ -402,4 +260,126 @@ body {
 
 .back-link:hover {
   text-decoration: underline;
+}
+
+/* ---------- Páginas legales (Términos / Privacidad) ---------- */
+
+.legal-page {
+  min-height: 100vh;
+  background: var(--auth-bg);
+  color: var(--auth-text);
+  font-family: var(--font-body);
+  padding: 3.5rem 1.5rem 5rem;
+}
+
+.legal-page__container {
+  max-width: 680px;
+  margin: 0 auto;
+  counter-reset: legal-counter;
+}
+
+.legal-page .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.80rem;
+  color: var(--auth-text-muted);
+  text-decoration: none;
+  margin-bottom: 2rem;
+}
+
+.legal-page .back-link:hover {
+  color: var(--auth-text);
+}
+
+.legal-page__title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+.legal-page__updated {
+  color: var(--auth-text-muted);
+  font-size: 0.80rem;
+  margin: 0 0 2.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--auth-border);
+}
+
+.legal-section {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  gap: 0 1rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--auth-border);
+}
+
+.legal-section:last-of-type {
+  border-bottom: none;
+}
+
+.legal-section h2 {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.65rem;
+  counter-increment: legal-counter;
+}
+
+.legal-section h2::before {
+  content: counter(legal-counter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--auth-panel);
+  border: 1px solid var(--auth-border);
+  color: var(--auth-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.legal-section p {
+  grid-column: 2;
+  color: var(--auth-text-muted);
+  line-height: 1.7;
+  font-size: 0.80rem;
+  margin: 0;
+}
+
+.legal-section a,
+.privacy-link {
+  color: var(--auth-text);
+  text-decoration: underline;
+  text-decoration-color: var(--auth-border);
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.legal-section a:hover,
+.privacy-link:hover {
+  text-decoration-color: var(--auth-accent);
+}
+
+@media (max-width: 560px) {
+  .legal-section {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .legal-section h2 {
+    grid-template-columns: auto 1fr;
+    gap: 0.6rem;
+  }
+
+  .legal-section p {
+    grid-column: 1;
+  }
 }
