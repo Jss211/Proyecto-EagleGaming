@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import {
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+} from 'firebase/auth'
 import { GradientText } from './GradientText'
+import { auth, googleProvider } from '../../firebase'
 
 interface FormData {
   email: string
@@ -17,15 +23,55 @@ export function LoginForm() {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login enviado:', formData)
+    setIsSubmitting(true)
+    setMessage(null)
+
+    try {
+      await signInWithEmailAndPassword(auth, formData.email, formData.password)
+      setMessage('Inicio de sesión exitoso.')
+    } catch (error) {
+      setMessage(mapFirebaseError(error))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handlePasswordReset = async () => {
+    if (!formData.email) {
+      setMessage('Escribe tu correo electrónico para recuperar tu contraseña.')
+      return
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, formData.email)
+      setMessage('Te enviamos un enlace para restablecer tu contraseña.')
+    } catch (error) {
+      setMessage(mapFirebaseError(error))
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setIsSubmitting(true)
+    setMessage(null)
+
+    try {
+      await signInWithPopup(auth, googleProvider)
+      setMessage('Inicio de sesión exitoso.')
+    } catch (error) {
+      setMessage(mapFirebaseError(error))
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -105,6 +151,8 @@ export function LoginForm() {
         <div className="flex justify-end">
           <button
             type="button"
+            onClick={handlePasswordReset}
+            disabled={isSubmitting}
             className="text-sm font-medium hover:opacity-80 transition-opacity"
             style={{ color: '#cc0000' }}
           >
@@ -115,10 +163,17 @@ export function LoginForm() {
         {/* Iniciar sesión */}
         <button
           type="submit"
+          disabled={isSubmitting}
           className="w-full bg-black text-white py-3 px-4 rounded-xl font-medium hover:bg-gray-800 transition-colors"
         >
-          Iniciar sesión
+          {isSubmitting ? 'Procesando...' : 'Iniciar sesión'}
         </button>
+
+        {message && (
+          <p className="text-sm text-center text-gray-600" role="status">
+            {message}
+          </p>
+        )}
 
         {/* Divisor */}
         <div className="relative my-4 -mt-2">
@@ -133,6 +188,8 @@ export function LoginForm() {
         {/* Google */}
         <button
           type="button"
+          onClick={handleGoogleLogin}
+          disabled={isSubmitting}
           className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
         >
           <GoogleIcon />
@@ -143,6 +200,26 @@ export function LoginForm() {
       </form>
     </div>
   )
+}
+
+function mapFirebaseError(error: unknown): string {
+  const code = (error as { code?: string })?.code ?? ''
+
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+      return 'El correo o la contraseña no son correctos.'
+    case 'auth/user-not-found':
+      return 'No existe una cuenta con ese correo.'
+    case 'auth/invalid-email':
+      return 'El correo no es válido.'
+    case 'auth/popup-closed-by-user':
+      return 'Cerraste la ventana de Google antes de terminar.'
+    case 'auth/popup-blocked':
+      return 'El navegador bloqueó la ventana emergente de Google.'
+    default:
+      return 'No pudimos completar la operación. Intenta de nuevo.'
+  }
 }
 
 function GoogleIcon() {
