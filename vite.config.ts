@@ -3,23 +3,15 @@ import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-<<<<<<<<< Temporary merge branch 1
-  plugins: [
-      react(),
-      tailwindcss(),
-  ],
+  plugins: [react(), tailwindcss()],
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
+    },
+  },
   resolve: {
     alias: {
       '@': import.meta.dirname + '/src',
     },
   },
 })
-=========
-  plugins: [react()],
-  server: {
-    headers: {
-      "Cross-Origin-Opener-Policy": "same-origin-allow-popups",
-    },
-  },
-})
->>>>>>>>> Temporary merge branch 2
