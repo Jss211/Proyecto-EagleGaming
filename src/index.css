@@ -1,1 +1,385 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap");
+
+:root {
+  --auth-bg: #ffffff;
+  --auth-panel: #f9fafb;
+  --auth-border: #e5e7eb;
+  --auth-text: #1b1f23;
+  --auth-text-muted: #6b7280;
+  --auth-accent: #3d3a6b;
+  --auth-error: #dc2626;
+
+  --font-display: "Sora", sans-serif;
+  --font-body: "Inter", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--auth-bg);
+  color: var(--auth-text);
+  font-family: var(--font-body);
+}
+
+/* ---------- Layout: página con panel visual + panel de formulario ---------- */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--auth-bg);
+  color: var(--auth-text);
+  font-family: var(--font-body);
+}
+
+@media (min-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.auth-panel--form {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+}
+
+.auth-panel--visual {
+  display: none;
+  align-items: flex-end;
+  padding: 3rem;
+  background:
+    radial-gradient(circle at 30% 20%, #ff4d2e 0%, transparent 45%),
+    radial-gradient(circle at 70% 80%, #ff8a3d 0%, transparent 50%),
+    #0b0c10;
+}
+
+@media (min-width: 900px) {
+  .auth-panel--visual {
+    display: flex;
+  }
+}
+
+.auth-visual__headline {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  line-height: 1.15;
+  color: #fff;
+  max-width: 14ch;
+}
+
+/* ---------- Tarjeta del formulario ---------- */
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.auth-card__title {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  margin: 0 0 0.35rem;
+}
+
+.auth-card__subtitle {
+  color: var(--auth-text-muted);
+  margin: 0 0 1.5rem;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0rem;
+}
+
+/* ---------- Campos de texto ---------- */
+
+.name-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.field-inline-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.field-inline__label {
+  font-size: 0.82rem;
+  color: var(--auth-text-muted);
+}
+
+.field-inline__input {
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--auth-border);
+  border-radius: 8px;
+  background: var(--auth-panel);
+  color: var(--auth-text);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  outline: none;
+}
+
+.field-inline__input:focus-visible {
+  border-color: var(--auth-accent);
+}
+
+.field-inline__input[data-invalid="true"] {
+  border-color: var(--auth-error);
+}
+
+.field__error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--auth-error);
+}
+
+/* ---------- Botón de Google / divisor ---------- */
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.7rem 0rem;
+  color: var(--auth-text-muted);
+  font-size: 0.80rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--auth-border);
+  
+}
+
+.oauth-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border: 1px solid var(--auth-border);
+  border-radius: 8px;
+  background: var(--auth-panel);
+  color: var(--auth-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+
+.oauth-button:hover:not(:disabled) {
+  border-color: var(--auth-accent);
+}
+
+.oauth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---------- Checkboxes ---------- */
+
+.checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.1rem;
+  font-size: 0.80rem;
+  color: var(--auth-text-muted);
+  cursor: pointer;
+  margin-top: 0.9rem;
+}
+
+.checkbox-row input {
+  margin-top: 0.1rem;
+  accent-color: var(--auth-accent);
+}
+
+.checkbox-row a {
+  color: var(--auth-text);
+}
+
+/* ---------- Botón principal / errores ---------- */
+
+.register-form__submit {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--auth-text);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-form__submit:hover:not(:disabled) {
+  background: #333743;
+}
+
+.register-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.register-form__error {
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: #fdecec;
+  color: var(--auth-error);
+  font-size: 0.88rem;
+  margin-bottom: 1rem;
+}
+
+/* ---------- Link de volver ---------- */
+
+.back-link-row {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.80rem;
+  color: var(--auth-text-muted);
+}
+
+.back-link {
+  color: var(--auth-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Páginas legales (Términos / Privacidad) ---------- */
+
+.legal-page {
+  min-height: 100vh;
+  background: var(--auth-bg);
+  color: var(--auth-text);
+  font-family: var(--font-body);
+  padding: 3.5rem 1.5rem 5rem;
+}
+
+.legal-page__container {
+  max-width: 680px;
+  margin: 0 auto;
+  counter-reset: legal-counter;
+}
+
+.legal-page .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.80rem;
+  color: var(--auth-text-muted);
+  text-decoration: none;
+  margin-bottom: 2rem;
+}
+
+.legal-page .back-link:hover {
+  color: var(--auth-text);
+}
+
+.legal-page__title {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+.legal-page__updated {
+  color: var(--auth-text-muted);
+  font-size: 0.80rem;
+  margin: 0 0 2.75rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--auth-border);
+}
+
+.legal-section {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr;
+  gap: 0 1rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--auth-border);
+}
+
+.legal-section:last-of-type {
+  border-bottom: none;
+}
+
+.legal-section h2 {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 0.65rem;
+  counter-increment: legal-counter;
+}
+
+.legal-section h2::before {
+  content: counter(legal-counter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--auth-panel);
+  border: 1px solid var(--auth-border);
+  color: var(--auth-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.legal-section p {
+  grid-column: 2;
+  color: var(--auth-text-muted);
+  line-height: 1.7;
+  font-size: 0.80rem;
+  margin: 0;
+}
+
+.legal-section a,
+.privacy-link {
+  color: var(--auth-text);
+  text-decoration: underline;
+  text-decoration-color: var(--auth-border);
+  text-underline-offset: 2px;
+  transition: text-decoration-color 0.15s ease;
+}
+
+.legal-section a:hover,
+.privacy-link:hover {
+  text-decoration-color: var(--auth-accent);
+}
+
+@media (max-width: 560px) {
+  .legal-section {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .legal-section h2 {
+    grid-template-columns: auto 1fr;
+    gap: 0.6rem;
+  }
+
+  .legal-section p {
+    grid-column: 1;
+  }
+}
