@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import {
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from 'firebase/auth'
+import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 import { GradientText } from './GradientText'
 import { auth, googleProvider } from '../../firebase'
 
@@ -43,20 +39,6 @@ export function LoginForm() {
       setMessage(mapFirebaseError(error))
     } finally {
       setIsSubmitting(false)
-    }
-  }
-
-  const handlePasswordReset = async () => {
-    if (!formData.email) {
-      setMessage('Escribe tu correo electrónico para recuperar tu contraseña.')
-      return
-    }
-
-    try {
-      await sendPasswordResetEmail(auth, formData.email)
-      setMessage('Te enviamos un enlace para restablecer tu contraseña.')
-    } catch (error) {
-      setMessage(mapFirebaseError(error))
     }
   }
 
@@ -151,8 +133,7 @@ export function LoginForm() {
         <div className="flex justify-end">
           <button
             type="button"
-            onClick={handlePasswordReset}
-            disabled={isSubmitting}
+            onClick={() => navigate('/forgot-password')}
             className="text-sm font-medium hover:opacity-80 transition-opacity"
             style={{ color: '#cc0000' }}
           >
