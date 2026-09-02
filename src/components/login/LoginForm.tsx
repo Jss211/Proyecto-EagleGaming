@@ -46,7 +46,7 @@ export function LoginForm() {
         <p className="text-gray-600 mt-2">
           ¿No tienes una cuenta?{' '}
           <button
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate('/register')}
             className="font-medium hover:opacity-80 transition-opacity"
             style={{ color: '#d30202cc' }}
           >
