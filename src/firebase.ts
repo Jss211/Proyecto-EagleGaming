@@ -16,8 +16,10 @@ const firebaseConfig = {
 // Inicializamos la aplicación de Firebase
 export const app = initializeApp(firebaseConfig);
 
-// Inicializamos y exportamos Analytics (opcional)
-export const analytics = getAnalytics(app);
+// Analytics es opcional y no debe impedir que la aplicación cargue.
+export const analytics = firebaseConfig.measurementId
+  ? getAnalytics(app)
+  : undefined;
 
 // Inicializamos y exportamos Auth para que todo el equipo lo use en login/registro
 export const auth = getAuth(app);
