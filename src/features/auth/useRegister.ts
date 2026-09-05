@@ -26,6 +26,14 @@ export function useRegister() {
     lastName: string,
     email: string
   ): Promise<boolean> {
+    // Si no hay URL de API configurada, omitimos la llamada al backend
+    // y consideramos el registro exitoso (solo cuenta Firebase).
+    const apiBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
+    if (!apiBase) {
+      console.info("VITE_API_BASE_URL no configurada — perfil no guardado en backend.");
+      return true;
+    }
+
     try {
       const token = await credential.user.getIdToken();
       await api.post<UserProfile>(

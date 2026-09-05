@@ -34,7 +34,7 @@ export function LoginForm() {
 
     try {
       await signInWithEmailAndPassword(auth, formData.email, formData.password)
-      setMessage('Inicio de sesión exitoso.')
+      navigate('/')
     } catch (error) {
       setMessage(mapFirebaseError(error))
     } finally {
@@ -48,7 +48,7 @@ export function LoginForm() {
 
     try {
       await signInWithPopup(auth, googleProvider)
-      setMessage('Inicio de sesión exitoso.')
+      navigate('/')
     } catch (error) {
       setMessage(mapFirebaseError(error))
     } finally {
