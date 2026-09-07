@@ -38,7 +38,6 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   borderWidth = 3,
   borderPadding = 14,
   cardBgColor = "var(--card-bg-color, #000)",
-  shadowColor = "var(--shadow-color, #242424)",
   patternColor1 = "var(--pattern-color1, rgba(230,230,230,0.15))",
   patternColor2 = "var(--pattern-color2, rgba(240,240,240,0.15))",
   textColor = "var(--text-color, #f5f5f5)",

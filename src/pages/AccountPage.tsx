@@ -19,9 +19,8 @@ import {
   updateProfile,
   type User as FirebaseUser,
 } from "firebase/auth";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, storage, db } from "../firebase";
+import { auth, db } from "../firebase";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 

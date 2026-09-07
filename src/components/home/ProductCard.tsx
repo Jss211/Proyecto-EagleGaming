@@ -1,6 +1,6 @@
-import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { InfoCard } from "../ui/info-card";
+import { LiquidMetalButton } from "../ui/liquid-metal-button";
 
 export interface Product {
   id: string;
@@ -31,14 +31,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         />
       </Link>
        
-      <button
-        className="product-card__add-btn w-[320px] -mt-2 relative z-10"
-        onClick={() => onAddToCart?.(product)}
-        aria-label={`Añadir ${product.name} al carrito`}
-      >
-        <ShoppingCart className="w-4 h-4" aria-hidden="true" />
-        Añadir al carro
-      </button>
+      <div className="-mt-2 relative z-10 w-[320px] flex justify-center">
+        <LiquidMetalButton 
+          label="Añadir al carrito" 
+          onClick={() => onAddToCart?.(product)} 
+          viewMode="text" 
+          width={280} 
+        />
+      </div>
     </article>
   );
 }

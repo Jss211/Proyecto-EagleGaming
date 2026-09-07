@@ -6,7 +6,7 @@ import { CategoriesSection } from "../components/home/CategoriesSection";
 import { ProductGrid } from "../components/home/ProductGrid";
 import { Footer } from "../components/home/Footer";
 import { db } from "../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, getDocs, query } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
 
 export function HomePage() {
