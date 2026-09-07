@@ -1,4 +1,5 @@
 import { ShoppingCart } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export interface Product {
   id: string;
@@ -16,28 +17,30 @@ interface ProductCardProps {
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   return (
     <article className="product-card" aria-label={product.name}>
-      {/* Imagen */}
-      <div className="product-card__img-wrap">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.name}
-            className="product-card__img"
-            loading="lazy"
-          />
-        ) : (
-          <div className="product-card__img-placeholder" aria-hidden="true" />
-        )}
-      </div>
+      <Link to={`/producto/${product.id}`} className="block">
+        {/* Imagen */}
+        <div className="product-card__img-wrap">
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.name}
+              className="product-card__img"
+              loading="lazy"
+            />
+          ) : (
+            <div className="product-card__img-placeholder" aria-hidden="true" />
+          )}
+        </div>
 
-      {/* Cuerpo */}
-      <div className="product-card__body">
-        <span className="product-card__category">{product.category}</span>
-        <h3 className="product-card__name">{product.name}</h3>
-        <p className="product-card__price">
-          S/{product.price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
-        </p>
-      </div>
+        {/* Cuerpo */}
+        <div className="product-card__body">
+          <span className="product-card__category">{product.category}</span>
+          <h3 className="product-card__name">{product.name}</h3>
+          <p className="product-card__price">
+            S/{product.price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
+          </p>
+        </div>
+      </Link>
        
       {/* Botón */}
       <button
