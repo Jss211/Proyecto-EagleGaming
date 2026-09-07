@@ -1,5 +1,6 @@
 import { ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
+import { InfoCard } from "../ui/info-card";
 
 export interface Product {
   id: string;
@@ -15,36 +16,23 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
-  return (
-    <article className="product-card" aria-label={product.name}>
-      <Link to={`/producto/${product.id}`} className="block">
-        {/* Imagen */}
-        <div className="product-card__img-wrap">
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className="product-card__img"
-              loading="lazy"
-            />
-          ) : (
-            <div className="product-card__img-placeholder" aria-hidden="true" />
-          )}
-        </div>
+  // Use a nice placeholder from unsplash if no image is provided
+  const imageUrl = product.imageUrl || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1000&auto=format&fit=crop";
 
-        {/* Cuerpo */}
-        <div className="product-card__body">
-          <span className="product-card__category">{product.category}</span>
-          <h3 className="product-card__name">{product.name}</h3>
-          <p className="product-card__price">
-            S/{product.price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
-          </p>
-        </div>
+  return (
+    <article className="flex flex-col items-center gap-4 group" aria-label={product.name}>
+      <Link to={`/producto/${product.id}`} className="block">
+        <InfoCard 
+          image={imageUrl} 
+          title={product.category} 
+          description={`${product.name} • S/${product.price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`}
+          width={320}
+          height={340}
+        />
       </Link>
        
-      {/* Botón */}
       <button
-        className="product-card__add-btn"
+        className="product-card__add-btn w-[320px] -mt-2 relative z-10"
         onClick={() => onAddToCart?.(product)}
         aria-label={`Añadir ${product.name} al carrito`}
       >
