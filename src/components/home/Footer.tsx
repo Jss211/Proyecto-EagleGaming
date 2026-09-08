@@ -29,19 +29,19 @@ export function Footer() {
             <p className="site-footer__section-label">Categorías</p>
             <div className="site-footer__categories">
               <ul className="site-footer__cat-list">
-                <li><Link to="#" className="site-footer__cat-link">Periféricos</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">PC Completa</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Todos los productos</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Disco SSD</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Estabilizador</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Fuente de poder</Link></li>
+                <li><Link to="/categoria/perifericos" className="site-footer__cat-link">Periféricos</Link></li>
+                <li><Link to="/categoria/pc-completa" className="site-footer__cat-link">PC Completa</Link></li>
+                <li><Link to="/" className="site-footer__cat-link">Todos los productos</Link></li>
+                <li><Link to="/categoria/disco-ssd" className="site-footer__cat-link">Disco SSD</Link></li>
+                <li><Link to="/categoria/estabilizador" className="site-footer__cat-link">Estabilizador</Link></li>
+                <li><Link to="/categoria/fuente-de-poder" className="site-footer__cat-link">Fuente de poder</Link></li>
               </ul>
               <ul className="site-footer__cat-list">
-                <li><Link to="#" className="site-footer__cat-link">Memoria Ram</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Monitores</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Placa Madre</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Tarjeta de Video</Link></li>
-                <li><Link to="#" className="site-footer__cat-link">Case</Link></li>
+                <li><Link to="/categoria/memoria-ram" className="site-footer__cat-link">Memoria Ram</Link></li>
+                <li><Link to="/categoria/monitores" className="site-footer__cat-link">Monitores</Link></li>
+                <li><Link to="/categoria/placa-madre" className="site-footer__cat-link">Placa Madre</Link></li>
+                <li><Link to="/categoria/tarjetas-de-video" className="site-footer__cat-link">Tarjeta de Video</Link></li>
+                <li><Link to="/categoria/case" className="site-footer__cat-link">Case</Link></li>
               </ul>
             </div>
           </div>

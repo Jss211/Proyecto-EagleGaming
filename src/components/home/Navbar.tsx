@@ -1,13 +1,42 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Menu, X } from "lucide-react";
+import {
+  ShoppingCart,
+  User,
+  Menu,
+  X,
+  Monitor,
+  Box,
+  Cpu,
+  HardDrive,
+  Zap,
+  BatteryCharging,
+  MemoryStick,
+  Mouse,
+  CircuitBoard,
+  Video,
+} from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
+
+const CATEGORY_LINKS = [
+  { id: "monitores", label: "Monitores", Icon: Monitor },
+  { id: "case", label: "Case", Icon: Box },
+  { id: "pc-completa", label: "PC Completa", Icon: Cpu },
+  { id: "disco-ssd", label: "Disco SSD", Icon: HardDrive },
+  { id: "estabilizador", label: "Estabilizador", Icon: Zap },
+  { id: "fuente-de-poder", label: "Fuente de poder", Icon: BatteryCharging },
+  { id: "memoria-ram", label: "Memoria RAM", Icon: MemoryStick },
+  { id: "perifericos", label: "Perifericos", Icon: Mouse },
+  { id: "placa-madre", label: "Placa madre", Icon: CircuitBoard },
+  { id: "tarjetas-de-video", label: "Tarjetas de video", Icon: Video },
+];
 
 export function Navbar() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
 
   useEffect(() => onAuthStateChanged(auth, setCurrentUser), []);
@@ -29,10 +58,40 @@ export function Navbar() {
         </Link>
 
         {/* Categorias */}
-        <button className="navbar__categories-btn" aria-label="Abrir categorias">
-          <Menu className="navbar__categories-icon" />
-          <span>Categorias</span>
-        </button>
+        <div
+          className="navbar__categories-area"
+          onMouseEnter={() => setCategoriesOpen(true)}
+          onMouseLeave={() => setCategoriesOpen(false)}
+        >
+          <button
+            className="navbar__categories-btn"
+            onClick={() => setCategoriesOpen((open) => !open)}
+            aria-label="Abrir categorias"
+            aria-expanded={categoriesOpen}
+            aria-controls="navbar-category-sidebar"
+          >
+            {categoriesOpen ? <X className="navbar__categories-icon" /> : <Menu className="navbar__categories-icon" />}
+            <span>Categorias</span>
+          </button>
+
+          {categoriesOpen && (
+            <aside id="navbar-category-sidebar" className="navbar-category-sidebar">
+              <nav className="navbar-category-sidebar__nav" aria-label="Categorías de productos">
+                {CATEGORY_LINKS.map((category) => (
+                  <Link
+                    key={category.id}
+                    to={`/categoria/${category.id}`}
+                    className="navbar-category-sidebar__link"
+                    onClick={() => setCategoriesOpen(false)}
+                  >
+                    <category.Icon className="navbar-category-sidebar__icon" aria-hidden="true" />
+                    <span>{category.label}</span>
+                  </Link>
+                ))}
+              </nav>
+            </aside>
+          )}
+        </div>
 
         {/* Buscador */}
         <form className="navbar__search" onSubmit={handleSearch} role="search">

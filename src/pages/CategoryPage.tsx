@@ -14,6 +14,10 @@ export function CategoryPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [id]);
+
+  useEffect(() => {
     const fetchCategoryProducts = async () => {
       if (!id) return;
       try {
