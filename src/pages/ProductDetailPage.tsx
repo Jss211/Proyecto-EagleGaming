@@ -5,7 +5,8 @@ import { SecondaryNav } from "../components/home/SecondaryNav";
 import { Footer } from "../components/home/Footer";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { ChevronLeft, ChevronRight, ShoppingCart } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { LiquidMetalButton } from "../components/ui/liquid-metal-button";
 
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -183,10 +184,13 @@ export function ProductDetailPage() {
               </div>
             )}
 
-            <button style={{ backgroundColor: "#e3000f", color: "white", border: "none", padding: "1rem 2rem", fontSize: "1.1rem", fontWeight: "bold", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", width: "100%", cursor: "pointer", transition: "background-color 0.2s" }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = "#c2000c"} onMouseOut={(e) => e.currentTarget.style.backgroundColor = "#e3000f"}>
-              <ShoppingCart size={20} />
-              AÑADIR AL CARRITO
-            </button>
+            <div className="flex justify-center w-full mt-4">
+              <LiquidMetalButton 
+                label="AÑADIR AL CARRITO" 
+                viewMode="text" 
+                width={380} 
+              />
+            </div>
           </div>
         </div>
       </main>

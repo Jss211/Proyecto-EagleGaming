@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 import { Footer } from "../components/home/Footer";

@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Menu, X } from "lucide-react";
+import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { auth } from "../../firebase";
 
 export function Navbar() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+
+  useEffect(() => onAuthStateChanged(auth, setCurrentUser), []);
+
+  const firstName = currentUser?.displayName?.trim().split(/\s+/)[0];
+  const accountLabel = firstName ? `Bienvenido, ${firstName}` : "Acceder";
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -54,11 +62,11 @@ export function Navbar() {
         {/* Acceder */}
         <button
           className="navbar__acceder-btn"
-          onClick={() => navigate("/login")}
+          onClick={() => navigate(currentUser ? "/cuenta" : "/login")}
           aria-label="Iniciar sesion o registrarse"
         >
           <User className="w-4 h-4" />
-          <span>Acceder</span>
+          <span>{accountLabel}</span>
         </button>
 
         {/* Toggle movil */}
@@ -78,8 +86,8 @@ export function Navbar() {
           <Link to="/" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Inicio</Link>
           <Link to="/nosotros" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Nosotros</Link>
           <Link to="/contactenos" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Contactenos</Link>
-          <button className="navbar__mobile-link text-left" onClick={() => { navigate("/login"); setMobileMenuOpen(false); }}>
-            Acceder
+          <button className="navbar__mobile-link text-left" onClick={() => { navigate(currentUser ? "/cuenta" : "/login"); setMobileMenuOpen(false); }}>
+            {accountLabel}
           </button>
         </nav>
       )}

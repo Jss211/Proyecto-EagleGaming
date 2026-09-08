@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 
 // Configuración web de Firebase usando variables de entorno (.env)
@@ -32,3 +33,6 @@ export const googleProvider = new GoogleAuthProvider();
 
 // Inicializamos y exportamos Firestore
 export const db = getFirestore(app);
+
+// Storage para los avatares de los usuarios.
+export const storage = getStorage(app);
