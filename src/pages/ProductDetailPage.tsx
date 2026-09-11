@@ -58,8 +58,8 @@ export function ProductDetailPage() {
     );
   }
 
-  const title = product.titulo || product.nombre || `${product.marca || ""} ${product.modelo || ""}`.trim();
-  const price = product.precio || 0;
+  const title = product.titulo || product.Titulo || product.título || product.Título || product.nombre || product.Nombre || `${product.marca || product.Marca || ""} ${product.modelo || product.Modelo || ""}`.trim() || "Producto sin título";
+  const price = product.precio || product.Precio || 0;
 
   // Recolectar todas las imágenes disponibles
   const images: string[] = [];
@@ -88,12 +88,19 @@ export function ProductDetailPage() {
         <div style={{ fontSize: "0.85rem", color: "#666", marginBottom: "2rem", textTransform: "uppercase", letterSpacing: "1px" }}>
           <Link to="/" style={{ color: "#999", textDecoration: "none" }}>INICIO</Link> / 
           <span style={{ color: "#999" }}> TIENDA</span> / 
-          <span style={{ color: "#333", fontWeight: "bold" }}> {product.categoria || "PRODUCTO"}</span>
+          <span style={{ color: "#333", fontWeight: "bold" }}> {product.categoria || product.Categoria || product.categoría || product.Categoría || "PRODUCTO"}</span>
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "3rem" }}>
+        <div 
+          style={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr 1.2fr", 
+            gap: "3rem",
+            alignItems: "start"
+          }}
+        >
           {/* Columna Izquierda: Imagen y Carrusel */}
-          <div style={{ flex: "1 1 400px", maxWidth: "600px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px" }}>
             {/* Imagen Principal */}
             <div style={{ border: "1px solid #eaeaea", borderRadius: "12px", padding: "1.5rem", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "white", marginBottom: "2rem", position: "relative", minHeight: "400px", width: "100%" }}>
               <img 
@@ -124,20 +131,19 @@ export function ProductDetailPage() {
             
             {/* Miniaturas (solo si hay más de 1 imagen) */}
             {images.length > 1 && (
-              <div style={{ display: "flex", gap: "20px", overflowX: "auto", padding: "5px", justifyContent: "center", width: "100%" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "15px", padding: "5px", justifyContent: "center", width: "100%" }}>
                 {images.map((imgUrl, idx) => (
                   <div 
                     key={idx}
                     onClick={() => setCurrentImageIndex(idx)}
                     style={{ 
-                      width: "100px", 
-                      height: "100px", 
-                      minWidth: "100px",
-                      border: currentImageIndex === idx ? "2px solid #e3000f" : "1px solid #eaeaea",
-                      borderRadius: "10px",
+                      width: "80px", 
+                      height: "80px", 
+                      border: currentImageIndex === idx ? "2px solid #e81950" : "1px solid #eaeaea",
+                      borderRadius: "8px",
                       overflow: "hidden",
                       cursor: "pointer",
-                      padding: "6px",
+                      padding: "4px",
                       backgroundColor: "white",
                       transition: "all 0.2s"
                     }}
@@ -157,22 +163,26 @@ export function ProductDetailPage() {
               {title}
             </h1>
             
-            <p style={{ fontSize: "2rem", fontWeight: "bold", color: "#e3000f", marginBottom: "1rem" }}>
+            <p style={{ fontSize: "2rem", fontWeight: "bold", color: "#e81950", marginBottom: "1rem" }}>
               S/ {price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
             </p>
 
             <ul style={{ listStyleType: "disc", paddingLeft: "1.5rem", color: "#555", fontSize: "0.95rem", display: "flex", flexDirection: "column", gap: "0.8rem", marginBottom: "2rem" }}>
-              {(product.marca || product.Marca) && <li><strong>Marca:</strong> {product.marca || product.Marca}</li>}
-              {(product.modelo || product.Modelo) && <li><strong>Modelo:</strong> {product.modelo || product.Modelo}</li>}
-              {(product.procesador || product.Procesador) && <li><strong>Procesador:</strong> {product.procesador || product.Procesador}</li>}
-              {(product.ram || product.RAM || product.Ram) && <li><strong>Memoria RAM:</strong> {product.ram || product.RAM || product.Ram}</li>}
-              {(product.almacenamiento || product.Almacenamiento) && <li><strong>Almacenamiento:</strong> {product.almacenamiento || product.Almacenamiento}</li>}
-              {(product.pantalla || product.Pantalla) && <li><strong>Pantalla:</strong> {product.pantalla || product.Pantalla}</li>}
-              {(product.graficos || product.Graficos || product.Gráficos || product.gráficos) && <li><strong>Gráficos:</strong> {product.graficos || product.Graficos || product.Gráficos || product.gráficos}</li>}
-              {(product.sistemaOperativo || product.SistemaOperativo || product.sistemaoperativo || product.sistema_operativo) && <li><strong>Sistema operativo:</strong> {product.sistemaOperativo || product.SistemaOperativo || product.sistemaoperativo || product.sistema_operativo}</li>}
-              {(product.bateria || product.Bateria || product.Batería || product.batería) && <li><strong>Batería:</strong> {product.bateria || product.Bateria || product.Batería || product.batería}</li>}
-              {(product.diseno || product.Diseno || product.Diseño || product.diseño) && <li><strong>Diseño:</strong> {product.diseno || product.Diseno || product.Diseño || product.diseño}</li>}
-              {(product.usoRecomendado || product.Usorecomendado || product.uso_recomendado || product.usoRecomendado) && <li><strong>Uso recomendado:</strong> {product.usoRecomendado || product.Usorecomendado || product.uso_recomendado}</li>}
+              {Object.entries(product)
+                .filter(([key, value]) => {
+                  const k = key.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                  const ignoredKeys = ["id", "titulo", "nombre", "precio", "categoria", "descripcion", "imagenes", "url", "url1", "url2", "url3", "url4", "url5"];
+                  return !ignoredKeys.includes(k) && typeof value === 'string' && value.trim() !== '';
+                })
+                .map(([key, value]) => {
+                  // Formatear la clave para que se vea bien (ej. "fuente de poder" -> "Fuente de poder")
+                  const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
+                  return (
+                    <li key={key}>
+                      <strong>{formattedKey}:</strong> {String(value)}
+                    </li>
+                  );
+                })}
             </ul>
 
             {(product.descripcion || product.Descripcion) && (

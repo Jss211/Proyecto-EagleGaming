@@ -6,7 +6,7 @@ import { Footer } from "../components/home/Footer";
 import { ProductGrid } from "../components/home/ProductGrid";
 import type { Product } from "../components/home/ProductCard";
 import { db } from "../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, getDocs } from "firebase/firestore";
 
 export function CategoryPage() {
   const { id } = useParams();
@@ -17,18 +17,35 @@ export function CategoryPage() {
     const fetchCategoryProducts = async () => {
       if (!id) return;
       try {
-        const q = query(collection(db, "productos"), where("categoria", "==", id.toLowerCase()));
+        const q = query(collection(db, "productos"));
         const querySnapshot = await getDocs(q);
-        const fetchedProducts = querySnapshot.docs.map((doc) => {
+        
+        const fetchedProducts: Product[] = [];
+        const searchId = id.toLowerCase().replace("-", " ");
+        
+        querySnapshot.docs.forEach((doc) => {
           const data = doc.data();
-          return {
-            id: doc.id,
-            name: data.titulo || data.nombre || `${data.marca || ""} ${data.modelo || ""}`.trim(),
-            category: data.categoria || id,
-            price: data.precio || 0,
-            imageUrl: data.url || "https://placehold.co/400x300?text=" + id.toUpperCase(),
-          };
+          const category = (data.categoria || data.Categoria || data.categoría || data.Categoría || "").toLowerCase();
+          
+          let matches = false;
+          if (searchId.includes("laptop") && category.includes("laptop")) matches = true;
+          else if ((searchId.includes("refrig") || searchId.includes("liquida")) && (category.includes("refrig") || category.includes("liquida"))) matches = true;
+          else if (searchId.includes("monitor") && category.includes("monitor")) matches = true;
+          else if (searchId.includes("pc") && category.includes("pc")) matches = true;
+          else if (searchId.includes("procesador") && category.includes("procesador")) matches = true;
+          else if (category === searchId) matches = true;
+          
+          if (matches) {
+            fetchedProducts.push({
+              id: doc.id,
+              name: data.titulo || data.Titulo || data.título || data.Título || data.nombre || data.Nombre || `${data.marca || data.Marca || ""} ${data.modelo || data.Modelo || ""}`.trim() || "Producto sin título",
+              category: data.categoria || data.Categoria || data.categoría || data.Categoría || id,
+              price: data.precio || data.Precio || 0,
+              imageUrl: data.url || data.Url || "https://placehold.co/400x300?text=" + id.toUpperCase(),
+            });
+          }
         });
+        
         setProducts(fetchedProducts);
       } catch (error) {
         console.error("Error obteniendo productos:", error);
