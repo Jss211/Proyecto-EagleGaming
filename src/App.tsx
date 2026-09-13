@@ -8,6 +8,7 @@ import { PrivacyPage } from "./pages/PrivacyPage";
 import { HomePage } from "./pages/HomePage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
 import { CategoryPage } from "./pages/CategoryPage";
+import { SearchResultsPage } from "./pages/SearchResultsPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/terminos" element={<TermsPage />} />
           <Route path="/privacidad" element={<PrivacyPage />} />
+          <Route path="/buscar" element={<SearchResultsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

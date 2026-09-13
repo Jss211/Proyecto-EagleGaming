@@ -9,6 +9,9 @@ export function Navbar() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/buscar?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   }
 
   return (
