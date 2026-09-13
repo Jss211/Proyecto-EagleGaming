@@ -421,7 +421,7 @@ body {
   max-width: 1920px;
   margin: 0 auto;
   padding: 0 32px;
-  height: 60px;
+  height: 90px;
   display: flex;
   align-items: center;
   gap: 0;
@@ -437,7 +437,7 @@ body {
 }
 
 .navbar__logo-img {
-  height: 52px;
+  height: 82px;
   width: auto;
   object-fit: contain;
 }
