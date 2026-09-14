@@ -13,9 +13,17 @@
   --hover-text-color-2: #ffffff;
   --hover-text-color-3: #ffffff;
   --font-family: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Inter', sans-serif;
   --rtl-font-family: 'Inter', sans-serif;
   --pattern-color1: rgba(255,255,255,0.03);
   --pattern-color2: rgba(255,255,255,0.01);
+}
+
+.audiowide-regular {
+  font-family: "Audiowide", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .dark {
@@ -30,6 +38,8 @@
   --hover-text-color-2: #ffffff;
   --hover-text-color-3: #ffffff;
   --font-family: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Inter', sans-serif;
   --rtl-font-family: 'Inter', sans-serif;
   --pattern-color1: rgba(255,255,255,0.03);
   --pattern-color2: rgba(255,255,255,0.01);
@@ -1126,7 +1136,7 @@ body {
   color: #fff;
   font-size: 0.9rem;
   font-weight: 500;
-  font-family: "Roboto", sans-serif;
+  font-family: "Inter", sans-serif;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s ease;
@@ -1945,5 +1955,19 @@ body {
 
 .site-footer__social-link:hover {
   color: #ffffff;
+}
+
+/* ── Audiowide only for product titles ────────────────────── */
+
+.product-title {
+  font-family: "Audiowide", sans-serif;
+}
+
+.page-title {
+  font-family: "Audiowide", sans-serif;
+}
+
+.category-title {
+  font-family: "Audiowide", sans-serif;
 }
 

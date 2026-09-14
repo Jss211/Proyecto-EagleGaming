@@ -8,6 +8,7 @@ export interface Product {
   category: string;
   price: number;
   imageUrl?: string;
+  inStock?: boolean;
 }
 
 interface ProductCardProps {
@@ -42,7 +43,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={handleMouseLeave}
-      className="flex flex-col items-center group relative shadow-sm hover:shadow-md transition-shadow duration-300" 
+      className="flex flex-col items-center group relative transition-all duration-300" 
       aria-label={product.name}
       style={{ 
         width: "280px", 
@@ -50,7 +51,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         boxSizing: "border-box",
         borderRadius: "0.75rem",
         overflow: "hidden",
-        position: "relative"
+        position: "relative",
+        boxShadow: hovered ? "0 20px 25px -5px rgba(232, 25, 80, 0.3)" : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        transform: hovered ? "translateY(-8px)" : "translateY(0)"
       }}
     >
       {/* Fondo estático del borde */}
@@ -63,7 +66,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         }}
       />
 
-      {/* Borde giratorio interactivo */}
+      {/* Borde giratorio interactivo (línea roja que acompaña al mouse) */}
       <div
         style={{
           position: "absolute",
@@ -71,13 +74,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           left: "50%",
           width: "800px",
           height: "800px",
-          backgroundImage: `conic-gradient(#e81950 0deg, #e81950 90deg, transparent 90deg, transparent 360deg)`,
+          backgroundImage: `conic-gradient(from 0deg at 50% 50%, #e81950 0deg, #e81950 45deg, transparent 45deg, transparent 360deg)`,
           transform: "translate(-50%, -50%) rotate(var(--rotation, 0deg))",
           transformOrigin: "center",
           zIndex: 1,
           pointerEvents: "none",
           opacity: hovered ? 1 : 0, 
           transition: "opacity 0.3s ease",
+          filter: "drop-shadow(0 0 8px rgba(232, 25, 80, 0.6))"
         }}
       />
 
@@ -94,12 +98,29 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         alignItems: "center"
       }}>
         <Link to={`/producto/${product.id}`} className="block w-full text-center" style={{ textDecoration: "none" }}>
-          {/* Imagen del producto */}
-          <div style={{ width: "100%", height: "200px", display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "1rem" }}>
+          {/* Imagen del producto con zoom al pasar el mouse */}
+          <div style={{ 
+            width: "100%", 
+            height: "200px", 
+            display: "flex", 
+            justifyContent: "center", 
+            alignItems: "center", 
+            marginBottom: "1rem",
+            overflow: "hidden",
+            borderRadius: "0.5rem",
+            position: "relative"
+          }}>
             <img 
               src={imageUrl} 
               alt={product.name}
-              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
+              style={{ 
+                maxWidth: "100%", 
+                maxHeight: "100%", 
+                objectFit: "contain",
+                transform: hovered ? "scale(1.15)" : "scale(1)",
+                transition: "transform 0.4s ease-in-out",
+                transformOrigin: "center"
+              }}
             />
           </div>
           
@@ -108,24 +129,76 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             style={{ 
               color: "#0056b3", 
               fontSize: "0.95rem", 
-              fontWeight: "500", 
-              margin: "0 0 0.5rem 0",
+              fontWeight: "600", 
+              margin: "0 0 0.75rem 0",
               display: "-webkit-box",
               WebkitLineClamp: 3,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               lineHeight: "1.4",
-              minHeight: "4rem"
+              minHeight: "4rem",
+              letterSpacing: "0.3px"
             }}
           >
             {product.name}
           </h3>
           
           {/* Precio */}
-          <p style={{ color: "#e81950", fontSize: "1.2rem", fontWeight: "bold", margin: "0 0 1rem 0" }}>
+          <p style={{ 
+            color: "#e81950", 
+            fontSize: "1.3rem", 
+            fontWeight: "700", 
+            margin: "0 0 1rem 0",
+            letterSpacing: "0.5px"
+          }}>
             S/ {product.price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
           </p>
         </Link>
+
+        {/* Indicador de Stock */}
+        <div style={{ width: "100%", marginBottom: "1rem" }}>
+          {product.inStock !== false && (
+            <div style={{
+              backgroundColor: "#e8f5e9",
+              border: "1.5px solid #28a745",
+              borderRadius: "8px",
+              padding: "0.5rem 0.75rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+              fontSize: "0.85rem",
+              fontWeight: "600",
+              color: "#155724"
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              En stock
+            </div>
+          )}
+          {product.inStock === false && (
+            <div style={{
+              backgroundColor: "#fadbd8",
+              border: "1.5px solid #dc3545",
+              borderRadius: "8px",
+              padding: "0.5rem 0.75rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.5rem",
+              fontSize: "0.85rem",
+              fontWeight: "600",
+              color: "#721c24"
+            }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Agotado
+            </div>
+          )}
+        </div>
          
         {/* Botón */}
         <div className="w-full flex justify-center mt-auto">

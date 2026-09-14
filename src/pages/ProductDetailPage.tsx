@@ -159,11 +159,11 @@ export function ProductDetailPage() {
 
           {/* Columna Derecha: Detalles */}
           <div style={{ flex: "1 1 500px" }}>
-            <h1 style={{ fontSize: "1.8rem", fontWeight: "bold", color: "#222", marginBottom: "1rem", lineHeight: "1.3" }}>
+            <h1 className="product-title" style={{ fontSize: "1.8rem", fontWeight: "bold", color: "#222", marginBottom: "1rem", lineHeight: "1.3" }}>
               {title}
             </h1>
             
-            <p style={{ fontSize: "2rem", fontWeight: "bold", color: "#e81950", marginBottom: "1rem" }}>
+            <p className="product-title" style={{ fontSize: "2rem", fontWeight: "bold", color: "#e81950", marginBottom: "1rem" }}>
               S/ {price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
             </p>
 

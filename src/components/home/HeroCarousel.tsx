@@ -35,7 +35,7 @@ export function HeroCarousel() {
             <span className="hero-carousel__tag" style={{ background: slide.accent }}>
               EAGLE GAMING
             </span>
-            <h2 className="hero-carousel__title">{s.title}</h2>
+            <h2 className="hero-carousel__title page-title">{s.title}</h2>
             <p className="hero-carousel__subtitle">{s.subtitle}</p>
             <a
               href={s.href}
