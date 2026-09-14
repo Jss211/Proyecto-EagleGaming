@@ -5,31 +5,74 @@ import {
   User,
   Menu,
   X,
-  Monitor,
-  Box,
-  Cpu,
-  HardDrive,
-  Zap,
-  BatteryCharging,
-  MemoryStick,
-  Mouse,
-  CircuitBoard,
-  Video,
+  ChevronRight,
 } from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
 
-const CATEGORY_LINKS = [
-  { id: "monitores", label: "Monitores", Icon: Monitor },
-  { id: "case", label: "Case", Icon: Box },
-  { id: "pc-completa", label: "PC Completa", Icon: Cpu },
-  { id: "disco-ssd", label: "Disco SSD", Icon: HardDrive },
-  { id: "estabilizador", label: "Estabilizador", Icon: Zap },
-  { id: "fuente-de-poder", label: "Fuente de poder", Icon: BatteryCharging },
-  { id: "memoria-ram", label: "Memoria RAM", Icon: MemoryStick },
-  { id: "perifericos", label: "Perifericos", Icon: Mouse },
-  { id: "placa-madre", label: "Placa madre", Icon: CircuitBoard },
-  { id: "tarjetas-de-video", label: "Tarjetas de video", Icon: Video },
+type Subcategory = {
+  id: string;
+  label: string;
+};
+
+type Category = {
+  id: string;
+  label: string;
+  subcategories?: Subcategory[];
+};
+
+const CATEGORY_LINKS: Category[] = [
+  {
+    id: "monitores",
+    label: "Monitores",
+    subcategories: [
+      { id: "gaming", label: "Gaming" },
+      { id: "alta-frecuencia", label: "Alta frecuencia" },
+      { id: "curvos", label: "Curvos" },
+      { id: "calidad-de-imagen", label: "Calidad de imagen" },
+      { id: "pantalla-grande", label: "Pantalla grande" },
+      { id: "oficina-y-estudio", label: "Oficina y estudio" },
+    ],
+  },
+  {
+    id: "case",
+    label: "Case",
+    subcategories: [
+      { id: "gaming", label: "Gaming" },
+      { id: "con-fuente", label: "Con fuente" },
+      { id: "sin-fuente", label: "Sin fuente" },
+      { id: "compactos", label: "Compactos" },
+    ],
+  },
+  {
+    id: "pc-completa",
+    label: "PC Completa",
+    subcategories: [
+      { id: "gaming", label: "Gaming" },
+      { id: "estudiantes", label: "Estudiantes" },
+      { id: "oficina", label: "Oficina" },
+      { id: "diseno", label: "Diseño" },
+    ],
+  },
+  { id: "disco-ssd", label: "Disco SSD" },
+  { id: "estabilizador", label: "Estabilizador" },
+  { id: "fuente-de-poder", label: "Fuente de poder" },
+  { id: "memoria-ram", label: "Memoria RAM" },
+  {
+    id: "perifericos",
+    label: "Perifericos",
+    subcategories: [
+      { id: "audifonos", label: "Audifonos" },
+      { id: "cooler", label: "Cooler" },
+      { id: "teclado", label: "Teclado" },
+      { id: "mouse", label: "Mouse" },
+      { id: "parlantes", label: "Parlantes" },
+      { id: "webcam", label: "Web cam (camara)" },
+      { id: "kit-teclado-mouse", label: "Kit teclado y mouse" },
+    ],
+  },
+  { id: "placa-madre", label: "Placa madre" },
+  { id: "tarjetas-de-video", label: "Tarjetas de video" },
 ];
 
 export function Navbar() {
@@ -37,12 +80,17 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
 
   useEffect(() => onAuthStateChanged(auth, setCurrentUser), []);
 
   const firstName = currentUser?.displayName?.trim().split(/\s+/)[0];
   const accountLabel = firstName ? `Bienvenido, ${firstName}` : "Acceder";
+
+  const hoveredCategoryData = CATEGORY_LINKS.find(
+    (category) => category.id === hoveredCategory
+  );
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -61,7 +109,10 @@ export function Navbar() {
         <div
           className="navbar__categories-area"
           onMouseEnter={() => setCategoriesOpen(true)}
-          onMouseLeave={() => setCategoriesOpen(false)}
+          onMouseLeave={() => {
+            setCategoriesOpen(false);
+            setHoveredCategory(null);
+          }}
         >
           <button
             className="navbar__categories-btn"
@@ -75,22 +126,49 @@ export function Navbar() {
           </button>
 
           {categoriesOpen && (
-            <aside id="navbar-category-sidebar" className="navbar-category-sidebar">
-              <nav className="navbar-category-sidebar__nav" aria-label="Categorías de productos">
-                {CATEGORY_LINKS.map((category) => (
-                  <Link
-                    key={category.id}
-                    to={`/categoria/${category.id}`}
-                    className="navbar-category-sidebar__link"
-                    onClick={() => setCategoriesOpen(false)}
-                  >
-                    <category.Icon className="navbar-category-sidebar__icon" aria-hidden="true" />
-                    <span>{category.label}</span>
-                  </Link>
-                ))}
-              </nav>
-            </aside>
-          )}
+  <aside id="navbar-category-sidebar" className="navbar-category-sidebar">
+    <div className="navbar-category-sidebar__nav-col">
+      <div className="navbar-category-sidebar__title">CATEGORIAS</div>
+      <nav className="navbar-category-sidebar__nav" aria-label="Categorías de productos">
+        {CATEGORY_LINKS.map((category) => (
+          <Link
+            key={category.id}
+            to={`/categoria/${category.id}`}
+            className="navbar-category-sidebar__link"
+            onMouseEnter={() => setHoveredCategory(category.id)}
+            onClick={() => setCategoriesOpen(false)}
+          >
+            <span>{category.label}</span>
+            <ChevronRight className="navbar-category-sidebar__arrow" aria-hidden="true" />
+          </Link>
+        ))}
+      </nav>
+    </div>
+
+    {hoveredCategoryData?.subcategories && (
+      <div className="navbar-category-sidebar__preview">
+        <div className="navbar-category-sidebar__preview-title">
+          {hoveredCategoryData.label}
+        </div>
+        <nav
+          className="navbar-category-sidebar__preview-nav"
+          aria-label={`Subcategorías de ${hoveredCategoryData.label}`}
+        >
+          {hoveredCategoryData.subcategories.map((sub) => (
+            <Link
+              key={sub.id}
+              to={`/categoria/${hoveredCategoryData.id}/${sub.id}`}
+              className="navbar-category-sidebar__preview-link"
+              onClick={() => setCategoriesOpen(false)}
+            >
+              {sub.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
+    )}
+  </aside>
+)}
         </div>
 
         {/* Buscador */}
