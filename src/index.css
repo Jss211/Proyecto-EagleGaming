@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --border-color-1: #e11d48;
+  --border-color-1: #e81950;
   --border-color-2: #be123c;
   --border-color-3: #9f1239;
   --border-bg-color: #18181b;
@@ -13,15 +13,23 @@
   --hover-text-color-2: #ffffff;
   --hover-text-color-3: #ffffff;
   --font-family: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Inter', sans-serif;
   --rtl-font-family: 'Inter', sans-serif;
   --pattern-color1: rgba(255,255,255,0.03);
   --pattern-color2: rgba(255,255,255,0.01);
 }
 
+.audiowide-regular {
+  font-family: "Audiowide", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
 .dark {
-  --border-color-1: #e11d48;
-  --border-color-2: #be123c;
-  --border-color-3: #9f1239;
+  --border-color-1: #e21d48;
+  --border-color-2: #e21d48;
+  --border-color-3: #e21d48;
   --border-bg-color: #18181b;
   --card-bg-color: #27272a;
   --shadow-color: #000000;
@@ -30,6 +38,8 @@
   --hover-text-color-2: #ffffff;
   --hover-text-color-3: #ffffff;
   --font-family: 'Inter', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Inter', sans-serif;
   --rtl-font-family: 'Inter', sans-serif;
   --pattern-color1: rgba(255,255,255,0.03);
   --pattern-color2: rgba(255,255,255,0.01);
@@ -100,7 +110,7 @@
   flex: 0 0 82px;
   overflow: hidden;
   cursor: pointer;
-  border: 3px solid #e11d48;
+  border: 3px solid #e81950;
   border-radius: 50%;
   background: #111827;
 }
@@ -240,7 +250,7 @@
 .account-details__rows > div > span {
   display: grid;
   place-items: center;
-  color: #e11d48;
+  color: #e81950;
 }
 
 .account-details__rows > div > span svg {
@@ -276,7 +286,7 @@
 
 .account-reset-panel {
   width: min(100%, 480px);
-  border-top: 5px solid #e11d48;
+  border-top: 5px solid #e81950;
   background: #fff;
   padding: 32px;
   box-shadow: 0 24px 70px rgb(15 23 42 / 28%);
@@ -291,7 +301,7 @@
 
 .account-reset-panel__eyebrow {
   margin: 0;
-  color: #e11d48;
+  color: #e81950;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -317,7 +327,7 @@
 }
 
 .account-reset-panel__close:hover {
-  color: #e11d48;
+  color: #e81950;
 }
 
 .account-reset-panel__description {
@@ -356,7 +366,7 @@
 }
 
 .account-reset-form input:focus {
-  border-color: #e11d48;
+  border-color: #e81950;
   box-shadow: 0 0 0 3px rgb(225 29 72 / 13%);
 }
 
@@ -379,7 +389,7 @@
 }
 
 .account-reset-form button:hover {
-  background: #e11d48;
+  background: #e81950;
 }
 
 .account-reset-form button:disabled {
@@ -402,7 +412,7 @@
 }
 
 .account-reset-feedback--error {
-  border-color: #e11d48;
+  border-color: #e81950;
   background: #fff1f2;
   color: #be123c;
 }
@@ -889,7 +899,7 @@ body {
   font-family: var(--font-display);
   font-size: 0.95rem;
   font-weight: 700;
-  color: #e11d24;
+  color: #e81950;
   letter-spacing: 0.04em;
 }
 
@@ -898,7 +908,7 @@ body {
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.85rem;
-  background: #e11d24;
+  background: #e81950;
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -987,14 +997,14 @@ body {
 }
 
 .navbar__link:hover {
-  color: #e11d24;
+  color: #e81950;
 }
 
 .navbar__icon-btn {
   position: relative;
   background: none;
   border: none;
-  color: #e11d24;
+  color: #e81950;
   cursor: pointer;
   padding: 0.4rem;
   display: flex;
@@ -1012,7 +1022,7 @@ body {
   top: 0;
   right: 0;
   transform: translate(30%, -30%);
-  background: #e11d24;
+  background: #e81950;
   color: #fff;
   font-size: 0.65rem;
   font-weight: 700;
@@ -1031,7 +1041,7 @@ body {
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 0.9rem;
-  background: #e11d24;
+  background: #e81950;
   color: #fff;
   border: none;
   border-radius: 999px;
@@ -1097,13 +1107,13 @@ body {
 
 .navbar__mobile-link:hover {
   background: #fef2f2;
-  color: #e11d24;
+  color: #e81950;
 }
 
 /* ---------- SecondaryNav ---------- */
 
 .secondary-nav {
-  background: #e11d24;
+  background: #e81950;
   display: flex;
   align-items: stretch;
   justify-content: center;
@@ -1126,7 +1136,7 @@ body {
   color: #fff;
   font-size: 0.9rem;
   font-weight: 500;
-  font-family: "Roboto", sans-serif;
+  font-family: "Inter", sans-serif;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s ease;
@@ -1168,7 +1178,7 @@ body {
 
 .secondary-nav__dropdown-item:hover {
   background: #fef2f2;
-  color: #e11d24;
+  color: #e81950;
 }
 
 /* ---------- Hero Carousel ---------- */
@@ -1542,7 +1552,7 @@ body {
   gap: 0.4rem;
   width: 100%;
   padding: 0.6rem;
-  background: #e11d24;
+  background: #e81950;
   color: #fff;
   border: none;
   font-size: 0.8rem;
@@ -1641,8 +1651,8 @@ body {
 }
 
 .product-grid-section__pg-btn:hover:not(:disabled) {
-  border-color: #e11d24;
-  color: #e11d24;
+  border-color: #e81950;
+  color: #e81950;
 }
 
 .product-grid-section__pg-btn:disabled {
@@ -1785,7 +1795,7 @@ body {
 /* red pill heading */
 .site-footer__pill {
   display: inline-block;
-  background: #e11d24;
+  background: #e81950;
   color: #fff;
   font-size: 0.8rem;
   font-weight: 700;
@@ -1875,7 +1885,7 @@ body {
 }
 
 .site-footer__legal-link--red {
-  color: #e11d24;
+  color: #e81950;
   font-weight: 600;
 }
 
@@ -1886,7 +1896,7 @@ body {
 /* ── Bottom bar ────────────────────────────────────────────── */
 
 .site-footer__bar {
-  background: #e11d24;
+  background: #e81950;
   padding: 0.7rem 1.5rem;
 }
 
@@ -1945,5 +1955,19 @@ body {
 
 .site-footer__social-link:hover {
   color: #ffffff;
+}
+
+/* ── Audiowide only for product titles ────────────────────── */
+
+.product-title {
+  font-family: "Audiowide", sans-serif;
+}
+
+.page-title {
+  font-family: "Audiowide", sans-serif;
+}
+
+.category-title {
+  font-family: "Audiowide", sans-serif;
 }
 

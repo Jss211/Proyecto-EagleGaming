@@ -32,7 +32,7 @@ export function ProductGrid({ title = "Recomendados para ti", products = [] }: P
 
   return (
     <section className="product-grid-section" aria-labelledby="product-grid-heading">
-      <h2 id="product-grid-heading" className="product-grid-section__title">
+      <h2 id="product-grid-heading" className="product-grid-section__title page-title">
         {title}
       </h2>
 

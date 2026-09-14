@@ -78,13 +78,9 @@ export function LiquidMetalButton({
       document.head.appendChild(style);
     }
 
-    const loadShader = async () => {
+    const loadShader = () => {
       try {
-        if (shaderRef.current) {
-          if (shaderMount.current?.destroy) {
-            shaderMount.current.destroy();
-          }
-
+        if (shaderRef.current && !shaderMount.current) {
           shaderMount.current = new ShaderMount(
             shaderRef.current,
             liquidMetalFragmentShader,
@@ -110,13 +106,33 @@ export function LiquidMetalButton({
       }
     };
 
-    loadShader();
-
-    return () => {
+    const destroyShader = () => {
       if (shaderMount.current?.destroy) {
         shaderMount.current.destroy();
         shaderMount.current = null;
       }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadShader();
+          } else {
+            destroyShader();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (buttonRef.current) {
+      observer.observe(buttonRef.current);
+    }
+
+    return () => {
+      observer.disconnect();
+      destroyShader();
     };
   }, []);
 
@@ -216,7 +232,7 @@ export function LiquidMetalButton({
                 <ShoppingCart 
                   size={16} 
                   style={{
-                    color: "#e11d48", // Made the icon red to match their theme slightly
+                    color: "#e81950", // Made the icon red to match their theme slightly
                     filter: "drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.5))",
                     transition: "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
                     transform: "scale(1)",
