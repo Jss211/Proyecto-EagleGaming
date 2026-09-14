@@ -46,7 +46,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       className="flex flex-col items-center group relative transition-all duration-300" 
       aria-label={product.name}
       style={{ 
-        width: "280px", 
+        width: "100%", 
         padding: "3px", // Espacio para el borde giratorio
         boxSizing: "border-box",
         borderRadius: "0.75rem",

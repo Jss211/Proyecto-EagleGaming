@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Package } from "lucide-react";
 import { ProductCard, type Product } from "./ProductCard";
 
@@ -9,8 +9,29 @@ interface ProductGridProps {
 
 export function ProductGrid({ title = "Recomendados para ti", products = [] }: ProductGridProps) {
   const [page, setPage] = useState(0);
-  const itemsPerPage = 5;
+  const [itemsPerPage, setItemsPerPage] = useState(5);
+
+  useEffect(() => {
+    const updateItemsPerPage = () => {
+      const width = window.innerWidth;
+      if (width >= 900) setItemsPerPage(5);
+      else if (width >= 500) setItemsPerPage(3);
+      else setItemsPerPage(2);
+    };
+
+    updateItemsPerPage();
+    window.addEventListener("resize", updateItemsPerPage);
+    return () => window.removeEventListener("resize", updateItemsPerPage);
+  }, []);
+
+  // Recalcular la página actual si totalPages cambia para evitar página vacía
   const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
+  
+  useEffect(() => {
+    if (page >= totalPages) {
+      setPage(Math.max(0, totalPages - 1));
+    }
+  }, [totalPages, page]);
 
   const visibleProducts = products.slice(
     page * itemsPerPage,
@@ -47,7 +68,11 @@ export function ProductGrid({ title = "Recomendados para ti", products = [] }: P
         <>
           <div className="product-grid" role="list">
             {visibleProducts.map((product) => (
-              <div key={product.id} role="listitem">
+              <div 
+                key={product.id} 
+                role="listitem" 
+                style={{ animation: 'fadeIn 0.4s ease-in-out' }}
+              >
                 <ProductCard product={product} onAddToCart={handleAddToCart} />
               </div>
             ))}
