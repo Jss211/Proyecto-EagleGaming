@@ -6,7 +6,18 @@ import {
   Menu,
   X,
   ChevronRight,
+  Monitor,
+  HardDrive,
+  Cpu,
+  Disc,
+  Zap,
+  Power,
+  MemoryStick,
+  Headphones,
+  CircuitBoard,
+  Gamepad2,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
 
@@ -18,6 +29,7 @@ type Subcategory = {
 type Category = {
   id: string;
   label: string;
+  icon: LucideIcon;
   subcategories?: Subcategory[];
 };
 
@@ -25,6 +37,7 @@ const CATEGORY_LINKS: Category[] = [
   {
     id: "monitores",
     label: "Monitores",
+    icon: Monitor,
     subcategories: [
       { id: "gaming", label: "Gaming" },
       { id: "alta-frecuencia", label: "Alta frecuencia" },
@@ -37,6 +50,7 @@ const CATEGORY_LINKS: Category[] = [
   {
     id: "case",
     label: "Case",
+    icon: HardDrive,
     subcategories: [
       { id: "gaming", label: "Gaming" },
       { id: "con-fuente", label: "Con fuente" },
@@ -47,20 +61,39 @@ const CATEGORY_LINKS: Category[] = [
   {
     id: "pc-completa",
     label: "PC Completa",
+    icon: Cpu,
     subcategories: [
-      { id: "gaming", label: "Gaming" },
-      { id: "estudiantes", label: "Estudiantes" },
-      { id: "oficina", label: "Oficina" },
-      { id: "diseno", label: "Diseño" },
+      { id: "pc-oficina", label: "PC Oficina" },
+      { id: "pc-gamer", label: "PC Gamer" },
+      { id: "pc-ingenierias", label: "PC Ingenierias" },
+      { id: "pc-diseño", label: "PC Diseño" },
     ],
   },
-  { id: "disco-ssd", label: "Disco SSD" },
-  { id: "estabilizador", label: "Estabilizador" },
-  { id: "fuente-de-poder", label: "Fuente de poder" },
-  { id: "memoria-ram", label: "Memoria RAM" },
+  {
+    id: "disco-ssd",
+    label: "Disco SSD",
+    icon: Disc,
+    subcategories: [
+      { id: "sd-m2", label: "SD M.2 PCIe" },
+      { id: "ssd-sata", label: "SSD SATA 2.5" },
+    ],
+  },
+  { id: "estabilizador", label: "Estabilizador", icon: Zap },
+  { id: "fuente-de-poder", label: "Fuente de poder", icon: Power },
+  {
+    id: "memoria-ram",
+    label: "Memoria RAM",
+    icon: MemoryStick,
+    subcategories: [
+      { id: "ddr3", label: "DDR3" },
+      { id: "ddr4", label: "DDR4" },
+      { id: "ddr5", label: "DDR5" },
+    ],
+  },
   {
     id: "perifericos",
     label: "Perifericos",
+    icon: Headphones,
     subcategories: [
       { id: "audifonos", label: "Audifonos" },
       { id: "cooler", label: "Cooler" },
@@ -71,8 +104,8 @@ const CATEGORY_LINKS: Category[] = [
       { id: "kit-teclado-mouse", label: "Kit teclado y mouse" },
     ],
   },
-  { id: "placa-madre", label: "Placa madre" },
-  { id: "tarjetas-de-video", label: "Tarjetas de video" },
+  { id: "placa-madre", label: "Placa madre", icon: CircuitBoard },
+  { id: "tarjetas-de-video", label: "Tarjetas de video", icon: Gamepad2 },
 ];
 
 export function Navbar() {
@@ -99,7 +132,6 @@ export function Navbar() {
   return (
     <header className="navbar">
       <div className="navbar__inner">
-
         {/* Logo */}
         <Link to="/" className="navbar__logo" aria-label="Ir al inicio Eagle Gaming">
           <img src="/icono.png" alt="Eagle Gaming" className="navbar__logo-img" />
@@ -126,49 +158,60 @@ export function Navbar() {
           </button>
 
           {categoriesOpen && (
-  <aside id="navbar-category-sidebar" className="navbar-category-sidebar">
-    <div className="navbar-category-sidebar__nav-col">
-      <div className="navbar-category-sidebar__title">CATEGORIAS</div>
-      <nav className="navbar-category-sidebar__nav" aria-label="Categorías de productos">
-        {CATEGORY_LINKS.map((category) => (
-          <Link
-            key={category.id}
-            to={`/categoria/${category.id}`}
-            className="navbar-category-sidebar__link"
-            onMouseEnter={() => setHoveredCategory(category.id)}
-            onClick={() => setCategoriesOpen(false)}
-          >
-            <span>{category.label}</span>
-            <ChevronRight className="navbar-category-sidebar__arrow" aria-hidden="true" />
-          </Link>
-        ))}
-      </nav>
-    </div>
+            <aside id="navbar-category-sidebar" className="navbar-category-sidebar">
+              <div className="navbar-category-sidebar__nav-col">
+                <nav className="navbar-category-sidebar__nav" aria-label="Categorías de productos">
+                  {CATEGORY_LINKS.map((category) => {
+                    const CategoryIcon = category.icon;
+                    return (
+                      <Link
+                        key={category.id}
+                        to={`/categoria/${category.id}`}
+                        className="navbar-category-sidebar__link"
+                        onMouseEnter={() => setHoveredCategory(category.id)}
+                        onClick={() => setCategoriesOpen(false)}
+                      >
+                        <div className="navbar-category-sidebar__link-content">
+                          <CategoryIcon className="navbar-category-sidebar__icon w-4 h-4 mr-2 inline-block" />
+                          <span>{category.label}</span>
+                        </div>
 
-    {hoveredCategoryData?.subcategories && (
-      <div className="navbar-category-sidebar__preview">
-        <div className="navbar-category-sidebar__preview-title">
-          {hoveredCategoryData.label}
-        </div>
-        <nav
-          className="navbar-category-sidebar__preview-nav"
-          aria-label={`Subcategorías de ${hoveredCategoryData.label}`}
-        >
-          {hoveredCategoryData.subcategories.map((sub) => (
-            <Link
-              key={sub.id}
-              to={`/categoria/${hoveredCategoryData.id}/${sub.id}`}
-              className="navbar-category-sidebar__preview-link"
-              onClick={() => setCategoriesOpen(false)}
-            >
-              {sub.label}
-            </Link>
-          ))}
-        </nav>
-      </div>
-    )}
-  </aside>
-)}
+                        {category.subcategories && category.subcategories.length > 0 && (
+                          <ChevronRight
+                            className="navbar-category-sidebar__arrow"
+                            aria-hidden="true"
+                          />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+
+              {hoveredCategoryData?.subcategories && (
+                <div className="navbar-category-sidebar__preview">
+                  <div className="navbar-category-sidebar__preview-title">
+                    {hoveredCategoryData.label}
+                  </div>
+                  <nav
+                    className="navbar-category-sidebar__preview-nav"
+                    aria-label={`Subcategorías de ${hoveredCategoryData.label}`}
+                  >
+                    {hoveredCategoryData.subcategories.map((sub) => (
+                      <Link
+                        key={sub.id}
+                        to={`/categoria/${hoveredCategoryData.id}/${sub.id}`}
+                        className="navbar-category-sidebar__preview-link"
+                        onClick={() => setCategoriesOpen(false)}
+                      >
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              )}
+            </aside>
+          )}
         </div>
 
         {/* Buscador */}
