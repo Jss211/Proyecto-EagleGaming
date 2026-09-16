@@ -60,7 +60,7 @@ export function CategoryPage() {
   return (
     <div className="home-page">
       <Navbar />
-      <SecondaryNav />
+      <SecondaryNav alwaysVisible />
 
       <main style={{ minHeight: "60vh", padding: "2rem 0" }}>
         {loading ? (

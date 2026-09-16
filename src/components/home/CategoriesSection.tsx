@@ -1,19 +1,27 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Marquee } from "../ui/marquee";
 
 interface Category {
   id: string;
   label: string;
-  href: string;
   image: string;
 }
 
 const CATEGORIES: Category[] = [
-  { id: "laptops", label: "LAPTOPS", href: "/categoria/laptops", image: "/laptops.png" },
-  { id: "refrigeracion", label: "REFRIGERACIÓN LÍQUIDA", href: "/categoria/refrigeracion", image: "/refrigeración líquida.png" },
-  { id: "monitores", label: "MONITORES", href: "/categoria/monitores", image: "/monitores.png" },
-  { id: "pc-completa", label: "PC COMPLETA", href: "/categoria/pc-completa", image: "/pc completa.png" },
-  { id: "procesadores", label: "PROCESADORES", href: "/categoria/procesadores", image: "/procesadores.png" },
+  { id: "laptops", label: "LAPTOPS", image: "/categorias/laptops.png" },
+  { id: "refrigeracion", label: "REFRIGERACIÓN LÍQUIDA", image: "/categorias/refrigeración líquida.png" },
+  { id: "monitores", label: "MONITORES", image: "/categorias/monitores.png" },
+  { id: "pc-completa", label: "PC COMPLETA", image: "/categorias/pc completa.png" },
+  { id: "procesadores", label: "PROCESADORES", image: "/categorias/procesadores.png" },
+  { id: "tarjeta-grafica", label: "TARJETA GRÁFICA", image: "/categorias/TARJETA gráfica.png" },
+  { id: "case", label: "CASES", image: "/categorias/case_4.png" },
+  { id: "estabilizadores", label: "ESTABILIZADORES", image: "/categorias/estabilizadores.png" },
+  { id: "fuente-poder", label: "FUENTE DE PODER", image: "/categorias/fuente de poder.png" },
+  { id: "memoria-ram", label: "MEMORIA RAM", image: "/categorias/memoria RAM.png" },
+  { id: "memoria-ssd", label: "MEMORIA SSD", image: "/categorias/memoria ssd.png" },
+  { id: "perifericos", label: "PERIFÉRICOS", image: "/categorias/perifericos.png" },
+  { id: "placa-madre", label: "PLACA MADRE", image: "/categorias/placa madre.png" },
 ];
 
 export function CategoriesSection() {
@@ -24,32 +32,32 @@ export function CategoriesSection() {
       <h2 id="categories-heading" className="categories-section__title page-title">
         PRODUCTOS
       </h2>
-
-      <div className="categories-section__grid">
+      <Marquee pauseOnHover speed={40} className="py-4 mt-0 sm:mt-0">
         {CATEGORIES.map((cat) => (
           <Link
             key={cat.id}
-            to={cat.href}
-            className="category-card"
+            to={`/categoria/${cat.id}`}
+            className="category-card mx-4 shrink-0 flex flex-col items-center justify-center gap-4"
             aria-label={`Ver ${cat.label}`}
             onMouseEnter={() => setHoveredId(cat.id)}
             onMouseLeave={() => setHoveredId(null)}
+            style={{ width: "200px" }}
           >
-            {/* Imagen de categoría */}
             <div 
-              className="category-card__img-wrap" 
+              className="category-card__img-wrap relative flex items-center justify-center"
               aria-hidden="true"
               style={{
+                width: "100%",
+                aspectRatio: "1/1",
                 overflow: "hidden",
-                borderRadius: "8px"
               }}
             >
               <img 
                 src={cat.image} 
                 alt={cat.label}
                 style={{
-                  width: "100%",
-                  height: "100%",
+                  width: "80%",
+                  height: "80%",
                   objectFit: "contain",
                   transform: hoveredId === cat.id ? "scale(1.15)" : "scale(1)",
                   transition: "transform 0.4s ease-in-out",
@@ -57,10 +65,12 @@ export function CategoriesSection() {
                 }}
               />
             </div>
-            <span className="category-card__label category-title">{cat.label}</span>
+            <span className="category-card__label font-bold text-center text-sm tracking-wider uppercase">
+              {cat.label}
+            </span>
           </Link>
         ))}
-      </div>
+      </Marquee>
     </section>
   );
 }
