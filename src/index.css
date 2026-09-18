@@ -1583,22 +1583,27 @@ body {
 }
 
 .product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1.5rem;
-  max-width: 1250px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
+.product-grid > div {
+  width: calc(50% - 0.75rem);
+}
+
 @media (min-width: 500px) {
-  .product-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .product-grid > div {
+    width: calc(33.333% - 1rem);
   }
 }
 
 @media (min-width: 900px) {
-  .product-grid {
-    grid-template-columns: repeat(5, 1fr);
+  .product-grid > div {
+    width: calc(20% - 1.2rem); /* 5 items per row */
   }
 }
 
