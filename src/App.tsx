@@ -11,6 +11,7 @@ import { CategoryPage } from "./pages/CategoryPage";
 import { AccountPage } from "./pages/AccountPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
+import { SearchResultsPage } from "./pages/SearchResultsPage";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/terminos" element={<TermsPage />} />
           <Route path="/privacidad" element={<PrivacyPage />} />
+          <Route path="/buscar" element={<SearchResultsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
