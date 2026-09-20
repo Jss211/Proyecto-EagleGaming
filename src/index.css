@@ -1,6 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap");
 @import "tailwindcss";
 
+@theme {
+  --animate-marquee: marquee var(--duration, 30s) linear infinite;
+  --animate-marquee-reverse: marquee var(--duration, 30s) linear infinite reverse;
+}
+
+@keyframes marquee {
+  to { transform: translateX(-50%) }
+}
+
 :root {
   --border-color-1: #e81950;
   --border-color-2: #be123c;
@@ -1118,8 +1127,19 @@ body {
   align-items: stretch;
   justify-content: center;
   gap: 4rem;
-  position: relative;
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
   z-index: 90;
+  transform: translateY(-110%);
+  opacity: 0;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.secondary-nav--visible {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .secondary-nav__item {
@@ -1186,22 +1206,22 @@ body {
 .hero-carousel {
   position: relative;
   width: 100%;
-  height: calc(100vh - 102px - 260px);
-  min-height: 280px;
+  height: calc(100vh - 60px);
+  min-height: 500px;
   overflow: hidden;
 }
 
 @media (min-width: 640px) {
   .hero-carousel {
-    height: calc(100vh - 102px - 260px);
-    min-height: 320px;
+    height: calc(100vh - 60px);
+    min-height: 500px;
   }
 }
 
 @media (min-width: 1024px) {
   .hero-carousel {
-    height: calc(100vh - 102px - 260px);
-    min-height: 380px;
+    height: calc(100vh - 60px);
+    min-height: 600px;
   }
 }
 
@@ -1214,6 +1234,22 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.6s ease;
+  overflow: hidden;
+}
+
+.hero-carousel__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.hero-carousel__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
 
 .hero-carousel__slide--active {
@@ -1250,19 +1286,26 @@ body {
 
 .hero-carousel__title {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 4vw, 2.8rem);
-  font-weight: 700;
+  font-size: clamp(2.8rem, 7vw, 6rem);
+  font-weight: 900;
+  font-style: italic;
   color: #fff;
   margin: 0;
-  line-height: 1.1;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  line-height: 1.0;
+  text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+  letter-spacing: -0.01em;
 }
 
 .hero-carousel__subtitle {
   font-size: clamp(0.85rem, 1.5vw, 1rem);
-  color: rgba(255,255,255,0.82);
+  color: rgba(255,255,255,0.92);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  background: rgba(30,30,40,0.45);
+  backdrop-filter: blur(6px);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  max-width: 420px;
 }
 
 .hero-carousel__cta {
@@ -1397,7 +1440,7 @@ body {
 .category-card__img-wrap {
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: #8c8c8c;
+  background: transparent;
   border-radius: 0;
   display: flex;
   align-items: center;

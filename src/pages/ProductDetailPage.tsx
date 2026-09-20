@@ -41,7 +41,7 @@ export function ProductDetailPage() {
     return (
       <div className="home-page">
         <Navbar />
-        <SecondaryNav />
+        <SecondaryNav alwaysVisible />
         <div style={{ padding: "4rem", textAlign: "center" }}>Cargando producto...</div>
         <Footer />
       </div>
@@ -52,7 +52,7 @@ export function ProductDetailPage() {
     return (
       <div className="home-page">
         <Navbar />
-        <SecondaryNav />
+        <SecondaryNav alwaysVisible />
         <div style={{ padding: "4rem", textAlign: "center" }}>Producto no encontrado</div>
         <Footer />
       </div>

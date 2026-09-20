@@ -82,35 +82,39 @@ export interface HeroSlide {
   href: string;
   bg: string; 
   accent: string;
+  video?: string;
 }
 
 export const HERO_SLIDES: HeroSlide[] = [
   {
     id: 1,
-    title: "PC GAMER RTX 4060",
-    subtitle: "Potencia brutal para gaming 1080p y 1440p. Desde S/3,990",
+    title: "Juega sin límites",
+    subtitle: "Computadoras Gaming con la potencia para alcanzar niveles de gráficos sorprendentemente futuristas de alta calidad y disfrutar de una experiencia de juego fluida y envolvente.",
     cta: "Ver ahora",
     href: "#",
     bg: "linear-gradient(135deg, #0f0f0f 0%, #1a0000 50%, #2d0000 100%)",
     accent: "#e11d24",
+    video: "/videos/video1.mp4",
   },
   { 
     id: 2,
-    title: "ARMA TU PC GAMER",
-    subtitle: "Componentes de última generación con garantía y envío rápido",
+    title: "Arma tu PC Gamer",
+    subtitle: "Componentes de última generación con garantía y envío rápido. Construye la máquina de tus sueños con las mejores marcas del mercado.",
     cta: "Explorar",
     href: "#",
     bg: "linear-gradient(135deg, #0a0a1a 0%, #0d1a2d 50%, #0a1a0d 100%)",
     accent: "#2563eb",
+    video: "/videos/video2.mp4",
   },
   {
     id: 3,
-    title: "OFERTAS DE LA SEMANA",
-    subtitle: "Descuentos hasta 30% en procesadores y memorias RAM",
+    title: "Ofertas de la Semana",
+    subtitle: "Descuentos hasta 30% en procesadores, memorias RAM y tarjetas de video. Equipate al mejor precio sin comprometer el rendimiento.",
     cta: "Ver ofertas",
     href: "#",
     bg: "linear-gradient(135deg, #0f0f0f 0%, #1a1a00 50%, #2d2200 100%)",
     accent: "#d97706",
+    video: "/videos/video3.mp4",
   },
 ];
 
