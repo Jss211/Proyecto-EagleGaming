@@ -7,6 +7,7 @@ import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LiquidMetalButton } from "../components/ui/liquid-metal-button";
+import { ProductReviewForm, ProductReviewList } from "../components/product/ProductReviews";
 
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -155,9 +156,12 @@ export function ProductDetailPage() {
                 ))}
               </div>
             )}
+            
+            {/* Formulario de Reseñas */}
+            <ProductReviewForm productId={product.id} />
           </div>
 
-          {/* Columna Derecha: Detalles */}
+          {/* Columna Derecha: Detalles del Producto */}
           <div style={{ flex: "1 1 500px" }}>
             <h1 className="product-title" style={{ fontSize: "1.8rem", fontWeight: "bold", color: "#222", marginBottom: "1rem", lineHeight: "1.3" }}>
               {title}
@@ -201,6 +205,9 @@ export function ProductDetailPage() {
                 width={380} 
               />
             </div>
+
+            {/* Lista de Reseñas */}
+            <ProductReviewList productId={product.id} />
           </div>
         </div>
       </main>

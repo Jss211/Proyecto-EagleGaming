@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { ShoppingCart, User, Menu, X } from "lucide-react";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
@@ -24,9 +24,9 @@ export function Navbar() {
       <div className="navbar__inner">
 
         {/* Logo */}
-        <Link to="/" className="navbar__logo" aria-label="Ir al inicio Eagle Gaming">
+        <NavLink to="/" className="navbar__logo" aria-label="Ir al inicio Eagle Gaming">
           <img src="/icono.png" alt="Eagle Gaming" className="navbar__logo-img" />
-        </Link>
+        </NavLink>
 
         {/* Categorias */}
         <button className="navbar__categories-btn" aria-label="Abrir categorias">
@@ -48,9 +48,9 @@ export function Navbar() {
 
         {/* Links */}
         <nav className="navbar__links" aria-label="Navegacion principal">
-          <Link to="/" className="navbar__link">Inicio</Link>
-          <Link to="/nosotros" className="navbar__link navbar__link--nosotros">Nosotros</Link>
-          <Link to="/contactenos" className="navbar__link navbar__link--contactenos">Contactenos</Link>
+          <NavLink to="/" end className="navbar__link">Inicio</NavLink>
+          <NavLink to="/nosotros" className="navbar__link navbar__link--nosotros">Nosotros</NavLink>
+          <NavLink to="/contactenos" className="navbar__link navbar__link--contactenos">Contactenos</NavLink>
         </nav>
 
         {/* Carrito */}
@@ -83,9 +83,9 @@ export function Navbar() {
 
       {mobileMenuOpen && (
         <nav className="navbar__mobile-menu" aria-label="Navegacion movil">
-          <Link to="/" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Inicio</Link>
-          <Link to="/nosotros" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Nosotros</Link>
-          <Link to="/contactenos" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Contactenos</Link>
+          <NavLink to="/" end className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Inicio</NavLink>
+          <NavLink to="/nosotros" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Nosotros</NavLink>
+          <NavLink to="/contactenos" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Contactenos</NavLink>
           <button className="navbar__mobile-link text-left" onClick={() => { navigate(currentUser ? "/cuenta" : "/login"); setMobileMenuOpen(false); }}>
             {accountLabel}
           </button>
