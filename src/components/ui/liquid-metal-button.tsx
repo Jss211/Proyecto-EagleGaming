@@ -113,9 +113,23 @@ export function LiquidMetalButton({
       }
     };
 
-    loadShader();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            loadShader();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (buttonRef.current) {
+      observer.observe(buttonRef.current);
+    }
 
     return () => {
+      observer.disconnect();
       destroyShader();
     };
   }, []);
@@ -295,7 +309,7 @@ export function LiquidMetalButton({
                     : "0px 0px 0px 1px rgba(0, 0, 0, 0.3), 0px 36px 14px 0px rgba(0, 0, 0, 0.02), 0px 20px 12px 0px rgba(0, 0, 0, 0.08), 0px 9px 9px 0px rgba(0, 0, 0, 0.12), 0px 2px 5px 0px rgba(0, 0, 0, 0.15)",
                 transition:
                   "all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.4s ease, height 0.4s ease, box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1)",
-                background: "rgb(0 0 0 / 0)",
+                background: "linear-gradient(180deg, #f23869 0%, #e81950 100%)",
               }}
             >
               <div

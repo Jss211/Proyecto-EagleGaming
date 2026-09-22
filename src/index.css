@@ -995,6 +995,28 @@ body {
   font-size: 0.88rem;
   transition: color 0.15s ease;
   white-space: nowrap;
+  position: relative; /* Added for absolute underline */
+}
+
+.navbar__link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 0;
+  height: 2px;
+  background-color: #e81950;
+  transition: width 0.3s ease, left 0.3s ease;
+}
+
+.navbar__link.active {
+  color: #e81950;
+  font-weight: 600;
+}
+
+.navbar__link.active::after {
+  width: 100%;
+  left: 0;
 }
 
 .navbar__link--nosotros {
@@ -1007,6 +1029,11 @@ body {
 
 .navbar__link:hover {
   color: #e81950;
+}
+
+.navbar__link:hover::after {
+  width: 100%;
+  left: 0;
 }
 
 .navbar__icon-btn {
@@ -1117,6 +1144,12 @@ body {
 .navbar__mobile-link:hover {
   background: #fef2f2;
   color: #e81950;
+}
+
+.navbar__mobile-link.active {
+  color: #e81950;
+  background: #fef2f2;
+  font-weight: 600;
 }
 
 /* ---------- SecondaryNav ---------- */
