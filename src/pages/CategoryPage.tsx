@@ -9,40 +9,94 @@ import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 export function CategoryPage() {
-  const { id } = useParams();
+  const { id, subcategoria } = useParams<{
+    id: string;
+    subcategoria?: string;
+  }>();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [id]);
+  }, [id, subcategoria]);
 
   useEffect(() => {
     const fetchCategoryProducts = async () => {
-      if (!id) return;
+      if (!id) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
       try {
-        const q = query(collection(db, "productos"), where("categoria", "==", id.toLowerCase()));
+        const categoria = id.toLowerCase();
+        const subcategoriaId = subcategoria?.toLowerCase();
+
+        let q;
+
+        // Si estamos dentro de una subcategoría
+        if (subcategoriaId) {
+          q = query(
+            collection(db, "productos"),
+            where("categoria", "==", categoria),
+            where("subcategoria", "==", subcategoriaId)
+          );
+        } else {
+          // Categoría principal
+          q = query(
+            collection(db, "productos"),
+            where("categoria", "==", categoria)
+          );
+        }
+
         const querySnapshot = await getDocs(q);
-        const fetchedProducts = querySnapshot.docs.map((doc) => {
+
+        const fetchedProducts: Product[] = querySnapshot.docs.map((doc) => {
           const data = doc.data();
+
           return {
             id: doc.id,
-            name: data.titulo || data.nombre || `${data.marca || ""} ${data.modelo || ""}`.trim(),
-            category: data.categoria || id,
+            name:
+              data.titulo ||
+              data.nombre ||
+              `${data.marca || ""} ${data.modelo || ""}`.trim(),
+            category: data.categoria || categoria,
             price: data.precio || 0,
-            imageUrl: data.url || "https://placehold.co/400x300?text=" + id.toUpperCase(),
+            imageUrl:
+              data.url ||
+              `https://placehold.co/400x300?text=${encodeURIComponent(
+                subcategoriaId || categoria
+              )}`,
           };
         });
+
         setProducts(fetchedProducts);
       } catch (error) {
         console.error("Error obteniendo productos:", error);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchCategoryProducts();
-  }, [id]);
+  }, [id, subcategoria]);
+
+  const formatTitle = (value?: string) => {
+    if (!value) return "PRODUCTOS";
+
+    return value
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const pageTitle = subcategoria
+    ? formatTitle(subcategoria)
+    : formatTitle(id);
 
   return (
     <div className="home-page">
@@ -51,16 +105,30 @@ export function CategoryPage() {
 
       <main style={{ minHeight: "60vh", padding: "2rem 0" }}>
         {loading ? (
-          <div style={{ textAlign: "center", padding: "4rem" }}>Cargando {id}...</div>
+          <div
+            style={{
+              textAlign: "center",
+              padding: "4rem",
+            }}
+          >
+            Cargando productos...
+          </div>
         ) : (
           <div style={{ padding: "0 2rem" }}>
-            <ProductGrid 
-              title={id ? id.toUpperCase() : "PRODUCTOS"} 
-              products={products} 
+            <ProductGrid
+              title={pageTitle}
+              products={products}
             />
+
             {products.length === 0 && (
-              <p style={{ textAlign: "center", color: "#666", marginTop: "2rem" }}>
-                No hay productos en esta categorÍa por ahora.
+              <p
+                style={{
+                  textAlign: "center",
+                  color: "#666",
+                  marginTop: "2rem",
+                }}
+              >
+                No hay productos en esta sección por ahora.
               </p>
             )}
           </div>
@@ -71,4 +139,3 @@ export function CategoryPage() {
     </div>
   );
 }
-

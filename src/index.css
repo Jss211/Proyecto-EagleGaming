@@ -937,6 +937,7 @@ body {
 }
 
 .navbar-category-sidebar {
+  margin-top: 5px;
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
@@ -945,7 +946,7 @@ body {
   grid-template-columns: 260px minmax(360px, 1fr);
   width: min(1040px, calc(100vw - 16px));
   border: 1px solid #e5e7eb;
-  border-radius: 0 0 16px 16px;
+  border-radius: 16px;
   background: #ffffff;
   box-shadow: 0 14px 32px rgba(17, 24, 39, 0.18);
   animation: navbar-category-sidebar-in 0.18s ease-out;
@@ -978,7 +979,7 @@ body {
 .navbar-category-sidebar__nav {
   grid-column: 1;
   display: grid;
-  background: #e11d24;
+  background: #3a1de1;
 }
 
 .navbar-category-sidebar__preview {
