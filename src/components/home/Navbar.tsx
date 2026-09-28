@@ -1,6 +1,5 @@
 import { useCart } from "../../context/CartContext";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
   User,
@@ -19,6 +18,7 @@ import {
   Gamepad2,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
 
@@ -129,6 +129,9 @@ export function Navbar() {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/buscar?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   }
 
   return (
@@ -136,9 +139,9 @@ export function Navbar() {
       <p className="sr-only" role="status">{notice}</p>
       <div className="navbar__inner">
         {/* Logo */}
-        <Link to="/" className="navbar__logo" aria-label="Ir al inicio Eagle Gaming">
+        <NavLink to="/" className="navbar__logo" aria-label="Ir al inicio Eagle Gaming">
           <img src="/icono.png" alt="Eagle Gaming" className="navbar__logo-img" />
-        </Link>
+        </NavLink>
 
         {/* Categorias */}
         <div
@@ -231,15 +234,28 @@ export function Navbar() {
 
         {/* Links */}
         <nav className="navbar__links" aria-label="Navegacion principal">
-          <Link to="/" className="navbar__link">Inicio</Link>
-          <Link to="/nosotros" className="navbar__link navbar__link--nosotros">Nosotros</Link>
-          <Link to="/contactenos" className="navbar__link navbar__link--contactenos">Contactenos</Link>
+          <NavLink to="/" end className="navbar__link">Inicio</NavLink>
+          <NavLink to="/nosotros" className="navbar__link navbar__link--nosotros">Nosotros</NavLink>
+          <NavLink to="/contactenos" className="navbar__link navbar__link--contactenos">Contactenos</NavLink>
         </nav>
 
         {/* Carrito */}
-        <button type="button" className="navbar__icon-btn" aria-label={`Ver carrito de compras: ${totalItems} unidades`} onClick={() => navigate("/carrito")}>
-          <ShoppingCart className="w-5 h-5" />
-          <span className="navbar__cart-badge" aria-live="polite">{totalItems}</span>
+        <button
+          type="button"
+          className="relative inline-flex items-center justify-center p-2.5 text-gray-700 transition-colors duration-200 rounded-full hover:bg-red-50 hover:text-red-600 active:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+          aria-label={`Ver carrito de compras: ${totalItems} unidades`}
+          onClick={() => navigate("/carrito")}
+        >
+          <ShoppingCart className="w-6 h-6 stroke-[1.75]" />
+          
+          {totalItems > 0 && (
+            <span 
+              className="absolute top-0 right-0 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-semibold text-white shadow-sm ring-2 ring-white"
+              aria-live="polite"
+            >
+              {totalItems > 99 ? "99+" : totalItems}
+            </span>
+          )}
         </button>
 
         {/* Acceder */}
@@ -266,9 +282,9 @@ export function Navbar() {
 
       {mobileMenuOpen && (
         <nav className="navbar__mobile-menu" aria-label="Navegacion movil">
-          <Link to="/" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Inicio</Link>
-          <Link to="/nosotros" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Nosotros</Link>
-          <Link to="/contactenos" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Contactenos</Link>
+          <NavLink to="/" end className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Inicio</NavLink>
+          <NavLink to="/nosotros" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Nosotros</NavLink>
+          <NavLink to="/contactenos" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Contactenos</NavLink>
           <button className="navbar__mobile-link text-left" onClick={() => { navigate(currentUser ? "/cuenta" : "/login"); setMobileMenuOpen(false); }}>
             {accountLabel}
           </button>

@@ -158,14 +158,14 @@ export const InfoCard: React.FC<InfoCardProps> = ({
           padding: "0 0 8px 0",
         }}
       >
-        <div style={{ width: "100%", height: "200px", position: "relative", overflow: "hidden" }}>
+        <div style={{ width: "100%", height: "200px", position: "relative", overflow: "hidden", backgroundColor: "white" }}>
           <img
             src={image}
             alt={title}
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "cover",
+              objectFit: "contain",
               display: "block",
             }}
           />
@@ -182,7 +182,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
         >
           <h1
             style={{
-              fontSize: 21,
+              fontSize: title.length > 15 ? 12 : 18,
               fontWeight: "bold",
               letterSpacing: "-.01em",
               lineHeight: "normal",

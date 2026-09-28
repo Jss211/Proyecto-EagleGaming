@@ -16,7 +16,7 @@ export function PromoBanners() {
           >
             <Icon className="promo-banner__icon" aria-hidden="true" />
             <div className="promo-banner__text">
-              <span className="promo-banner__title">{banner.text}</span>
+              <span className="promo-banner__title page-title">{banner.text}</span>
               <span className="promo-banner__sub">{banner.sub}</span>
             </div>
           </div>

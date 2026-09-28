@@ -91,9 +91,27 @@ function DropdownMenu({ item }: { item: NavItem }) {
   );
 }
 
-export function SecondaryNav() {
+export function SecondaryNav({ alwaysVisible = false }: { alwaysVisible?: boolean }) {
+  const [visible, setVisible] = useState(alwaysVisible);
+
+  useEffect(() => {
+    if (alwaysVisible) {
+      setVisible(true);
+      return;
+    }
+    const handleScroll = () => {
+      setVisible(window.scrollY > 80);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // check on mount
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [alwaysVisible]);
+
   return (
-    <nav className="secondary-nav" aria-label="Navegación secundaria">
+    <nav
+      className={`secondary-nav${visible ? " secondary-nav--visible" : ""}`}
+      aria-label="Navegación secundaria"
+    >
       {NAV_ITEMS.map((item) => (
         <DropdownMenu key={item.label} item={item} />
       ))}

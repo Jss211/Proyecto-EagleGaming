@@ -92,8 +92,8 @@ export function Footer() {
               <span className="site-footer__pill">Enlaces</span>
               <ul className="site-footer__link-list">
                 <li><Link to="/"  className="site-footer__link">Inicio</Link></li>
-                <li><Link to="#"  className="site-footer__link">Nosotros</Link></li>
-                <li><Link to="#"  className="site-footer__link">Tienda</Link></li>
+                <li><Link to="/nosotros"  className="site-footer__link">Nosotros</Link></li>
+                <li><Link to="/"  className="site-footer__link">Tienda</Link></li>
               </ul>
             </div>
           </div>
