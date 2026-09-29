@@ -12,6 +12,10 @@
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
     "@paper-design/shaders": "^0.0.80",
+    "@paper-design/shaders-react": "^0.0.81",
+    "@radix-ui/react-avatar": "^1.2.6",
+    "@radix-ui/react-separator": "^1.1.15",
+    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "firebase": "^12.18.0",
     "lucide-react": "^1.38.0",

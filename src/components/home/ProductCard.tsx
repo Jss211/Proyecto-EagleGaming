@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
-import { LiquidMetalButton } from "../ui/liquid-metal-button";
+import { LiquidMetalButton } from "../../components/ui/liquid-metal-button";
 
 export interface Product {
   id: string;

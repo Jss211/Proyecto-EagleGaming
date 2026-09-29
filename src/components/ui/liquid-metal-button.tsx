@@ -45,58 +45,164 @@ export function LiquidMetalButton({
   const rippleId = useRef(0);
   const buttonWidth = viewMode === "icon" ? 46 : width;
 
-  // Crear el efecto metálico.
+  // Velocidad actual del shader (se guarda en un ref para poder
+  // reaplicarla cada vez que el shader se vuelve a crear).
+  const speedRef = useRef(0.6);
+  speedRef.current = added ? 2.4 : isHovered ? 1 : 0.6;
+
+  /**
+   * Montaje del shader basado en visibilidad real.
+   *
+   * CAUSA DEL ERROR: cada botón crea un contexto WebGL. Los navegadores
+   * permiten ~16 contextos activos; al superarlos, el navegador "mata" los
+   * más antiguos (los primeros botones de la página) y esos quedan
+   * congelados hasta que se vuelven a montar (cambiar de vista / recargar).
+   *
+   * SOLUCIÓN:
+   *  1. El shader solo existe mientras el botón está visible en pantalla
+   *     (se destruye al salir y se crea al entrar), así nunca se acumulan
+   *     contextos WebGL.
+   *  2. Si aun así el contexto se pierde, se detecta y se recrea solo.
+   */
   useEffect(() => {
     const container = shaderRef.current;
-
     if (!container) return;
 
     let instance: ShaderMount | null = null;
+    let visible = false;
+    let disposed = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let detachContextListener: (() => void) | null = null;
 
-    try {
-      instance = new ShaderMount(
-        container,
-        liquidMetalFragmentShader,
-        {
-          u_repetition: 4,
-          u_softness: 0.5,
-          u_shiftRed: 0.3,
-          u_shiftBlue: 0.3,
-          u_distortion: 0,
-          u_contour: 0,
-          u_angle: 45,
-          u_scale: 8,
-          u_shape: 0,
-          u_offsetX: 0.1,
-          u_offsetY: -0.1,
-        },
-        undefined,
-        0.6,
-      );
+    const destroyShader = () => {
+      detachContextListener?.();
+      detachContextListener = null;
 
-      shaderMount.current = instance;
-    } catch (error) {
-      console.error(
-        "No se pudo cargar el efecto metálico:",
-        error,
-      );
-    }
+      if (instance) {
+        try {
+          instance.dispose();
+        } catch {
+          /* ignorar errores al liberar */
+        }
+
+        if (shaderMount.current === instance) {
+          shaderMount.current = null;
+        }
+
+        instance = null;
+      }
+    };
+
+    const createShader = () => {
+      if (disposed || instance || !visible) return;
+
+      const rect = container.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+
+      try {
+        instance = new ShaderMount(
+          container,
+          liquidMetalFragmentShader,
+          {
+            u_repetition: 4,
+            u_softness: 0.5,
+            u_shiftRed: 0.3,
+            u_shiftBlue: 0.3,
+            u_distortion: 0,
+            u_contour: 0,
+            u_angle: 45,
+            u_scale: 8,
+            u_shape: 0,
+            u_offsetX: 0.1,
+            u_offsetY: -0.1,
+          },
+          undefined,
+          speedRef.current,
+        );
+
+        shaderMount.current = instance;
+
+        // Si el navegador pierde el contexto WebGL, lo recreamos.
+        const canvas = container.querySelector("canvas");
+
+        if (canvas) {
+          const onContextLost = (event: Event) => {
+            event.preventDefault();
+            destroyShader();
+
+            if (retryTimer) clearTimeout(retryTimer);
+
+            retryTimer = setTimeout(() => {
+              retryTimer = null;
+              createShader();
+            }, 250);
+          };
+
+          canvas.addEventListener(
+            "webglcontextlost",
+            onContextLost,
+          );
+
+          detachContextListener = () =>
+            canvas.removeEventListener(
+              "webglcontextlost",
+              onContextLost,
+            );
+        }
+      } catch (error) {
+        instance = null;
+        console.error(
+          "Error al inicializar el shader metálico:",
+          error,
+        );
+      }
+    };
+
+    // Crear al entrar en pantalla y destruir al salir.
+    const intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          visible = entry.isIntersecting;
+
+          if (visible) {
+            createShader();
+          } else {
+            destroyShader();
+          }
+        });
+      },
+      { threshold: 0.01, rootMargin: "120px" },
+    );
+
+    // Por si el contenedor pasa de display:none a visible (pestañas).
+    const resizeObserver = new ResizeObserver((entries) => {
+      entries.forEach((entry) => {
+        if (
+          entry.contentRect.width > 0 &&
+          entry.contentRect.height > 0
+        ) {
+          createShader();
+        }
+      });
+    });
+
+    intersectionObserver.observe(container);
+    resizeObserver.observe(container);
 
     return () => {
-      // El método correcto de esta librería es dispose().
-      instance?.dispose();
+      disposed = true;
 
-      if (shaderMount.current === instance) {
-        shaderMount.current = null;
-      }
+      if (retryTimer) clearTimeout(retryTimer);
+
+      intersectionObserver.disconnect();
+      resizeObserver.disconnect();
+      destroyShader();
     };
   }, []);
 
   // Ajustar la velocidad del efecto metálico.
   useEffect(() => {
-    shaderMount.current?.setSpeed(
-      added ? 2.4 : isHovered ? 1 : 0.6,
-    );
+    shaderMount.current?.setSpeed(speedRef.current);
   }, [added, isHovered]);
 
   // Limpiar temporizadores al salir del componente.

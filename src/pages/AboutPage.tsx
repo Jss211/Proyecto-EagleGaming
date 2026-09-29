@@ -17,14 +17,7 @@ import {
 } from "lucide-react";
 import { AnimatedButton } from "../components/ui/AnimatedButton";
 
-// Interfaces para tipos de datos
-interface StatItem {
-  id: string;
-  label: string;
-  value: number;
-  suffix: string;
-  icon: React.ReactNode;
-}
+
 
 interface FeatureItem {
   title: string;

@@ -1,12 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export function TermsPage() {
+  const navigate = useNavigate();
   return (
-    <div className="legal-page">
+    <div className="legal-page">  
       <div className="legal-page__container">
-        <Link to="/register" className="back-link">
-          ← Volver al registro
-        </Link>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="back-link"
+        >
+          ← Volver
+        </button>
 
         <h1 className="legal-page__title">Términos de uso</h1>
         <p className="legal-page__updated">Última actualización: 02/09/2026</p>
@@ -19,7 +24,7 @@ export function TermsPage() {
         </section>
 
         <section className="legal-section">
-          <h2>Descripción del Sitio</h2>
+          <h2>Modificaciones del Sitio</h2>
           <p>
             Nos reservamos el derecho de modificar o eliminar cualquier contenido en este sitio en cualquier momento sin previo aviso.
           </p>
@@ -56,7 +61,7 @@ export function TermsPage() {
         <section className="legal-section">
           <h2>Privacidad</h2>
           <p>
-            Su privacidad y seguridad es muy importante. Consulta nuestra {" "}  
+            Su privacidad y seguridad son muy importantes. Consulta nuestra {" "}  
             <Link to="/privacidad" className="privacy-link">
                Política de Privacidad
             </Link>
@@ -66,7 +71,7 @@ export function TermsPage() {
         <section className="legal-section">
           <h2>Jurisdicción</h2>
           <p>
-            Estos Términos se rigen por las leyes de este País
+            Estos Términos se rigen por las leyes de la República del Perú.
           </p>
         </section>
 

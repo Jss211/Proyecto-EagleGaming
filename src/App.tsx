@@ -1,9 +1,12 @@
 import {
-BrowserRouter,
-Routes,
-Route,
-Navigate,
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
 } from "react-router-dom";
+
+import { useEffect } from "react";
 
 import { CarouselProvider } from "./context/CarouselContext";
 import { CartProvider } from "./context/CartContext";
@@ -22,61 +25,71 @@ import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
-return (
-<CartProvider>
-<CarouselProvider>
-<BrowserRouter>
-<Routes>
-<Route path="/" element={<HomePage />} />
+  return (
+    <CartProvider>
+      <CarouselProvider>
+        <BrowserRouter>
+          <ScrollToTop />
 
-        <Route
-          path="/producto/:id"
-          element={<ProductDetailPage />}
-        />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
 
-        <Route
-          path="/categoria/:id"
-          element={<CategoryPage />}
-        />
+            <Route
+              path="/producto/:id"
+              element={<ProductDetailPage />}
+            />
 
-        <Route
-          path="/categoria/:id/:subcategoria"
-          element={<CategoryPage />}
-        />
+            <Route
+              path="/categoria/:id"
+              element={<CategoryPage />}
+            />
 
-        <Route path="/carrito" element={<CartPage />} />
+            <Route
+              path="/categoria/:id/:subcategoria"
+              element={<CategoryPage />}
+            />
 
-        <Route path="/nosotros" element={<AboutPage />} />
+            <Route path="/carrito" element={<CartPage />} />
 
-        <Route path="/contactenos" element={<ContactPage />} />
+            <Route path="/nosotros" element={<AboutPage />} />
 
-        <Route path="/buscar" element={<SearchResultsPage />} />
+            <Route path="/contactenos" element={<ContactPage />} />
 
-        <Route path="/register" element={<RegisterPage />} />
+            <Route path="/buscar" element={<SearchResultsPage />} />
 
-        <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-        <Route path="/cuenta" element={<AccountPage />} />
+            <Route path="/login" element={<LoginPage />} />
 
-        <Route
-          path="/forgot-password"
-          element={<ForgotPasswordPage />}
-        />
+            <Route path="/cuenta" element={<AccountPage />} />
 
-        <Route path="/terminos" element={<TermsPage />} />
+            <Route
+              path="/forgot-password"
+              element={<ForgotPasswordPage />}
+            />
 
-        <Route path="/privacidad" element={<PrivacyPage />} />
+            <Route path="/terminos" element={<TermsPage />} />
 
-        <Route
-          path="*"
-          element={<Navigate to="/" replace />}
-        />
-      </Routes>
-    </BrowserRouter>
-  </CarouselProvider>
-</CartProvider>
+            <Route path="/privacidad" element={<PrivacyPage />} />
 
-
-);
+            <Route
+              path="*"
+              element={<Navigate to="/" replace />}
+            />
+          </Routes>
+        </BrowserRouter>
+      </CarouselProvider>
+    </CartProvider>
+  );
 }
