@@ -31,8 +31,14 @@ export function CategoryPage() {
           if (searchId.includes("laptop") && category.includes("laptop")) matches = true;
           else if ((searchId.includes("refrig") || searchId.includes("liquida")) && (category.includes("refrig") || category.includes("liquida"))) matches = true;
           else if (searchId.includes("monitor") && category.includes("monitor")) matches = true;
-          else if (searchId.includes("pc") && category.includes("pc")) matches = true;
           else if (searchId.includes("procesador") && category.includes("procesador")) matches = true;
+          else if (searchId.includes("pc") && category.includes("pc")) {
+            // Check specific types of PC if specified in searchId
+            if (searchId.includes("gamer") && !category.includes("gamer")) matches = false;
+            else if (searchId.includes("oficina") && !category.includes("oficina")) matches = false;
+            else if (searchId.includes("ingenieria") && !category.includes("ingenieria")) matches = false;
+            else matches = true;
+          }
           else if (category === searchId) matches = true;
           
           if (matches) {

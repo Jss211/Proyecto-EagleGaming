@@ -8,6 +8,7 @@ import { Footer } from "../components/home/Footer";
 import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
+import { CombosSection } from "../components/home/CombosSection";
 
 export function HomePage() {
   const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
@@ -67,6 +68,8 @@ export function HomePage() {
       <main className="home-main">
         <HeroCarousel />
         <CategoriesSection />
+        
+        <CombosSection />
         
         <div style={{ padding: "0 2rem", marginTop: "2rem", display: "flex", flexDirection: "column", gap: "3rem", marginBottom: "4rem" }}>
           {loading ? (

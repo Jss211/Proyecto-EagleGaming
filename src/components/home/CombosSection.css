@@ -1,0 +1,111 @@
+.combos-section {
+  padding: 2rem;
+  margin-top: 2rem;
+  background-color: #f8f9fa; /* Light background */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.combos-main-title {
+  margin-bottom: 3rem;
+  text-align: center;
+  width: 100%;
+  font-family: 'Audiowide', sans-serif;
+  color: #1a1a1a;
+  text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .combos-main-title {
+    margin-bottom: 2rem;
+  }
+}
+
+.combos-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: stretch; /* Change to stretch to make cards equal height */
+  gap: 2rem;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.combo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+  width: 30%;
+  height: 100%;
+}
+
+.combo-card:hover {
+  transform: translateY(-5px);
+}
+
+.combo-image-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  flex-grow: 1; /* Let image wrapper grow if needed, or maintain aspect */
+  align-items: flex-end; /* Align images to the bottom of their wrapper */
+}
+
+.combo-image {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.combo-content {
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between; /* Space out title and button */
+  gap: 1rem;
+  width: 100%;
+  flex-grow: 1;
+}
+
+.combo-title {
+  color: #1a1a1a; /* Dark text for light mode */
+  font-family: 'Audiowide', sans-serif;
+  font-size: 1.5rem;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.combo-button {
+  background-color: var(--border-color-1, #e81950);
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.combo-button:hover {
+  background-color: var(--border-color-3, #9f1239);
+}
+
+@media (max-width: 768px) {
+  .combos-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .combo-card {
+    width: 80%;
+    margin-bottom: 2rem;
+  }
+}
