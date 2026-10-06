@@ -50,7 +50,7 @@ export function HeroCarousel() {
     return () => clearInterval(timer);
   }, [current, next]);
 
-  const slide = HERO_SLIDES[current];
+
 
   return (
     <section className="hero-carousel" aria-label="Carrusel de promociones">

@@ -1,3 +1,4 @@
+import { useCart } from "../context/CartContext";
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Navbar } from "../components/home/Navbar";
@@ -11,6 +12,7 @@ import { ProductReviewForm, ProductReviewList } from "../components/product/Prod
 
 export function ProductDetailPage() {
   const { id } = useParams();
+  const { addItem } = useCart();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -200,7 +202,8 @@ export function ProductDetailPage() {
 
             <div className="flex justify-center w-full mt-4">
               <LiquidMetalButton 
-                label="AÑADIR AL CARRITO" 
+                label="AÑADIR AL CARRITO"
+                onClick={() => addItem({ id: id!, name: title, category: product.categoria || "", price: Number(price), imageUrl: images[0] })}
                 viewMode="text" 
                 width={380} 
               />

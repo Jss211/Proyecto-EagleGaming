@@ -10,48 +10,115 @@ import { collection, getDocs, query } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
 import { CombosSection } from "../components/home/CombosSection";
 
+type CategoryKey =
+  | "productos en tendencia"
+  | "laptops"
+  | "pc completa"
+  | "procesadores"
+  | "monitores"
+  | "refrigeracion";
+
+type ProductsByCategory = Record<CategoryKey, Product[]>;
+
+// Orden en el que se muestran las secciones en la página
+const SECTIONS: { key: CategoryKey; title: string }[] = [
+  { key: "productos en tendencia", title: "Productos en tendencia" },
+  { key: "laptops", title: "Laptops Destacadas" },
+  { key: "pc completa", title: "PC Completas" },
+  { key: "procesadores", title: "Procesadores" },
+  { key: "monitores", title: "Monitores" },
+  { key: "refrigeracion", title: "Refrigeración Líquida" },
+];
+
+const createEmptyGroups = (): ProductsByCategory => ({
+  "productos en tendencia": [],
+  laptops: [],
+  "pc completa": [],
+  procesadores: [],
+  monitores: [],
+  refrigeracion: [],
+});
+
+// Devuelve el primer campo que exista (Firestore puede tener variaciones de nombre)
+const pickField = (data: Record<string, unknown>, keys: string[]): unknown => {
+  for (const key of keys) {
+    const value = data[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return undefined;
+};
+
+// Minúsculas y sin tildes, para comparar categorías de forma robusta
+const normalize = (text: string): string =>
+  text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+const getCategoryKey = (category: string): CategoryKey | null => {
+  const cat = normalize(category);
+
+  if (cat.includes("laptop")) return "laptops";
+  if (cat.includes("refrig") || cat.includes("liquida")) return "refrigeracion";
+  if (cat.includes("monitor")) return "monitores";
+  if (cat.includes("pc")) return "pc completa";
+  if (cat.includes("procesador")) return "procesadores";
+  return null;
+};
+
+const isTrending = (data: Record<string, unknown>): boolean => {
+  const value = pickField(data, ["tendencia", "Tendencia"]);
+  return value === true || value === "true";
+};
+
+const buildProduct = (id: string, data: Record<string, unknown>): Product => {
+  const marca = String(pickField(data, ["marca", "Marca"]) ?? "");
+  const modelo = String(pickField(data, ["modelo", "Modelo"]) ?? "");
+
+  const name =
+    pickField(data, ["titulo", "Titulo", "título", "Título", "nombre", "Nombre"]) ??
+    (`${marca} ${modelo}`.trim() || "Producto sin título");
+
+  return {
+    id,
+    name: String(name),
+    category: String(pickField(data, ["categoria", "Categoria", "categoría", "Categoría"]) ?? ""),
+    price: Number(pickField(data, ["precio", "Precio"]) ?? 0),
+    imageUrl: String(pickField(data, ["url", "Url"]) ?? "https://placehold.co/400x300?text=Producto"),
+  };
+};
+
 export function HomePage() {
-  const [productsByCategory, setProductsByCategory] = useState<Record<string, Product[]>>({});
+  const [productsByCategory, setProductsByCategory] = useState<ProductsByCategory>(createEmptyGroups());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const q = query(collection(db, "productos"));
-        const querySnapshot = await getDocs(q);
-        
-        const grouped: Record<string, Product[]> = {
-          "laptops": [],
-          "refrigeracion": [],
-          "monitores": [],
-          "pc completa": [],
-          "procesadores": [],
-          "otros": []
-        };
-        
-        querySnapshot.docs.forEach(doc => {
-          const data = doc.data();
-          const product: Product = {
-            id: doc.id,
-            name: data.titulo || data.Titulo || data.título || data.Título || data.nombre || data.Nombre || `${data.marca || data.Marca || ""} ${data.modelo || data.Modelo || ""}`.trim() || "Producto sin título",
-            category: data.categoria || data.Categoria || data.categoría || data.Categoría || "otros",
-            price: data.precio || data.Precio || 0,
-            imageUrl: data.url || data.Url || "https://placehold.co/400x300?text=Producto"
-          };
-          
-          const cat = product.category.toLowerCase();
-          
-          if (cat.includes("laptop")) grouped["laptops"].push(product);
-          else if (cat.includes("refrig") || cat.includes("liquida")) grouped["refrigeracion"].push(product);
-          else if (cat.includes("monitor")) grouped["monitores"].push(product);
-          else if (cat.includes("pc")) grouped["pc completa"].push(product);
-          else if (cat.includes("procesador")) grouped["procesadores"].push(product);
-          else grouped["otros"].push(product);
+        const querySnapshot = await getDocs(query(collection(db, "productos")));
+        const grouped = createEmptyGroups();
+
+        querySnapshot.docs.forEach((doc) => {
+          const data = doc.data() as Record<string, unknown>;
+          const product = buildProduct(doc.id, data);
+
+          // Un producto puede estar en "tendencia" y además en su categoría
+          if (isTrending(data)) {
+            grouped["productos en tendencia"].push(product);
+          }
+
+          const categoryKey = getCategoryKey(product.category);
+          if (categoryKey) {
+            grouped[categoryKey].push(product);
+          }
         });
-        
+
         setProductsByCategory(grouped);
+        setError(null);
       } catch (error) {
         console.error("Error al obtener productos:", error);
+        setError("No se pudieron cargar los productos. Revisa la configuración de Firebase.");
       } finally {
         setLoading(false);
       }
@@ -68,33 +135,39 @@ export function HomePage() {
       <main className="home-main">
         <HeroCarousel />
         <CategoriesSection />
-        
         <CombosSection />
-        
-        <div style={{ padding: "0 2rem", marginTop: "2rem", display: "flex", flexDirection: "column", gap: "3rem", marginBottom: "4rem" }}>
+
+        <div
+          style={{
+            padding: "0 2rem",
+            marginTop: "2rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "3rem",
+            marginBottom: "4rem",
+          }}
+        >
           {loading ? (
             <div style={{ textAlign: "center", padding: "2rem" }}>Cargando productos...</div>
+          ) : error ? (
+            <div
+              role="alert"
+              style={{
+                textAlign: "center",
+                padding: "2rem",
+                color: "#b91c1c",
+                background: "#fef2f2",
+                borderRadius: "0.75rem",
+              }}
+            >
+              {error}
+            </div>
           ) : (
-            <>
-              {productsByCategory["laptops"]?.length > 0 && (
-                <ProductGrid title="Laptops Destacadas" products={productsByCategory["laptops"]} />
-              )}
-              {productsByCategory["pc completa"]?.length > 0 && (
-                <ProductGrid title="PC Completas" products={productsByCategory["pc completa"]} />
-              )}
-              {productsByCategory["procesadores"]?.length > 0 && (
-                <ProductGrid title="Procesadores" products={productsByCategory["procesadores"]} />
-              )}
-              {productsByCategory["monitores"]?.length > 0 && (
-                <ProductGrid title="Monitores" products={productsByCategory["monitores"]} />
-              )}
-              {productsByCategory["refrigeracion"]?.length > 0 && (
-                <ProductGrid title="Refrigeración Líquida" products={productsByCategory["refrigeracion"]} />
-              )}
-              {productsByCategory["otros"]?.length > 0 && (
-                <ProductGrid title="Otros Productos" products={productsByCategory["otros"]} />
-              )}
-            </>
+            SECTIONS.map(({ key, title }) =>
+              productsByCategory[key].length > 0 ? (
+                <ProductGrid key={key} title={title} products={productsByCategory[key]} />
+              ) : null
+            )
           )}
         </div>
       </main>

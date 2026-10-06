@@ -1,13 +1,17 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function PrivacyPage() {
+  const navigate = useNavigate();
   return (
     <div className="legal-page">
       <div className="legal-page__container">
-        <Link to="/register" className="back-link">
-        ← Volver al registro
-        </Link>
-
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="back-link"
+        >
+          ← Volver
+        </button>
         <h1 className="legal-page__title">Política de privacidad</h1>
         <p className="legal-page__updated">Última actualización: 02/09/2026</p>
         <p>El presente Política de Privacidad establece los términos en que se usa y protege la información que es proporcionada por sus usuarios al momento de utilizar su sitio web. Esta compañía está comprometida con la seguridad de los datos de sus usuarios. Cuando le pedimos llenar los campos de información personal con la cual usted pueda ser identificado, lo hacemos asegurando que sólo se empleará de acuerdo con los términos de este documento. Sin embargo esta Política de Privacidad puede cambiar con el tiempo o ser actualizada por lo que le recomendamos y enfatizamos revisar continuamente esta página para asegurarse que está de acuerdo con dichos cambios.</p>

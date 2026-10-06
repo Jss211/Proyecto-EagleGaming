@@ -6,88 +6,157 @@ import { Footer } from "../components/home/Footer";
 import { ProductGrid } from "../components/home/ProductGrid";
 import type { Product } from "../components/home/ProductCard";
 import { db } from "../firebase";
-import { collection, query, getDocs } from "firebase/firestore";
+import {
+collection,
+query,
+getDocs,
+where,
+} from "firebase/firestore";
 
 export function CategoryPage() {
-  const { id } = useParams();
+const { id, subcategoria } = useParams<{
+ id: string;
+ subcategoria?: string;
+}>();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchCategoryProducts = async () => {
-      if (!id) return;
-      try {
-        const q = query(collection(db, "productos"));
-        const querySnapshot = await getDocs(q);
-        
-        const fetchedProducts: Product[] = [];
-        const searchId = id.toLowerCase().replace("-", " ");
-        
-        querySnapshot.docs.forEach((doc) => {
-          const data = doc.data();
-          const category = (data.categoria || data.Categoria || data.categoría || data.Categoría || "").toLowerCase();
-          
-          let matches = false;
-          if (searchId.includes("laptop") && category.includes("laptop")) matches = true;
-          else if ((searchId.includes("refrig") || searchId.includes("liquida")) && (category.includes("refrig") || category.includes("liquida"))) matches = true;
-          else if (searchId.includes("monitor") && category.includes("monitor")) matches = true;
-          else if (searchId.includes("procesador") && category.includes("procesador")) matches = true;
-          else if (searchId.includes("pc") && category.includes("pc")) {
-            // Check specific types of PC if specified in searchId
-            if (searchId.includes("gamer") && !category.includes("gamer")) matches = false;
-            else if (searchId.includes("oficina") && !category.includes("oficina")) matches = false;
-            else if (searchId.includes("ingenieria") && !category.includes("ingenieria")) matches = false;
-            else matches = true;
-          }
-          else if (category === searchId) matches = true;
-          
-          if (matches) {
-            fetchedProducts.push({
-              id: doc.id,
-              name: data.titulo || data.Titulo || data.título || data.Título || data.nombre || data.Nombre || `${data.marca || data.Marca || ""} ${data.modelo || data.Modelo || ""}`.trim() || "Producto sin título",
-              category: data.categoria || data.Categoria || data.categoría || data.Categoría || id,
-              price: data.precio || data.Precio || 0,
-              imageUrl: data.url || data.Url || "https://placehold.co/400x300?text=" + id.toUpperCase(),
-            });
-          }
-        });
-        
-        setProducts(fetchedProducts);
-      } catch (error) {
-        console.error("Error obteniendo productos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [id, subcategoria]);
 
-    fetchCategoryProducts();
-  }, [id]);
+  useEffect(() => {
+    const fetchCategoryProducts = async () => {
+      if (!id) {
+        setProducts([]);
+        setLoading(false);
+        return;
+      }
 
-  return (
-    <div className="home-page">
-      <Navbar />
-      <SecondaryNav alwaysVisible />
+      setLoading(true);
 
-      <main style={{ minHeight: "60vh", padding: "2rem 0" }}>
-        {loading ? (
-          <div style={{ textAlign: "center", padding: "4rem" }}>Cargando {id}...</div>
-        ) : (
-          <div style={{ padding: "0 2rem" }}>
-            <ProductGrid 
-              title={id ? id.toUpperCase() : "PRODUCTOS"} 
-              products={products} 
-            />
-            {products.length === 0 && (
-              <p style={{ textAlign: "center", color: "#666", marginTop: "2rem" }}>
-                No hay productos en esta categorÍa por ahora.
-              </p>
-            )}
-          </div>
-        )}
-      </main>
+      try {
+        const categoria = id.toLowerCase();
+        const subcategoriaId = subcategoria?.toLowerCase();
 
-      <Footer />
-    </div>
-  );
+        let q;
+
+        if (subcategoriaId) {
+          q = query(
+            collection(db, "productos"),
+            where("categoria", "==", categoria),
+            where("subcategoria", "==", subcategoriaId)
+          );
+        } else {
+          q = query(
+            collection(db, "productos"),
+            where("categoria", "==", categoria)
+          );
+        }
+
+        const querySnapshot = await getDocs(q);
+
+        const fetchedProducts: Product[] = querySnapshot.docs.map((doc) => {
+          const data = doc.data();
+
+          return {
+            id: doc.id,
+            name:
+              data.titulo ||
+              data.Titulo ||
+              data.título ||
+              data.Título ||
+              data.nombre ||
+              data.Nombre ||
+              `${data.marca || data.Marca || ""} ${
+                data.modelo || data.Modelo || ""
+              }`.trim() ||
+              "Producto sin título",
+
+                category:
+                data.categoria ||
+                data.Categoria ||
+                data.categoría ||
+                data.Categoría ||
+                categoria,
+
+                price: data.precio || data.Precio || 0,
+
+            imageUrl:
+              data.url ||
+              data.Url ||
+              `https://placehold.co/400x300?text=${encodeURIComponent(
+                subcategoriaId || categoria
+              )}`,
+          };
+        });
+
+        setProducts(fetchedProducts);
+      } catch (error) {
+        console.error("Error obteniendo productos:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCategoryProducts();
+  }, [id, subcategoria]);
+
+  const formatTitle = (value?: string) => {
+    if (!value) return "PRODUCTOS";
+
+    return value
+      .split("-")
+      .map(
+        (word) =>
+          word.charAt(0).toUpperCase() + word.slice(1)
+      )
+      .join(" ");
+  };
+
+  const pageTitle = subcategoria
+    ? formatTitle(subcategoria)
+    : formatTitle(id);
+
+  return (
+    <div className="home-page">
+      <Navbar />
+      <SecondaryNav alwaysVisible />
+
+      <main style={{ minHeight: "60vh", padding: "2rem 0" }}>
+        {loading ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "4rem",
+            }}
+          >
+            Cargando productos...
+          </div>
+        ) : (
+          <div style={{ padding: "0 2rem" }}>
+            <ProductGrid
+              title={pageTitle}
+              products={products}
+            />
+
+            {products.length === 0 && (
+              <p
+                style={{
+                  textAlign: "center",
+                  color: "#666",
+                  marginTop: "2rem",
+                }}
+              >
+                No hay productos en esta sección por ahora.
+              </p>
+            )}
+          </div>
+        )}
+      </main>
+
+      <Footer />
+    </div>
+  );
 }
-
