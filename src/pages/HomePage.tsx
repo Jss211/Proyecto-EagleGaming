@@ -90,6 +90,7 @@ const buildProduct = (id: string, data: Record<string, unknown>): Product => {
 export function HomePage() {
   const [productsByCategory, setProductsByCategory] = useState<ProductsByCategory>(createEmptyGroups());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -113,8 +114,10 @@ export function HomePage() {
         });
 
         setProductsByCategory(grouped);
+        setError(null);
       } catch (error) {
         console.error("Error al obtener productos:", error);
+        setError("No se pudieron cargar los productos. Revisa la configuración de Firebase.");
       } finally {
         setLoading(false);
       }
@@ -144,6 +147,19 @@ export function HomePage() {
         >
           {loading ? (
             <div style={{ textAlign: "center", padding: "2rem" }}>Cargando productos...</div>
+          ) : error ? (
+            <div
+              role="alert"
+              style={{
+                textAlign: "center",
+                padding: "2rem",
+                color: "#b91c1c",
+                background: "#fef2f2",
+                borderRadius: "0.75rem",
+              }}
+            >
+              {error}
+            </div>
           ) : (
             SECTIONS.map(({ key, title }) =>
               productsByCategory[key].length > 0 ? (
