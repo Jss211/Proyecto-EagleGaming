@@ -24,6 +24,7 @@ import { PrivacyPage } from "./pages/PrivacyPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
+import { Chatbot } from "./chatbot-frontend/Chatbot";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -88,6 +89,7 @@ export default function App() {
               element={<Navigate to="/" replace />}
             />
           </Routes>
+          <Chatbot />
         </BrowserRouter>
       </CarouselProvider>
     </CartProvider>
