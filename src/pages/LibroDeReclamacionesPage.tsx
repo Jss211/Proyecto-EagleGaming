@@ -3,9 +3,11 @@ import { Link } from "react-router-dom";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 import { Footer } from "../components/home/Footer";
-import { CheckCircle2, Printer, ArrowLeft, Send } from "lucide-react";
+import { CheckCircle2, Printer, ArrowLeft, Send, Mail } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
+
+const SUPPORT_EMAIL = "soporte.eaglegaming@gmail.com";
 
 interface ClaimData {
   claimCode: string;
@@ -127,6 +129,7 @@ export function LibroDeReclamacionesPage() {
       request: formData.request.trim(),
     };
 
+    // 1. Guardar en Firestore
     try {
       await addDoc(collection(db, "reclamaciones"), {
         ...record,
@@ -134,6 +137,46 @@ export function LibroDeReclamacionesPage() {
       });
     } catch (err) {
       console.warn("Guardado local de reclamación:", err);
+    }
+
+    // 2. Enviar automáticamente al correo de soporte
+    try {
+      await fetch(`https://formsubmit.co/ajax/${SUPPORT_EMAIL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          _subject: `[Libro de Reclamaciones] ${record.claimType.toUpperCase()} #${record.claimCode} - ${record.fullName}`,
+          _replyto: record.email,
+          _template: "table",
+          _captcha: "false",
+          "N° de Hoja de Reclamación": record.claimCode,
+          "Fecha y Hora": record.createdAt,
+          "Tipo": record.claimType === "reclamo" ? "RECLAMO (Disconformidad sobre producto o servicio)" : "QUEJA (Malestar o descontento con la atención)",
+          "Nombre del Consumidor": record.fullName,
+          "Documento": `${record.docType}: ${record.docNumber}`,
+          "Teléfono": record.phone,
+          "Correo Electrónico": record.email,
+          "Dirección Completa": `${record.address}, ${record.district}, ${record.province}, ${record.department}`,
+          "Es Menor de Edad": record.isMinor ? "SÍ" : "NO",
+          ...(record.isMinor
+            ? {
+                "Nombre del Apoderado": record.guardianName || "-",
+                "Documento del Apoderado": record.guardianDoc || "-",
+              }
+            : {}),
+          "Tipo de Bien": record.itemType.toUpperCase(),
+          "Monto Reclamado": record.claimedAmount ? `S/ ${record.claimedAmount}` : "No indicado",
+          "N° Pedido / Boleta": record.orderNumber || "No indicado",
+          "Descripción del Bien": record.itemDescription,
+          "Detalle de la Reclamación": record.detail,
+          "Pedido Concreto": record.request,
+        }),
+      });
+    } catch (emailErr) {
+      console.warn("Error enviando notificación a soporte:", emailErr);
     } finally {
       setSubmitting(false);
       setSubmittedClaim(record);
@@ -193,7 +236,7 @@ export function LibroDeReclamacionesPage() {
                 </p>
                 <p className="text-gray-500 font-semibold mt-2">Contacto:</p>
                 <p className="text-gray-900 font-medium">
-                  eaglegamingperu@gmail.com | +51 986 638 034
+                  {SUPPORT_EMAIL} | +51 986 638 034
                 </p>
               </div>
             </div>
@@ -287,9 +330,21 @@ export function LibroDeReclamacionesPage() {
               </div>
             </div>
 
-            <div className="mt-6 p-4 rounded bg-gray-50 border border-gray-200 text-xs text-gray-600 leading-relaxed">
+            <div className="mt-6 p-4 rounded bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 flex items-start gap-3">
+              <Mail className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-emerald-950">
+                  Notificación enviada a soporte ({SUPPORT_EMAIL})
+                </p>
+                <p className="text-emerald-800 mt-0.5 leading-relaxed">
+                  Los datos de esta reclamación fueron transmitidos automáticamente a nuestro equipo de atención al cliente para su gestión inmediata.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 rounded bg-gray-50 border border-gray-200 text-xs text-gray-600 leading-relaxed">
               <p>
-                <strong>Plazo de Respuesta:</strong> Conforme al Código de Protección y Defensa del Consumidor (Ley N° 29571), la respuesta será remitida en un plazo máximo de quince (15) días hábiles al correo electrónico registrado.
+                <strong>Plazo de Respuesta:</strong> Conforme al Código de Protección y Defensa del Consumidor (Ley N° 29571), la respuesta será remitida en un plazo máximo de quince (15) días hábiles al correo electrónico registrado (<strong>{submittedClaim.email}</strong>).
               </p>
             </div>
 
