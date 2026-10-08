@@ -24,6 +24,8 @@ import { PrivacyPage } from "./pages/PrivacyPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
+import { ArmaTuPCPage } from "./pages/ArmaTuPCPage";
+import { LibroDeReclamacionesPage } from "./pages/LibroDeReclamacionesPage";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -60,6 +62,8 @@ export default function App() {
               element={<CategoryPage />}
             />
 
+            <Route path="/arma-tu-pc" element={<ArmaTuPCPage />} />
+
             <Route path="/carrito" element={<CartPage />} />
 
             <Route path="/nosotros" element={<AboutPage />} />
@@ -82,6 +86,9 @@ export default function App() {
             <Route path="/terminos" element={<TermsPage />} />
 
             <Route path="/privacidad" element={<PrivacyPage />} />
+
+            <Route path="/libro-de-reclamaciones" element={<LibroDeReclamacionesPage />} />
+            <Route path="/reclamaciones" element={<LibroDeReclamacionesPage />} />
 
             <Route
               path="*"

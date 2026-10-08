@@ -179,7 +179,7 @@ export function AccountPage() {
   return (
     <>
       <Navbar />
-      <SecondaryNav alwaysVisible />
+      <SecondaryNav />
       <main className="account-page">
         <div className="account-shell">
           <header className="mb-10 border-b border-slate-700/30 pb-8">
