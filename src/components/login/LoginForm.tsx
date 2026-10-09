@@ -33,8 +33,14 @@ export function LoginForm() {
     setMessage(null)
 
     try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password)
-      navigate('/')
+      const credenciales = await signInWithEmailAndPassword(auth, formData.email, formData.password)
+      
+      // LOGIN MÁGICO: Aquí revisamos si el correo es el tuyo
+      if (credenciales.user.email === 'tu_correo_admin@eaglegaming.com') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     } catch (error) {
       setMessage(mapFirebaseError(error))
     } finally {
@@ -47,8 +53,14 @@ export function LoginForm() {
     setMessage(null)
 
     try {
-      await signInWithPopup(auth, googleProvider)
-      navigate('/')
+      const credenciales = await signInWithPopup(auth, googleProvider)
+      
+      // LOGIN MÁGICO PARA GOOGLE
+      if (credenciales.user.email === 'tu_correo_admin@eaglegaming.com') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     } catch (error) {
       setMessage(mapFirebaseError(error))
     } finally {

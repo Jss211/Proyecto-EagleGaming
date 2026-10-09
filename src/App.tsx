@@ -24,6 +24,9 @@ import { PrivacyPage } from "./pages/PrivacyPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
+import { AdminLogin } from "./pages/AdminLogin";
+import { AdminPanel } from "./pages/AdminPanel";
+import { AdminRoute } from "./components/AdminRoute";
 import { Chatbot } from "./chatbot-frontend/Chatbot";
 
 function ScrollToTop() {
@@ -45,6 +48,17 @@ export default function App() {
 
           <Routes>
             <Route path="/" element={<HomePage />} />
+
+            <Route path="/admin-login" element={<AdminLogin />} />
+
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPanel />
+                </AdminRoute>
+              }
+            />
 
             <Route
               path="/producto/:id"
