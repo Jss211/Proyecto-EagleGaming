@@ -8,6 +8,7 @@ import { Footer } from "../components/home/Footer";
 import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
+import { CombosSection } from "../components/home/CombosSection";
 
 type CategoryKey =
   | "productos en tendencia"
@@ -134,6 +135,7 @@ export function HomePage() {
       <main className="home-main">
         <HeroCarousel />
         <CategoriesSection />
+        <CombosSection />
 
         <div
           style={{

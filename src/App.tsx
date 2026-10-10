@@ -26,6 +26,10 @@ import { ContactPage } from "./pages/ContactPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
 import { ArmaTuPCPage } from "./pages/ArmaTuPCPage";
 import { LibroDeReclamacionesPage } from "./pages/LibroDeReclamacionesPage";
+import { AdminLogin } from "./pages/AdminLogin";
+import { AdminPanel } from "./pages/AdminPanel";
+import { AdminRoute } from "./components/AdminRoute";
+import { Chatbot } from "./chatbot-frontend/Chatbot";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -46,6 +50,17 @@ export default function App() {
 
           <Routes>
             <Route path="/" element={<HomePage />} />
+
+            <Route path="/admin-login" element={<AdminLogin />} />
+
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <AdminPanel />
+                </AdminRoute>
+              }
+            />
 
             <Route
               path="/producto/:id"
@@ -95,6 +110,7 @@ export default function App() {
               element={<Navigate to="/" replace />}
             />
           </Routes>
+          <Chatbot />
         </BrowserRouter>
       </CarouselProvider>
     </CartProvider>
