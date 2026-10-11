@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 import { Footer } from "../components/home/Footer";
+import { ProductCard } from "../components/home/ProductCard";
 import type { Product } from "../components/home/ProductCard";
 import { useCart } from "../context/CartContext";
 import { db } from "../firebase";
@@ -17,7 +18,14 @@ const normalize = (text: string): string =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")  // quita tildes
     .replace(/-/g, " ")               // guiones → espacios
+    .replace(/[^a-z0-9 ]+/g, "")      // quita otros caracteres especiales para comparar
     .trim();
+
+export const normalizeSlug = (text: string) => 
+  text.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
 
 /**
  * Mapa de id-de-ruta → términos que pueden aparecer en el campo "categoria"
@@ -28,6 +36,10 @@ const CATEGORY_TERMS: Record<string, string[]> = {
   "monitores":         ["monitor"],
   "case":              ["case", "gabinete", "caja"],
   "pc-completa":       ["pc completa", "pc-completa", "computadora completa", "equipo completo"],
+  "pc-gamer":          ["gamer", "gaming"],
+  "pc-oficina":        ["oficina"],
+  "pc-ingenierias":    ["ingenieria", "workstation"],
+  "pc-diseno":         ["diseno", "diseño", "render"],
   "disco-ssd":         ["disco ssd", "disco-ssd", "ssd", "disco solido", "disco duro ssd"],
   "estabilizador":     ["estabilizador", "ups", "regulador"],
   "fuente-de-poder":   ["fuente de poder", "fuente-de-poder", "fuente poder", "psu"],
@@ -137,15 +149,20 @@ const matchesSubcategory = (
   const subField = normalize(
     String(pickField(data, ["subcategoria", "Subcategoria", "subcategoría"]) ?? "")
   );
+  const catField = normalize(
+    String(pickField(data, ["categoria", "Categoria", "categoría", "Categoría"]) ?? "")
+  );
 
-  if (!subField) return false;
+  const fieldToSearch = `${subField} ${catField}`.trim();
+
+  if (!fieldToSearch) return false;
 
   const terms = SUBCATEGORY_TERMS[subcategoryId];
   if (!terms) {
-    return subField.includes(normalize(subcategoryId));
+    return fieldToSearch.includes(normalize(subcategoryId));
   }
 
-  return terms.some((t) => subField.includes(t));
+  return terms.some((t) => fieldToSearch.includes(t));
 };
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -193,13 +210,28 @@ const getLabel = (slug?: string) =>
 
 export function CategoryPage() {
   const { id, subcategoria } = useParams<{ id: string; subcategoria?: string }>();
+  const [searchParams] = useSearchParams();
+  const filterMarca = searchParams.get("marca");
+  const filterPantalla = searchParams.get("pantalla");
   const [products, setProducts]   = useState<Product[]>([]);
   const [loading, setLoading]     = useState(true);
+
+  // Filtros de Sidebar
+  const [globalMinPrice, setGlobalMinPrice] = useState<number>(0);
+  const [globalMaxPrice, setGlobalMaxPrice] = useState<number>(9999);
+  
+  const [minPriceInput, setMinPriceInput] = useState<string>("");
+  const [maxPriceInput, setMaxPriceInput] = useState<string>("");
+  const [appliedMinPrice, setAppliedMinPrice] = useState<number | null>(null);
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<string>("default");
+
+  const { addItem } = useCart();
 
   // Scroll al inicio al cambiar de categoría
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [id, subcategoria]);
+  }, [id, subcategoria, filterMarca, filterPantalla]);
 
   useEffect(() => {
     if (!id) {
@@ -219,6 +251,8 @@ export function CategoryPage() {
         const snapshot = await getDocs(collection(db, "productos"));
 
         const filtered: Product[] = [];
+        let globalMin = Infinity;
+        let globalMax = -Infinity;
 
         snapshot.docs.forEach((doc) => {
           const data = doc.data() as Record<string, unknown>;
@@ -228,10 +262,42 @@ export function CategoryPage() {
 
           if (subcategoria && !matchesSubcategory(data, subcategoria)) return;
 
-          filtered.push(buildProduct(doc.id, data));
+          // Check dynamic brand filter
+          if (filterMarca) {
+            const marca = String(data.marca || data.Marca || "");
+            if (normalizeSlug(marca) !== filterMarca) return;
+          }
+
+          // Check dynamic attribute filter
+          if (filterPantalla) {
+            const pantalla = String(data["tamaño de pantalla"] || data["pulgadas"] || data.tamaño || data.procesador || data.capacidad || "");
+            if (normalizeSlug(pantalla) !== filterPantalla) return;
+          }
+
+          const product = buildProduct(doc.id, data);
+          filtered.push(product);
+          
+          if (product.price < globalMin) globalMin = product.price;
+          if (product.price > globalMax) globalMax = product.price;
         });
 
         setProducts(filtered);
+        
+        if (filtered.length > 0) {
+          setGlobalMinPrice(globalMin);
+          setGlobalMaxPrice(globalMax);
+          setMinPriceInput(globalMin.toString());
+          setMaxPriceInput(globalMax.toString());
+          // Optional: we can reset applied prices so it shows all by default
+          setAppliedMinPrice(null);
+          setAppliedMaxPrice(null);
+        } else {
+          setGlobalMinPrice(0);
+          setGlobalMaxPrice(9999);
+          setMinPriceInput("");
+          setMaxPriceInput("");
+        }
+
       } catch (err) {
         console.error("Error al obtener productos de categoría:", err);
         setProducts([]);
@@ -241,166 +307,167 @@ export function CategoryPage() {
     };
 
     fetchProducts();
-  }, [id, subcategoria]);
+  }, [id, subcategoria, filterMarca, filterPantalla]);
 
   const categoryLabel = getLabel(id);
-  const subcategoryLabel = subcategoria ? getLabel(subcategoria) : null;
+  const subcategoryLabel = filterPantalla ? filterPantalla.replace(/-/g, ' ') : (filterMarca ? filterMarca.replace(/-/g, ' ') : (subcategoria ? getLabel(subcategoria) : null));
+
+  // Aplicar filtros locales (precio) y ordenamiento
+  const displayedProducts = products.filter(p => {
+    if (appliedMinPrice !== null && p.price < appliedMinPrice) return false;
+    if (appliedMaxPrice !== null && p.price > appliedMaxPrice) return false;
+    return true;
+  }).sort((a, b) => {
+    if (sortBy === "price-asc") return a.price - b.price;
+    if (sortBy === "price-desc") return b.price - a.price;
+    return 0; // default (podría ser por fecha o id)
+  });
+
+  const handleApplyPriceFilter = () => {
+    setAppliedMinPrice(minPriceInput ? Number(minPriceInput) : null);
+    setAppliedMaxPrice(maxPriceInput ? Number(maxPriceInput) : null);
+  };
 
   return (
     <div className="home-page">
       <Navbar />
       <SecondaryNav />
 
-      <main style={{ minHeight: "60vh", background: "#f8fafc" }}>
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "1.25rem 2rem 3rem" }}>
-
+      <main style={{ minHeight: "60vh", background: "#f3f4f6" }}>
+        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
+          
           {/* Breadcrumb */}
-          <nav style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.82rem", color: "#555", marginBottom: "0.75rem" }}>
-            <a href="/" style={{ color: "#e81950", textDecoration: "none", fontWeight: 600 }}>← Home</a>
-            <span style={{ color: "#999" }}>/</span>
-            <a href={`/categoria/${id}`} style={{ color: subcategoria ? "#555" : "#333", textDecoration: "none" }}>
+          <nav style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "#6b7280", marginBottom: "1.5rem" }}>
+            <Link to="/" style={{ color: "#e81950", textDecoration: "none", fontWeight: 500 }}>Inicio</Link>
+            <span>/</span>
+            <Link to={`/categoria/${id}`} style={{ color: subcategoria ? "#6b7280" : "#111827", textDecoration: "none", fontWeight: subcategoria ? 400 : 500 }}>
               {categoryLabel}
-            </a>
+            </Link>
             {subcategoryLabel && (
               <>
-                <span style={{ color: "#999" }}>/</span>
-                <span style={{ color: "#333" }}>{subcategoryLabel}</span>
+                <span>/</span>
+                <span style={{ color: "#111827", fontWeight: 500, textTransform: 'capitalize' }}>{subcategoryLabel}</span>
               </>
             )}
           </nav>
 
-          {/* Título + contador */}
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "1.5rem" }}>
-            <h1 style={{ fontSize: "1.35rem", fontWeight: 800, color: "#e81950", letterSpacing: "0.04em", textTransform: "uppercase", margin: 0 }}>
-              {subcategoryLabel ?? categoryLabel}
-            </h1>
-            {!loading && (
-              <span style={{ fontSize: "0.82rem", color: "#666" }}>
-                {products.length === 0
-                  ? "Sin resultados"
-                  : `Resultados (${products.length} producto${products.length !== 1 ? "s" : ""})`}
-              </span>
-            )}
-          </div>
+          <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+            
+            {/* SIDEBAR (Filtros) */}
+            <aside style={{ width: "260px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+              <div style={{ background: "#fff", padding: "1.5rem", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", marginBottom: "1.25rem" }}>
+                  Filter By Price
+                </h3>
+                
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <input 
+                    type="range" 
+                    min={globalMinPrice} 
+                    max={globalMaxPrice} 
+                    value={maxPriceInput || globalMaxPrice}
+                    onChange={(e) => setMaxPriceInput(e.target.value)}
+                    style={{ width: "100%", accentColor: "#ea580c", cursor: "pointer" }}
+                  />
+                </div>
 
-          {/* Contenido */}
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "4rem", color: "#555" }}>
-              Cargando productos...
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem" }}>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>Min S/</span>
+                    <input 
+                      type="number" 
+                      value={minPriceInput}
+                      onChange={(e) => setMinPriceInput(e.target.value)}
+                      placeholder="0"
+                      style={{ width: "100%", padding: "0.4rem", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "0.85rem" }}
+                    />
+                  </div>
+                  <span style={{ color: "#9ca3af", marginTop: "1rem" }}>—</span>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>Max S/</span>
+                    <input 
+                      type="number" 
+                      value={maxPriceInput}
+                      onChange={(e) => setMaxPriceInput(e.target.value)}
+                      placeholder="9999"
+                      style={{ width: "100%", padding: "0.4rem", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "0.85rem" }}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={handleApplyPriceFilter}
+                  style={{
+                    width: "100%", padding: "0.5rem", background: "#eff6ff", color: "#1d4ed8",
+                    border: "none", borderRadius: "6px", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", transition: "background 0.2s"
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#eff6ff")}
+                >
+                  Filtrar
+                </button>
+              </div>
+            </aside>
+
+            {/* CONTENIDO PRINCIPAL */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              
+              {/* Header Resultados */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "#111827", margin: 0, textTransform: "capitalize" }}>
+                  {subcategoryLabel ?? categoryLabel}
+                </h1>
+                
+                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                  <span style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+                    {displayedProducts.length > 0 ? `Mostrar: 1-${displayedProducts.length} de ${products.length}` : `0 resultados`}
+                  </span>
+                  
+                  <select 
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    style={{ padding: "0.4rem 2rem 0.4rem 0.8rem", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "0.9rem", background: "#fff", cursor: "pointer", outline: "none" }}
+                  >
+                    <option value="default">Ordenar por defecto</option>
+                    <option value="price-asc">Precio: menor a mayor</option>
+                    <option value="price-desc">Precio: mayor a menor</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Grid Productos */}
+              {loading ? (
+                <div style={{ textAlign: "center", padding: "4rem", color: "#6b7280" }}>
+                  Cargando productos...
+                </div>
+              ) : displayedProducts.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "5rem 0", color: "#9ca3af", background: "#fff", borderRadius: "12px" }}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5" style={{ margin: "0 auto 1rem", display: "block" }}>
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  </svg>
+                  <p style={{ fontSize: "1rem", color: "#4b5563" }}>No se encontraron productos con estos filtros.</p>
+                </div>
+              ) : (
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                  gap: "1.25rem",
+                }}>
+                  {displayedProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      onAddToCart={(product, quantity) => addItem(product, quantity)}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
-          ) : products.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "5rem 0", color: "#999" }}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5" style={{ margin: "0 auto 1rem", display: "block" }}>
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-              </svg>
-              <p style={{ fontSize: "0.95rem" }}>Aún no hay productos en esta categoría.</p>
-              <p style={{ fontSize: "0.82rem", marginTop: "0.4rem" }}>Vuelve pronto, estamos actualizando el catálogo.</p>
-            </div>
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(5, 1fr)",
-                gap: "1rem",
-              }}
-            >
-              {products.map((product) => (
-                <CompactProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       </main>
 
       <Footer />
     </div>
-  );
-}
-
-/* ─── Tarjeta compacta para la vista de categoría ─────────────────────────── */
-
-function CompactProductCard({ product }: { product: Product }) {
-  const imageUrl = product.imageUrl || "https://placehold.co/400x300?text=Producto";
-  const { addItem } = useCart();
-
-  return (
-    <article
-      style={{
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: "0.6rem",
-        overflow: "hidden",
-        transition: "box-shadow 0.2s, transform 0.2s",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 20px rgba(232,25,80,0.15)";
-        (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
-      }}
-      onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.boxShadow = "none";
-        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-      }}
-    >
-      <Link to={`/producto/${product.id}`} style={{ textDecoration: "none", color: "inherit" }}>
-        {/* Imagen */}
-        <div style={{ width: "100%", aspectRatio: "1/1", background: "#f9f9f9", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.75rem" }}>
-          <img
-            src={imageUrl}
-            alt={product.name}
-            style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }}
-          />
-        </div>
-
-        {/* Info */}
-        <div style={{ padding: "0.65rem 0.75rem 0.75rem" }}>
-          <p style={{
-            fontSize: "0.78rem",
-            color: "#333",
-            lineHeight: "1.35",
-            margin: "0 0 0.45rem",
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            minHeight: "2.1rem",
-          }}>
-            {product.name}
-          </p>
-
-          <p style={{ fontSize: "0.95rem", fontWeight: 700, color: "#e81950", margin: "0 0 0.35rem" }}>
-            S/ {product.price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
-          </p>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", fontSize: "0.72rem", color: "#16a34a" }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            En stock
-          </div>
-        </div>
-      </Link>
-
-      {/* Botón agregar al carrito */}
-      <div style={{ padding: "0 0.75rem 0.75rem" }}>
-        <button
-          onClick={() => addItem(product)}
-          style={{
-            width: "100%",
-            padding: "0.45rem 0",
-            fontSize: "0.75rem",
-            fontWeight: 600,
-            color: "#fff",
-            background: "#e81950",
-            border: "none",
-            borderRadius: "0.4rem",
-            cursor: "pointer",
-            transition: "background 0.15s",
-          }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = "#c0143c")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = "#e81950")}
-        >
-          Añadir al carrito
-        </button>
-      </div>
-    </article>
   );
 }

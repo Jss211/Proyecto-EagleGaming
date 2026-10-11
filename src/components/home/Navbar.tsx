@@ -21,6 +21,7 @@ import type { LucideIcon } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
+import { useCategoriesTree } from "../../hooks/useCategoriesTree";
 
 type Subcategory = {
   id: string;
@@ -116,7 +117,9 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const { categoriesTree } = useCategoriesTree();
 
   useEffect(() => onAuthStateChanged(auth, setCurrentUser), []);
 
@@ -150,6 +153,7 @@ export function Navbar() {
           onMouseLeave={() => {
             setCategoriesOpen(false);
             setHoveredCategory(null);
+            setHoveredBrand(null);
           }}
         >
           <button
@@ -164,25 +168,35 @@ export function Navbar() {
           </button>
 
           {categoriesOpen && (
-            <aside id="navbar-category-sidebar" className="navbar-category-sidebar">
-              <div className="navbar-category-sidebar__nav-col">
+            <aside id="navbar-category-sidebar" className="navbar-category-sidebar" style={{ display: 'flex' }}>
+              <div className="navbar-category-sidebar__nav-col" style={{ minWidth: '220px' }}>
                 <nav className="navbar-category-sidebar__nav" aria-label="Categorías de productos">
                   {CATEGORY_LINKS.map((category) => {
                     const CategoryIcon = category.icon;
+                    const dynamicBrands = categoriesTree.find(c => c.id === category.id)?.brands;
+                    const hasChildren = (dynamicBrands && dynamicBrands.length > 0) || (category.subcategories && category.subcategories.length > 0);
+
                     return (
                       <Link
                         key={category.id}
                         to={`/categoria/${category.id}`}
                         className="navbar-category-sidebar__link"
-                        onMouseEnter={() => setHoveredCategory(category.id)}
-                        onClick={() => setCategoriesOpen(false)}
+                        onMouseEnter={() => {
+                          setHoveredCategory(category.id);
+                          setHoveredBrand(null);
+                        }}
+                        onClick={() => {
+                           setCategoriesOpen(false);
+                           setHoveredCategory(null);
+                           setHoveredBrand(null);
+                        }}
                       >
                         <div className="navbar-category-sidebar__link-content">
                           <CategoryIcon className="navbar-category-sidebar__icon w-4 h-4 mr-2 inline-block" />
                           <span>{category.label}</span>
                         </div>
 
-                        {category.subcategories && category.subcategories.length > 0 && (
+                        {hasChildren && (
                           <ChevronRight
                             className="navbar-category-sidebar__arrow"
                             aria-hidden="true"
@@ -194,27 +208,109 @@ export function Navbar() {
                 </nav>
               </div>
 
-              {hoveredCategoryData?.subcategories && (
-                <div className="navbar-category-sidebar__preview">
-                  <div className="navbar-category-sidebar__preview-title">
-                    {hoveredCategoryData.label}
-                  </div>
-                  <nav
-                    className="navbar-category-sidebar__preview-nav"
-                    aria-label={`Subcategorías de ${hoveredCategoryData.label}`}
-                  >
-                    {hoveredCategoryData.subcategories.map((sub) => (
-                      <Link
-                        key={sub.id}
-                        to={`/categoria/${hoveredCategoryData.id}/${sub.id}`}
-                        className="navbar-category-sidebar__preview-link"
-                        onClick={() => setCategoriesOpen(false)}
-                      >
-                        {sub.label}
-                      </Link>
-                    ))}
-                  </nav>
-                </div>
+              {/* LEVEL 2: Brands or Static Subcategories */}
+              {hoveredCategory && (
+                (() => {
+                  const categoryData = CATEGORY_LINKS.find(c => c.id === hoveredCategory);
+                  const dynamicBrands = categoriesTree.find(c => c.id === hoveredCategory)?.brands;
+                  
+                  if (dynamicBrands && dynamicBrands.length > 0) {
+                    return (
+                      <div className="navbar-category-sidebar__preview" style={{ width: '220px', borderLeft: '1px solid #f1f1f1' }}>
+                        <div className="navbar-category-sidebar__preview-title">
+                          Marcas
+                        </div>
+                        <nav
+                          className="navbar-category-sidebar__preview-nav"
+                          aria-label={`Marcas de ${categoryData?.label}`}
+                        >
+                          {dynamicBrands.map((brand) => (
+                            <Link
+                              key={brand.id}
+                              to={`/categoria/${hoveredCategory}?marca=${brand.id}`}
+                              className="navbar-category-sidebar__preview-link"
+                              onMouseEnter={() => setHoveredBrand(brand.id)}
+                              onClick={() => {
+                                setCategoriesOpen(false);
+                                setHoveredCategory(null);
+                                setHoveredBrand(null);
+                              }}
+                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                            >
+                              <span>{brand.label}</span>
+                              {brand.attributes.length > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+                            </Link>
+                          ))}
+                        </nav>
+                      </div>
+                    );
+                  } else if (categoryData?.subcategories && categoryData.subcategories.length > 0) {
+                    return (
+                      <div className="navbar-category-sidebar__preview" style={{ width: '220px', borderLeft: '1px solid #f1f1f1' }}>
+                        <div className="navbar-category-sidebar__preview-title">
+                          {categoryData.label}
+                        </div>
+                        <nav
+                          className="navbar-category-sidebar__preview-nav"
+                          aria-label={`Subcategorías de ${categoryData.label}`}
+                        >
+                          {categoryData.subcategories.map((sub) => (
+                            <Link
+                              key={sub.id}
+                              to={`/categoria/${categoryData.id}/${sub.id}`}
+                              className="navbar-category-sidebar__preview-link"
+                              onClick={() => {
+                                setCategoriesOpen(false);
+                                setHoveredCategory(null);
+                                setHoveredBrand(null);
+                              }}
+                            >
+                              {sub.label}
+                            </Link>
+                          ))}
+                        </nav>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()
+              )}
+
+              {/* LEVEL 3: Attributes (e.g., Inches) */}
+              {hoveredBrand && hoveredCategory && (
+                (() => {
+                  const brandData = categoriesTree.find(c => c.id === hoveredCategory)?.brands.find(b => b.id === hoveredBrand);
+                  
+                  if (brandData && brandData.attributes && brandData.attributes.length > 0) {
+                    return (
+                      <div className="navbar-category-sidebar__preview" style={{ width: '220px', borderLeft: '1px solid #f1f1f1' }}>
+                        <div className="navbar-category-sidebar__preview-title">
+                          Opciones
+                        </div>
+                        <nav
+                          className="navbar-category-sidebar__preview-nav"
+                          aria-label={`Atributos de ${brandData.label}`}
+                        >
+                          {brandData.attributes.map((attr) => (
+                            <Link
+                              key={attr.id}
+                              to={`/categoria/${hoveredCategory}?marca=${brandData.id}&pantalla=${attr.id}`}
+                              className="navbar-category-sidebar__preview-link"
+                              onClick={() => {
+                                setCategoriesOpen(false);
+                                setHoveredCategory(null);
+                                setHoveredBrand(null);
+                              }}
+                            >
+                              {attr.label}
+                            </Link>
+                          ))}
+                        </nav>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()
               )}
             </aside>
           )}
