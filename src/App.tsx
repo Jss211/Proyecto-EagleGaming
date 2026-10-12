@@ -41,6 +41,14 @@ function ScrollToTop() {
   return null;
 }
 
+function ConditionalChatbot() {
+  const { pathname } = useLocation();
+  const hiddenRoutes = ["/login", "/register", "/forgot-password", "/admin-login", "/admin"];
+  const shouldHide = hiddenRoutes.some((route) => pathname.startsWith(route));
+  if (shouldHide) return null;
+  return <Chatbot />;
+}
+
 export default function App() {
   return (
     <CartProvider>
@@ -110,7 +118,7 @@ export default function App() {
               element={<Navigate to="/" replace />}
             />
           </Routes>
-          <Chatbot />
+          <ConditionalChatbot />
         </BrowserRouter>
       </CarouselProvider>
     </CartProvider>

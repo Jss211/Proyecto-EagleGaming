@@ -11,6 +11,8 @@ import {
   UserRound,
   X,
   Headset,
+  LayoutDashboard,
+  ShieldAlert,
 } from "lucide-react";
 import {
   onAuthStateChanged,
@@ -21,6 +23,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
+import { isAdminUser } from "../utils/admin";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 
@@ -243,6 +246,37 @@ export function AccountPage() {
                   <button type="button" className="text-xs font-bold text-red-500 hover:text-red-400 transition-all hover:scale-110 active:scale-95">Contáctanos</button>
                 </div>
               </div>
+
+              {/* Admin Card */}
+              {isAdminUser(currentUser.email) && (
+                <div className="rounded-2xl shadow-md border-2 border-[#e81950] bg-gradient-to-br from-red-50 via-white to-red-50/30 p-6 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-5 w-5 text-[#e81950]" />
+                      <h3 className="text-sm font-black uppercase tracking-wide text-[#e81950]">
+                        Administración
+                      </h3>
+                    </div>
+                    <span className="text-[10px] font-black bg-[#e81950] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      ADMIN
+                    </span>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">Panel de Control</p>
+                    <p className="mt-1 text-xs text-gray-600 leading-relaxed">
+                      Sube productos, gestiona especificaciones y controla el stock de la tienda.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/admin")}
+                    className="w-full mt-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow"
+                  >
+                    <LayoutDashboard className="h-4 w-4 text-[#e81950]" />
+                    <span>Ir al Panel de Admin</span>
+                  </button>
+                </div>
+              )}
             </aside>
 
               {/* Main Details */}

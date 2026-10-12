@@ -2,6 +2,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { useNavigate } from "react-router-dom";
+import { ensureAdminDocument } from "../utils/admin";
 
 export function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -15,7 +16,9 @@ export function AdminLogin() {
 
     try {
       // 1. Firebase intenta iniciar sesión
-      await signInWithEmailAndPassword(auth, email, password);
+      const res = await signInWithEmailAndPassword(auth, email, password);
+      // Asegurar permisos en Firestore
+      await ensureAdminDocument(res.user);
       
       // 2. Si es exitoso, lo mandamos al panel de admin
       navigate("/admin"); 

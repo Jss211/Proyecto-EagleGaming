@@ -35,11 +35,12 @@ export const normalizeSlug = (text: string) =>
 const CATEGORY_TERMS: Record<string, string[]> = {
   "monitores":         ["monitor"],
   "case":              ["case", "gabinete", "caja"],
-  "pc-completa":       ["pc completa", "pc-completa", "computadora completa", "equipo completo"],
-  "pc-gamer":          ["gamer", "gaming"],
-  "pc-oficina":        ["oficina"],
-  "pc-ingenierias":    ["ingenieria", "workstation"],
-  "pc-diseno":         ["diseno", "diseño", "render"],
+  "pc-completa":       ["pc completa", "pc-completa", "computadora completa", "equipo completo", "computadora pc", "computadora gamer", "computadora"],
+  "pc-gamer":          ["pc completa gamer", "pc gamer", "computadora gamer", "gamer", "gaming"],
+  "pc-oficina":        ["pc completa oficina", "pc oficina", "computadora oficina", "oficina", "estudio"],
+  "pc-ingenieria":     ["pc completa ingenieria", "pc completa ingenierias", "ingenieria", "ingenierias", "workstation"],
+  "pc-ingenierias":    ["pc completa ingenieria", "pc completa ingenierias", "ingenieria", "ingenierias", "workstation"],
+  "pc-diseno":         ["pc completa diseno", "pc completa diseño", "diseno", "diseño", "render"],
   "disco-ssd":         ["disco ssd", "disco-ssd", "ssd", "disco solido", "disco duro ssd"],
   "estabilizador":     ["estabilizador", "ups", "regulador"],
   "fuente-de-poder":   ["fuente de poder", "fuente-de-poder", "fuente poder", "psu"],
@@ -54,34 +55,53 @@ const CATEGORY_TERMS: Record<string, string[]> = {
 
 /**
  * Términos adicionales de SUBCATEGORÍA para filtrar dentro de una categoría.
- * Si la subcategoría del producto (normalizada) contiene el término, coincide.
+ * Si la subcategoría o título del producto (normalizado) contiene el término, coincide.
  */
 const SUBCATEGORY_TERMS: Record<string, string[]> = {
-  "gaming":           ["gaming", "gamer"],
-  "alta-frecuencia":  ["alta frecuencia", "alta-frecuencia", "hz"],
-  "curvos":           ["curvo", "curved"],
+  "monitores-24":      ["24", "238", "23.8", "g24i", "te 24", "2477"],
+  "monitores-27":      ["27", "g27i", "g27qi", "gs27qa", "hs2703fc", "te 27"],
+  "monitores-34":      ["34", "te 34", "3412g", "curvo", "curved", "wqhd"],
+  "gaming":            ["gaming", "gamer", "hz", "144hz", "200hz"],
+  "alta-frecuencia":   ["alta frecuencia", "alta-frecuencia", "hz", "144hz", "200hz"],
+  "curvos":            ["curvo", "curved"],
   "calidad-de-imagen": ["calidad de imagen", "4k", "2k", "qhd", "uhd", "ips", "oled"],
-  "pantalla-grande":  ["pantalla grande", "grande", "32", "34", "27"],
-  "oficina-y-estudio":["oficina", "estudio", "trabajo"],
-  "con-fuente":       ["con fuente", "con-fuente"],
-  "sin-fuente":       ["sin fuente", "sin-fuente"],
-  "compactos":        ["compacto", "mini", "itx"],
-  "pc-oficina":       ["oficina"],
-  "pc-gamer":         ["gamer", "gaming"],
-  "pc-ingenierias":   ["ingenieria", "workstation"],
-  "pc-diseno":        ["diseno", "diseño", "render"],
-  "sd-m2":            ["m.2", "m2", "pcie", "nvme"],
-  "ssd-sata":         ["sata", "2.5"],
-  "ddr3":             ["ddr3"],
-  "ddr4":             ["ddr4"],
-  "ddr5":             ["ddr5"],
-  "audifonos":        ["audifono", "auricular", "headset"],
-  "cooler":           ["cooler", "ventilador", "fan"],
-  "teclado":          ["teclado", "keyboard"],
-  "mouse":            ["mouse", "raton"],
-  "parlantes":        ["parlante", "speaker", "bocina"],
-  "webcam":           ["webcam", "camara", "camweb"],
-  "kit-teclado-mouse":["kit", "combo teclado"],
+  "pantalla-grande":   ["pantalla grande", "grande", "32", "34", "27"],
+  "oficina-y-estudio": ["oficina", "estudio", "trabajo"],
+  "con-fuente":        ["con fuente", "con-fuente"],
+  "sin-fuente":        ["sin fuente", "sin-fuente"],
+  "compactos":         ["compacto", "mini", "itx"],
+  "pc-oficina":        ["oficina", "estudio", "trabajo"],
+  "pc-gamer":          ["gamer", "gaming"],
+  "pc-combos":         ["monitor", "kit", "combo", "4 en 1", "completa"],
+  "pc-ingenierias":    ["ingenieria", "ingenierias", "workstation"],
+  "pc-diseno":         ["diseno", "diseño", "render"],
+  "intel":             ["intel", "core", "i3", "i5", "i7", "i9"],
+  "amd":               ["amd", "ryzen", "am4", "am5"],
+  "amd-ryzen":         ["ryzen", "amd"],
+  "nvidia-rtx":        ["rtx", "geforce", "nvidia"],
+  "amd-radeon":        ["radeon", "rx"],
+  "oficina":           ["laptop", "lenovo", "oficina", "estudio", "trabajo", "portatil", "v15"],
+  "240mm":             ["240"],
+  "360mm":             ["360"],
+  "sd-m2":             ["m.2", "m2", "pcie", "nvme"],
+  "ssd-m2":            ["m.2", "m2", "pcie", "nvme"],
+  "ssd-sata":          ["sata", "2.5"],
+  "ddr3":              ["ddr3"],
+  "ddr4":              ["ddr4"],
+  "ddr5":              ["ddr5"],
+  "certificadas":      ["80 plus", "80+", "certificad", "bronze", "gold", "white"],
+  "modulares":         ["modular", "semi modular"],
+  "audifonos":         ["audifono", "auricular", "headset"],
+  "cooler":            ["cooler", "ventilador", "fan"],
+  "teclados":          ["teclado", "keyboard"],
+  "teclado":           ["teclado", "keyboard"],
+  "mouse":             ["mouse", "raton"],
+  "parlantes":         ["parlante", "speaker", "bocina"],
+  "webcam":            ["webcam", "camara", "camweb", "streaming"],
+  "combos":            ["kit", "combo", "4 en 1", "kit gamer"],
+  "kit-teclado-mouse": ["kit", "combo teclado"],
+  "estabilizadores":   ["estabilizador", "regulador"],
+  "ups":               ["ups", "bateria"],
 };
 
 /** Devuelve el primer campo que exista en el objeto */
@@ -126,6 +146,10 @@ const matchesCategory = (
   data: Record<string, unknown>,
   categoryId: string
 ): boolean => {
+  if (categoryId === "todos" || categoryId === "todos-los-productos") {
+    return true;
+  }
+
   const terms = CATEGORY_TERMS[categoryId];
   if (!terms) return false;
 
@@ -140,29 +164,35 @@ const matchesCategory = (
 
 /**
  * Comprueba si un producto coincide con una subcategoría.
- * SOLO compara contra el campo "subcategoria" de Firestore.
+ * Si es 'todas' o 'todos', muestra todo el catálogo de esa categoría.
+ * Revisa el campo subcategoría de Firestore, y si no está definido,
+ * inspecciona de forma inteligente categoría, título y descripción.
  */
 const matchesSubcategory = (
   data: Record<string, unknown>,
   subcategoryId: string
 ): boolean => {
+  if (subcategoryId === "todas" || subcategoryId === "todos") {
+    return true;
+  }
+
   const subField = normalize(
     String(pickField(data, ["subcategoria", "Subcategoria", "subcategoría"]) ?? "")
   );
   const catField = normalize(
     String(pickField(data, ["categoria", "Categoria", "categoría", "Categoría"]) ?? "")
   );
+  const titleField = normalize(
+    String(pickField(data, ["titulo", "Titulo", "título", "Título", "nombre", "Nombre"]) ?? "")
+  );
+  const descField = normalize(
+    String(pickField(data, ["descripcion", "Descripcion", "descripción", "Descripción"]) ?? "")
+  );
 
-  const fieldToSearch = `${subField} ${catField}`.trim();
+  const fullText = `${subField} ${catField} ${titleField} ${descField}`.trim();
 
-  if (!fieldToSearch) return false;
-
-  const terms = SUBCATEGORY_TERMS[subcategoryId];
-  if (!terms) {
-    return fieldToSearch.includes(normalize(subcategoryId));
-  }
-
-  return terms.some((t) => fieldToSearch.includes(t));
+  const terms = SUBCATEGORY_TERMS[subcategoryId] || [normalize(subcategoryId)];
+  return terms.some((t) => fullText.includes(t));
 };
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -178,6 +208,13 @@ const LABEL_MAP: Record<string, string> = {
   "perifericos":       "Periféricos",
   "placa-madre":       "Placa Madre",
   "tarjetas-de-video": "Tarjetas de Video",
+  "procesadores":      "Procesadores",
+  "laptops":           "Laptops",
+  "refrigeracion":     "Refrigeración Líquida",
+  "monitores-24":      "Monitores 24\" (FHD)",
+  "monitores-27":      "Monitores 27\" (2K / 200Hz)",
+  "monitores-34":      "Monitores 34\" Curvos",
+  "pc-combos":         "PC con Monitor y Kit",
   "gaming":            "Gaming",
   "alta-frecuencia":   "Alta Frecuencia",
   "curvos":            "Curvos",
@@ -189,20 +226,38 @@ const LABEL_MAP: Record<string, string> = {
   "compactos":         "Compactos",
   "pc-oficina":        "PC Oficina",
   "pc-gamer":          "PC Gamer",
+  "pc-ingenieria":     "PC Ingenierías",
   "pc-ingenierias":    "PC Ingenierías",
   "pc-diseno":         "PC Diseño",
+  "intel":             "Intel Core",
+  "amd":               "AMD",
+  "amd-ryzen":         "AMD Ryzen",
+  "nvidia-rtx":        "NVIDIA GeForce RTX",
+  "amd-radeon":        "AMD Radeon RX",
+  "oficina":           "Laptops de Oficina / Estudio",
+  "240mm":             "Refrigeración 240mm",
+  "360mm":             "Refrigeración 360mm",
   "sd-m2":             "SSD M.2 PCIe",
+  "ssd-m2":            "SSD M.2 NVMe PCIe",
   "ssd-sata":          "SSD SATA 2.5",
   "ddr3":              "DDR3",
   "ddr4":              "DDR4",
   "ddr5":              "DDR5",
+  "certificadas":      "Fuentes 80 Plus",
+  "modulares":         "Fuentes Modulares",
   "audifonos":         "Audífonos",
   "cooler":            "Cooler",
+  "teclados":          "Teclados Mecánicos",
   "teclado":           "Teclado",
-  "mouse":             "Mouse",
+  "mouse":             "Mouse Gamer",
   "parlantes":         "Parlantes",
-  "webcam":            "Web Cam",
+  "webcam":            "Cámaras & Webcams",
+  "combos":            "Kits Teclado + Mouse",
   "kit-teclado-mouse": "Kit Teclado y Mouse",
+  "estabilizadores":   "Estabilizadores de Voltaje",
+  "ups":               "Sistemas UPS",
+  "todas":             "Todas las Computadoras",
+  "todos":             "Todos los Productos",
 };
 
 const getLabel = (slug?: string) =>
@@ -225,13 +280,20 @@ export function CategoryPage() {
   const [appliedMinPrice, setAppliedMinPrice] = useState<number | null>(null);
   const [appliedMaxPrice, setAppliedMaxPrice] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<string>("default");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const ITEMS_PER_PAGE = 12;
 
   const { addItem } = useCart();
 
   // Scroll al inicio al cambiar de categoría
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+    setCurrentPage(1);
   }, [id, subcategoria, filterMarca, filterPantalla]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [appliedMinPrice, appliedMaxPrice, sortBy]);
 
   useEffect(() => {
     if (!id) {
@@ -322,6 +384,10 @@ export function CategoryPage() {
     if (sortBy === "price-desc") return b.price - a.price;
     return 0; // default (podría ser por fecha o id)
   });
+
+  const totalPages = Math.ceil(displayedProducts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedProducts = displayedProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleApplyPriceFilter = () => {
     setAppliedMinPrice(minPriceInput ? Number(minPriceInput) : null);
@@ -420,7 +486,9 @@ export function CategoryPage() {
                 
                 <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                   <span style={{ fontSize: "0.9rem", color: "#6b7280" }}>
-                    {displayedProducts.length > 0 ? `Mostrar: 1-${displayedProducts.length} de ${products.length}` : `0 resultados`}
+                    {displayedProducts.length > 0
+                      ? `Mostrando: ${startIndex + 1}-${Math.min(startIndex + ITEMS_PER_PAGE, displayedProducts.length)} de ${displayedProducts.length}`
+                      : `0 resultados`}
                   </span>
                   
                   <select 
@@ -445,22 +513,99 @@ export function CategoryPage() {
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5" style={{ margin: "0 auto 1rem", display: "block" }}>
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                   </svg>
-                  <p style={{ fontSize: "1rem", color: "#4b5563" }}>No se encontraron productos con estos filtros.</p>
+                  <p style={{ fontSize: "1.05rem", fontWeight: 600, color: "#374151" }}>No hay productos registrados en esta categoría en la base de datos.</p>
+                  <p style={{ fontSize: "0.85rem", color: "#6b7280", marginTop: "0.4rem" }}>Actualmente no hay unidades disponibles para este filtro.</p>
                 </div>
               ) : (
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                  gap: "1.25rem",
-                }}>
-                  {displayedProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      onAddToCart={(product, quantity) => addItem(product, quantity)}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                    gap: "1.25rem",
+                  }}>
+                    {paginatedProducts.map((product) => (
+                      <ProductCard 
+                        key={product.id} 
+                        product={product} 
+                        onAddToCart={(product) => addItem(product)}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Paginación */}
+                  {totalPages > 1 && (
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem", marginTop: "2.5rem", flexWrap: "wrap" }}>
+                      <button
+                        onClick={() => {
+                          setCurrentPage((prev) => Math.max(prev - 1, 1));
+                          window.scrollTo({ top: 300, behavior: "smooth" });
+                        }}
+                        disabled={currentPage === 1}
+                        style={{
+                          padding: "0.5rem 1rem",
+                          background: currentPage === 1 ? "#f3f4f6" : "#ffffff",
+                          color: currentPage === 1 ? "#9ca3af" : "#111827",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "8px",
+                          cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        ← Anterior
+                      </button>
+
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                        <button
+                          key={pageNum}
+                          onClick={() => {
+                            setCurrentPage(pageNum);
+                            window.scrollTo({ top: 300, behavior: "smooth" });
+                          }}
+                          style={{
+                            width: "38px",
+                            height: "38px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: currentPage === pageNum ? "#e81950" : "#ffffff",
+                            color: currentPage === pageNum ? "#ffffff" : "#374151",
+                            border: currentPage === pageNum ? "1px solid #e81950" : "1px solid #d1d5db",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: "0.88rem",
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          {pageNum}
+                        </button>
+                      ))}
+
+                      <button
+                        onClick={() => {
+                          setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                          window.scrollTo({ top: 300, behavior: "smooth" });
+                        }}
+                        disabled={currentPage === totalPages}
+                        style={{
+                          padding: "0.5rem 1rem",
+                          background: currentPage === totalPages ? "#f3f4f6" : "#ffffff",
+                          color: currentPage === totalPages ? "#9ca3af" : "#111827",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "8px",
+                          cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        Siguiente →
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

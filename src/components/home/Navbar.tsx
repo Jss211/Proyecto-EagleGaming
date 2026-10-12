@@ -16,19 +16,32 @@ import {
   Headphones,
   CircuitBoard,
   Gamepad2,
+  Laptop,
+  Droplets,
+  Snowflake,
+  ShieldCheck,
+  Keyboard,
+  Mouse,
+  Video,
+  Tv,
+  Sparkles,
+  Box,
+  Briefcase,
+  Flame,
+  ArrowRight,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
-import { useCategoriesTree } from "../../hooks/useCategoriesTree";
 
-type Subcategory = {
+export type Subcategory = {
   id: string;
   label: string;
+  icon?: LucideIcon;
 };
 
-type Category = {
+export type Category = {
   id: string;
   label: string;
   icon: LucideIcon;
@@ -41,12 +54,11 @@ const CATEGORY_LINKS: Category[] = [
     label: "Monitores",
     icon: Monitor,
     subcategories: [
-      { id: "gaming", label: "Gaming" },
-      { id: "alta-frecuencia", label: "Alta frecuencia" },
-      { id: "curvos", label: "Curvos" },
-      { id: "calidad-de-imagen", label: "Calidad de imagen" },
-      { id: "pantalla-grande", label: "Pantalla grande" },
-      { id: "oficina-y-estudio", label: "Oficina y estudio" },
+      { id: "monitores-24", label: 'Monitores 24" (FHD)', icon: Monitor },
+      { id: "monitores-27", label: 'Monitores 27" (2K / 200Hz)', icon: Monitor },
+      { id: "monitores-34", label: 'Monitores 34" Curvos', icon: Tv },
+      { id: "gaming", label: "Monitores Gaming", icon: Gamepad2 },
+      { id: "todos", label: "Ver todos los monitores", icon: Sparkles },
     ],
   },
   {
@@ -54,10 +66,10 @@ const CATEGORY_LINKS: Category[] = [
     label: "Case",
     icon: HardDrive,
     subcategories: [
-      { id: "gaming", label: "Gaming" },
-      { id: "con-fuente", label: "Con fuente" },
-      { id: "sin-fuente", label: "Sin fuente" },
-      { id: "compactos", label: "Compactos" },
+      { id: "gaming", label: "Case Gamer", icon: Sparkles },
+      { id: "con-fuente", label: "Case con fuente", icon: Power },
+      { id: "sin-fuente", label: "Case sin fuente", icon: HardDrive },
+      { id: "todos", label: "Ver todos los productos", icon: Box },
     ],
   },
   {
@@ -65,10 +77,10 @@ const CATEGORY_LINKS: Category[] = [
     label: "PC Completa",
     icon: Cpu,
     subcategories: [
-      { id: "pc-oficina", label: "PC Oficina" },
-      { id: "pc-gamer", label: "PC Gamer" },
-      { id: "pc-ingenierias", label: "PC Ingenierias" },
-      { id: "pc-diseño", label: "PC Diseño" },
+      { id: "pc-gamer", label: "PC Gamer", icon: Gamepad2 },
+      { id: "pc-oficina", label: "PC de Oficina", icon: Briefcase },
+      { id: "pc-combos", label: "PC con Monitor y Kit", icon: Monitor },
+      { id: "todas", label: "Ver todas las PC Armadas", icon: Sparkles },
     ],
   },
   {
@@ -76,20 +88,39 @@ const CATEGORY_LINKS: Category[] = [
     label: "Disco SSD",
     icon: Disc,
     subcategories: [
-      { id: "sd-m2", label: "SD M.2 PCIe" },
-      { id: "ssd-sata", label: "SSD SATA 2.5" },
+      { id: "sd-m2", label: "SD M.2 PCIe", icon: Zap },
+      { id: "ssd-sata", label: "SSD SATA 2.5\"", icon: HardDrive },
+      { id: "todos", label: "Ver todos los SSD", icon: Sparkles },
     ],
   },
-  { id: "estabilizador", label: "Estabilizador", icon: Zap },
-  { id: "fuente-de-poder", label: "Fuente de poder", icon: Power },
+  {
+    id: "estabilizador",
+    label: "Estabilizador",
+    icon: Zap,
+    subcategories: [
+      { id: "estabilizadores", label: "Estabilizadores de Voltaje", icon: Zap },
+      { id: "ups", label: "Sistemas UPS", icon: ShieldCheck },
+      { id: "todos", label: "Ver todos los estabilizadores", icon: Sparkles },
+    ],
+  },
+  {
+    id: "fuente-de-poder",
+    label: "Fuente de poder",
+    icon: Power,
+    subcategories: [
+      { id: "certificadas", label: "Fuentes 80 Plus", icon: ShieldCheck },
+      { id: "modulares", label: "Fuentes Modulares", icon: Zap },
+      { id: "todas", label: "Ver todas las fuentes", icon: Sparkles },
+    ],
+  },
   {
     id: "memoria-ram",
     label: "Memoria RAM",
     icon: MemoryStick,
     subcategories: [
-      { id: "ddr3", label: "DDR3" },
-      { id: "ddr4", label: "DDR4" },
-      { id: "ddr5", label: "DDR5" },
+      { id: "ddr4", label: "Memoria RAM DDR4", icon: MemoryStick },
+      { id: "ddr5", label: "Memoria RAM DDR5", icon: Zap },
+      { id: "todas", label: "Ver todas las memorias", icon: Sparkles },
     ],
   },
   {
@@ -97,17 +128,68 @@ const CATEGORY_LINKS: Category[] = [
     label: "Perifericos",
     icon: Headphones,
     subcategories: [
-      { id: "audifonos", label: "Audifonos" },
-      { id: "cooler", label: "Cooler" },
-      { id: "teclado", label: "Teclado" },
-      { id: "mouse", label: "Mouse" },
-      { id: "parlantes", label: "Parlantes" },
-      { id: "webcam", label: "Web cam (camara)" },
-      { id: "kit-teclado-mouse", label: "Kit teclado y mouse" },
+      { id: "teclados", label: "Teclados Mecánicos", icon: Keyboard },
+      { id: "mouse", label: "Mouse Gamer", icon: Mouse },
+      { id: "audifonos", label: "Headsets & Audífonos", icon: Headphones },
+      { id: "webcam", label: "Cámaras & Webcams", icon: Video },
+      { id: "combos", label: "Kits Teclado + Mouse", icon: Sparkles },
+      { id: "todos", label: "Ver todos los periféricos", icon: Sparkles },
     ],
   },
-  { id: "placa-madre", label: "Placa madre", icon: CircuitBoard },
-  { id: "tarjetas-de-video", label: "Tarjetas de video", icon: Gamepad2 },
+  {
+    id: "placa-madre",
+    label: "Placa madre",
+    icon: CircuitBoard,
+    subcategories: [
+      { id: "intel", label: "Placas para Intel", icon: CircuitBoard },
+      { id: "amd", label: "Placas para AMD", icon: Zap },
+      { id: "todas", label: "Ver todas las placas madre", icon: Sparkles },
+    ],
+  },
+  {
+    id: "tarjetas-de-video",
+    label: "Tarjetas de video",
+    icon: Gamepad2,
+    subcategories: [
+      { id: "nvidia-rtx", label: "NVIDIA GeForce RTX", icon: Flame },
+      { id: "amd-radeon", label: "AMD Radeon RX", icon: Zap },
+      { id: "todas", label: "Ver todas las tarjetas", icon: Sparkles },
+    ],
+  },
+  {
+    id: "procesadores",
+    label: "Procesadores",
+    icon: Cpu,
+    subcategories: [
+      { id: "intel", label: "Procesadores Intel Core", icon: Cpu },
+      { id: "amd-ryzen", label: "Procesadores AMD Ryzen", icon: Zap },
+      { id: "todos", label: "Ver todos los procesadores", icon: Sparkles },
+    ],
+  },
+  {
+    id: "laptops",
+    label: "Laptops",
+    icon: Laptop,
+    subcategories: [
+      { id: "oficina", label: "Laptops de Oficina / Estudio", icon: Laptop },
+      { id: "todas", label: "Ver todas las laptops", icon: Sparkles },
+    ],
+  },
+  {
+    id: "refrigeracion",
+    label: "Refrigeración líquida",
+    icon: Droplets,
+    subcategories: [
+      { id: "240mm", label: "Refrigeración líquida 240mm", icon: Droplets },
+      { id: "360mm", label: "Refrigeración líquida 360mm", icon: Snowflake },
+      { id: "todas", label: "Ver sistemas líquidos", icon: Sparkles },
+    ],
+  },
+  {
+    id: "todos",
+    label: "Todos los productos",
+    icon: Box,
+  },
 ];
 
 export function Navbar() {
@@ -116,18 +198,17 @@ export function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
-  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-  const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>("monitores");
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
-  const { categoriesTree } = useCategoriesTree();
 
   useEffect(() => onAuthStateChanged(auth, setCurrentUser), []);
 
   const firstName = currentUser?.displayName?.trim().split(/\s+/)[0];
   const accountLabel = firstName ? `Bienvenido, ${firstName}` : "Acceder";
 
+  const activeCategoryId = hoveredCategory || CATEGORY_LINKS[0].id;
   const hoveredCategoryData = CATEGORY_LINKS.find(
-    (category) => category.id === hoveredCategory
+    (category) => category.id === activeCategoryId
   );
 
   function handleSearch(e: React.FormEvent) {
@@ -149,16 +230,27 @@ export function Navbar() {
         {/* Categorias */}
         <div
           className="navbar__categories-area"
-          onMouseEnter={() => setCategoriesOpen(true)}
+          onMouseEnter={() => {
+            setCategoriesOpen(true);
+            if (!hoveredCategory) {
+              setHoveredCategory(CATEGORY_LINKS[0].id);
+            }
+          }}
           onMouseLeave={() => {
             setCategoriesOpen(false);
-            setHoveredCategory(null);
-            setHoveredBrand(null);
           }}
         >
           <button
             className="navbar__categories-btn"
-            onClick={() => setCategoriesOpen((open) => !open)}
+            onClick={() => {
+              setCategoriesOpen((open) => {
+                const next = !open;
+                if (next && !hoveredCategory) {
+                  setHoveredCategory(CATEGORY_LINKS[0].id);
+                }
+                return next;
+              });
+            }}
             aria-label="Abrir categorias"
             aria-expanded={categoriesOpen}
             aria-controls="navbar-category-sidebar"
@@ -168,35 +260,29 @@ export function Navbar() {
           </button>
 
           {categoriesOpen && (
-            <aside id="navbar-category-sidebar" className="navbar-category-sidebar" style={{ display: 'flex' }}>
-              <div className="navbar-category-sidebar__nav-col" style={{ minWidth: '220px' }}>
+            <aside id="navbar-category-sidebar" className="navbar-category-sidebar">
+              {/* Columna izquierda: Categorías principales */}
+              <div className="navbar-category-sidebar__nav-col">
                 <nav className="navbar-category-sidebar__nav" aria-label="Categorías de productos">
                   {CATEGORY_LINKS.map((category) => {
                     const CategoryIcon = category.icon;
-                    const dynamicBrands = categoriesTree.find(c => c.id === category.id)?.brands;
-                    const hasChildren = (dynamicBrands && dynamicBrands.length > 0) || (category.subcategories && category.subcategories.length > 0);
-
+                    const isActive = category.id === activeCategoryId;
                     return (
                       <Link
                         key={category.id}
                         to={`/categoria/${category.id}`}
-                        className="navbar-category-sidebar__link"
-                        onMouseEnter={() => {
-                          setHoveredCategory(category.id);
-                          setHoveredBrand(null);
-                        }}
-                        onClick={() => {
-                           setCategoriesOpen(false);
-                           setHoveredCategory(null);
-                           setHoveredBrand(null);
-                        }}
+                        className={`navbar-category-sidebar__link ${isActive ? "active" : ""}`}
+                        onMouseEnter={() => setHoveredCategory(category.id)}
+                        onClick={() => setCategoriesOpen(false)}
                       >
-                        <div className="navbar-category-sidebar__link-content">
-                          <CategoryIcon className="navbar-category-sidebar__icon w-4 h-4 mr-2 inline-block" />
-                          <span>{category.label}</span>
-                        </div>
+                        <span className="navbar-category-sidebar__link-icon-wrap">
+                          <CategoryIcon className="navbar-category-sidebar__icon" />
+                        </span>
+                        <span className="navbar-category-sidebar__link-label">
+                          {category.label}
+                        </span>
 
-                        {hasChildren && (
+                        {category.subcategories && category.subcategories.length > 0 && (
                           <ChevronRight
                             className="navbar-category-sidebar__arrow"
                             aria-hidden="true"
@@ -208,109 +294,66 @@ export function Navbar() {
                 </nav>
               </div>
 
-              {/* LEVEL 2: Brands or Static Subcategories */}
-              {hoveredCategory && (
-                (() => {
-                  const categoryData = CATEGORY_LINKS.find(c => c.id === hoveredCategory);
-                  const dynamicBrands = categoriesTree.find(c => c.id === hoveredCategory)?.brands;
-                  
-                  if (dynamicBrands && dynamicBrands.length > 0) {
-                    return (
-                      <div className="navbar-category-sidebar__preview" style={{ width: '220px', borderLeft: '1px solid #f1f1f1' }}>
-                        <div className="navbar-category-sidebar__preview-title">
-                          Marcas
-                        </div>
-                        <nav
-                          className="navbar-category-sidebar__preview-nav"
-                          aria-label={`Marcas de ${categoryData?.label}`}
-                        >
-                          {dynamicBrands.map((brand) => (
-                            <Link
-                              key={brand.id}
-                              to={`/categoria/${hoveredCategory}?marca=${brand.id}`}
-                              className="navbar-category-sidebar__preview-link"
-                              onMouseEnter={() => setHoveredBrand(brand.id)}
-                              onClick={() => {
-                                setCategoriesOpen(false);
-                                setHoveredCategory(null);
-                                setHoveredBrand(null);
-                              }}
-                              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                            >
-                              <span>{brand.label}</span>
-                              {brand.attributes.length > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
-                            </Link>
-                          ))}
-                        </nav>
+              {/* Columna derecha: Panel de subcategorías compacto y ordenado */}
+              {hoveredCategoryData?.subcategories && (
+                <div className="navbar-category-sidebar__preview">
+                  {/* Cabecera del panel */}
+                  <div className="navbar-category-sidebar__preview-header">
+                    <div className="navbar-category-sidebar__preview-header-left">
+                      <div className="navbar-category-sidebar__preview-icon-badge">
+                        <hoveredCategoryData.icon className="w-4 h-4 text-[#e81950]" />
                       </div>
-                    );
-                  } else if (categoryData?.subcategories && categoryData.subcategories.length > 0) {
-                    return (
-                      <div className="navbar-category-sidebar__preview" style={{ width: '220px', borderLeft: '1px solid #f1f1f1' }}>
-                        <div className="navbar-category-sidebar__preview-title">
-                          {categoryData.label}
-                        </div>
-                        <nav
-                          className="navbar-category-sidebar__preview-nav"
-                          aria-label={`Subcategorías de ${categoryData.label}`}
-                        >
-                          {categoryData.subcategories.map((sub) => (
-                            <Link
-                              key={sub.id}
-                              to={`/categoria/${categoryData.id}/${sub.id}`}
-                              className="navbar-category-sidebar__preview-link"
-                              onClick={() => {
-                                setCategoriesOpen(false);
-                                setHoveredCategory(null);
-                                setHoveredBrand(null);
-                              }}
-                            >
-                              {sub.label}
-                            </Link>
-                          ))}
-                        </nav>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()
-              )}
+                      <h3 className="navbar-category-sidebar__preview-title">
+                        {hoveredCategoryData.label}
+                      </h3>
+                    </div>
 
-              {/* LEVEL 3: Attributes (e.g., Inches) */}
-              {hoveredBrand && hoveredCategory && (
-                (() => {
-                  const brandData = categoriesTree.find(c => c.id === hoveredCategory)?.brands.find(b => b.id === hoveredBrand);
-                  
-                  if (brandData && brandData.attributes && brandData.attributes.length > 0) {
-                    return (
-                      <div className="navbar-category-sidebar__preview" style={{ width: '220px', borderLeft: '1px solid #f1f1f1' }}>
-                        <div className="navbar-category-sidebar__preview-title">
-                          Opciones
-                        </div>
-                        <nav
-                          className="navbar-category-sidebar__preview-nav"
-                          aria-label={`Atributos de ${brandData.label}`}
+                    <Link
+                      to={`/categoria/${hoveredCategoryData.id}`}
+                      className="navbar-category-sidebar__preview-viewall"
+                      onClick={() => setCategoriesOpen(false)}
+                    >
+                      <span>Ver todo</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+
+                  {/* Lista vertical limpia de subcategorías */}
+                  <nav
+                    className="navbar-category-sidebar__preview-list"
+                    aria-label={`Subcategorías de ${hoveredCategoryData.label}`}
+                  >
+                    {hoveredCategoryData.subcategories.map((sub) => {
+                      const SubIcon = sub.icon || hoveredCategoryData.icon;
+                      const subPath =
+                        sub.id === "todas" || sub.id === "todos"
+                          ? `/categoria/${hoveredCategoryData.id}`
+                          : `/categoria/${hoveredCategoryData.id}/${sub.id}`;
+                      return (
+                        <Link
+                          key={sub.id}
+                          to={subPath}
+                          className="navbar-category-sidebar__card"
+                          onClick={() => setCategoriesOpen(false)}
                         >
-                          {brandData.attributes.map((attr) => (
-                            <Link
-                              key={attr.id}
-                              to={`/categoria/${hoveredCategory}?marca=${brandData.id}&pantalla=${attr.id}`}
-                              className="navbar-category-sidebar__preview-link"
-                              onClick={() => {
-                                setCategoriesOpen(false);
-                                setHoveredCategory(null);
-                                setHoveredBrand(null);
-                              }}
-                            >
-                              {attr.label}
-                            </Link>
-                          ))}
-                        </nav>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()
+                          <div className="navbar-category-sidebar__card-left">
+                            <div className="navbar-category-sidebar__card-icon">
+                              <SubIcon className="w-3.5 h-3.5 text-gray-500" />
+                            </div>
+                            <span className="navbar-category-sidebar__card-title">
+                              {sub.label}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </nav>
+
+                  {/* Banner / Pie de panel */}
+                  <div className="navbar-category-sidebar__preview-footer">
+                    <span>Garantía y envíos a todo el Perú</span>
+                  </div>
+                </div>
               )}
             </aside>
           )}

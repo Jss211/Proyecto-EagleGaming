@@ -2,13 +2,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema, type RegisterFormValues } from "./auth.types";
 import { useRegister } from "./useRegister";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 interface RegisterFormProps {
   onSuccess?: () => void;
 }
 
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
+  const navigate = useNavigate();
   const {
     register: registerField,
     handleSubmit,
@@ -27,8 +29,25 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     if (ok) onSuccess?.();
   }
 
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div className="auth-card">
+      <button
+        type="button"
+        onClick={handleBack}
+        className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-[#e81950] transition-colors mb-4 group cursor-pointer"
+      >
+        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+        Volver a la tienda
+      </button>
+
       <h1 className="auth-card__title">Crea tu cuenta</h1>
       <p className="auth-card__subtitle">Únete a EagleGaming en segundos</p>
 
