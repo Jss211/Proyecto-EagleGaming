@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ShoppingBag,
   Trash2,
@@ -8,7 +8,6 @@ import {
   Truck,
   Minus,
   Plus,
-  Check,
   PackageCheck,
 } from "lucide-react";
 import { Navbar } from "../components/home/Navbar";
@@ -23,6 +22,7 @@ const money = (value: number) =>
   }).format(value);
 
 export function CartPage() {
+  const navigate = useNavigate();
   const {
     items,
     totalItems,
@@ -32,6 +32,37 @@ export function CartPage() {
     clearCart,
     storageError,
   } = useCart();
+
+  const handleWhatsAppCheckout = () => {
+  const phone = "51986638034";
+
+  if (items.length === 0) return;
+
+  const productos = items
+    .map((item, index) => {
+      const subtotal = item.price * item.quantity;
+
+      return (
+        `*${index + 1}. ${item.name}*\n` +
+        `Cantidad: ${item.quantity}\n` +
+        `Precio unitario: ${money(item.price)}\n` +
+        `Subtotal: ${money(subtotal)}`
+      );
+    })
+    .join("\n\n");
+
+  const mensaje =
+    `Hola, EAGLE GAMING.\n\n` +
+    `Me gustaría realizar el siguiente pedido:\n\n` +
+    `${productos}\n\n` +
+    `Total de productos: ${totalItems}\n` +
+    `*TOTAL: ${money(total)}*\n\n` +
+    `Quisiera confirmar la disponibilidad y coordinar el envío. ¡Gracias!`;
+
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(mensaje)}`;
+
+  window.open(url, "_blank", "noopener,noreferrer");
+};
 
   return (
     <div className="home-page cart-page-wrapper">
@@ -53,18 +84,10 @@ export function CartPage() {
 
             <div className="cart-title-row">
               <div>
-                <span className="cart-eyebrow">
-                  EAGLE GAMING / SHOPPING CART
-                </span>
-
                 <h1>
                   Tu carrito
                   <span>{totalItems}</span>
                 </h1>
-
-                <p>
-                  Revisa tus productos antes de continuar con tu compra.
-                </p>
               </div>
 
               {items.length > 0 && (
@@ -79,47 +102,6 @@ export function CartPage() {
               )}
             </div>
           </section>
-
-          {/* =====================================================
-              PROGRESS
-          ===================================================== */}
-
-          {items.length > 0 && (
-            <section className="cart-progress-block">
-              <div className="cart-progress-item active">
-                <div className="cart-progress-number">
-                  <Check size={14} />
-                </div>
-
-                <div>
-                  <strong>Carrito</strong>
-                  <span>Productos seleccionados</span>
-                </div>
-              </div>
-
-              <div className="cart-progress-line" />
-
-              <div className="cart-progress-item">
-                <div className="cart-progress-number">2</div>
-
-                <div>
-                  <strong>Datos de compra</strong>
-                  <span>Información de envío</span>
-                </div>
-              </div>
-
-              <div className="cart-progress-line" />
-
-              <div className="cart-progress-item">
-                <div className="cart-progress-number">3</div>
-
-                <div>
-                  <strong>Confirmación</strong>
-                  <span>Finalizar pedido</span>
-                </div>
-              </div>
-            </section>
-          )}
 
           {/* =====================================================
               STORAGE WARNING
@@ -186,24 +168,6 @@ export function CartPage() {
                 <div className="cart-products-column">
 
                   <section className="cart-products-block">
-
-                    <div className="cart-block-header">
-                      <div>
-                        <span className="cart-block-label">
-                          TU SELECCIÓN
-                        </span>
-
-                        <h2>
-                          Productos
-                          <span>{items.length}</span>
-                        </h2>
-                      </div>
-
-                      <div className="cart-products-counter">
-                        {totalItems} unidades
-                      </div>
-                    </div>
-
                     <div className="cart-products-list">
                       {items.map((item, index) => (
                         <article
@@ -374,17 +338,14 @@ export function CartPage() {
                 <aside className="cart-summary-column">
 
                   <section className="cart-summary-block">
+                    <h2 className="cart-summary-title">
+                      <span>
+                        Resumen de
+                        <br />
+                        <strong>tu compra</strong>
+                      </span>
 
-                    <div className="cart-summary-top">
-                      <span>RESUMEN</span>
-
-                      <ShoppingBag size={20} />
-                    </div>
-
-                    <h2>
-                      Resumen de
-                      <br />
-                      <strong>tu compra</strong>
+                      <ShoppingBag size={24} />
                     </h2>
 
                     <div className="cart-summary-items">
@@ -414,30 +375,24 @@ export function CartPage() {
                       <strong>{money(total)}</strong>
                     </div>
 
-                    <div className="cart-summary-message">
-                      <span className="cart-summary-dot" />
-
-                      <p>
-                        El costo de envío será calculado según
-                        tu ubicación y método de entrega.
-                      </p>
-                    </div>
-
-                    <Link
-                      to="/"
+                    <button
+                      type="button"
+                      onClick={handleWhatsAppCheckout}
                       className="cart-checkout-button"
+                      disabled={items.length === 0}
                     >
-                      Continuar con la compra
+                      Comprar por WhatsApp
                       <ArrowRight size={18} />
-                    </Link>
+                    </button>
 
-                    <Link
-                      to="/"
+                    <button
+                      type="button"
+                      onClick={() => navigate(-1)}
                       className="cart-continue-link"
                     >
                       <ArrowLeft size={14} />
                       Seguir comprando
-                    </Link>
+                    </button>
 
                   </section>
 
@@ -522,7 +477,7 @@ export function CartPage() {
           font-size: clamp(2.5rem, 5vw, 4rem);
           line-height: .95;
           letter-spacing: -.045em;
-          font-weight: 800;
+          font-weight: 500;
         }
 
         .cart-title-row h1 span {
@@ -539,6 +494,18 @@ export function CartPage() {
           font-size: .78rem;
           vertical-align: middle;
           letter-spacing: 0;
+        }
+
+        .cart-summary-title {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          width: 100%;
+        }
+
+        .cart-summary-title svg {
+          flex-shrink: 0;
         }
 
         .cart-title-row p {
