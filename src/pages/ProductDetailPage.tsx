@@ -64,17 +64,23 @@ export function ProductDetailPage() {
   const title = product.titulo || product.Titulo || product.título || product.Título || product.nombre || product.Nombre || `${product.marca || product.Marca || ""} ${product.modelo || product.Modelo || ""}`.trim() || "Producto sin título";
   const price = product.precio || product.Precio || 0;
 
-  // Recolectar todas las imágenes disponibles
+  // Recolectar todas las imágenes disponibles (url, url1, url2... e imagenes[])
   const images: string[] = [];
+  if (product.url && typeof product.url === "string" && product.url.trim()) {
+    images.push(product.url.trim());
+  }
+  ["url1", "url2", "url3", "url4", "url5", "url6", "url7", "url8"].forEach((k) => {
+    const val = product[k];
+    if (typeof val === "string" && val.trim() && !images.includes(val.trim())) {
+      images.push(val.trim());
+    }
+  });
   if (Array.isArray(product.imagenes)) {
-    images.push(...product.imagenes);
-  } else {
-    if (product.url) images.push(product.url);
-    if (product.url1) images.push(product.url1);
-    if (product.url2) images.push(product.url2);
-    if (product.url3) images.push(product.url3);
-    if (product.url4) images.push(product.url4);
-    if (product.url5) images.push(product.url5);
+    product.imagenes.forEach((u: string) => {
+      if (typeof u === "string" && u.trim() && !images.includes(u.trim())) {
+        images.push(u.trim());
+      }
+    });
   }
   // Imagen por defecto si no hay ninguna
   if (images.length === 0) {

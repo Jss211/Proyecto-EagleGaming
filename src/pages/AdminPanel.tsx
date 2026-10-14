@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signOut, onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { 
   collection, 
-  getDocs, 
+  onSnapshot, 
   addDoc, 
-  setDoc,
+  setDoc, 
   deleteDoc, 
   doc, 
   serverTimestamp 
@@ -27,24 +27,207 @@ import {
   Check,
   PlusCircle,
   SlidersHorizontal,
-  Sparkles
+  Sparkles,
+  UploadCloud,
+  ImagePlus,
+  Loader2
 } from "lucide-react";
 import { ensureAdminDocument, parsePrice } from "../utils/admin";
 
-const CATEGORIAS_EAGLE = [
-  "Monitores",
-  "Case",
-  "PC Completa",
-  "Disco SSD",
-  "Estabilizador",
-  "Fuente de poder",
-  "Memoria RAM",
-  "Periféricos",
-  "Placa madre",
-  "Tarjetas de video",
-  "Procesadores",
-  "Laptops",
-  "Refrigeración líquida",
+export async function uploadImageFile(file: File): Promise<string> {
+  // 1. Catbox.moe (gratuito, sin límite de expiración, permanente)
+  try {
+    const formData = new FormData();
+    formData.append("reqtype", "fileupload");
+    formData.append("fileToUpload", file);
+
+    const res = await fetch("https://catbox.moe/user/api.php", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (res.ok) {
+      const url = (await res.text()).trim();
+      if (url.startsWith("http")) {
+        return url;
+      }
+    }
+  } catch (err) {
+    console.warn("Fallo subida a Catbox, probando alternativa...", err);
+  }
+
+  // 2. ImgBB con API key si estuviera habilitada
+  try {
+    const apiKey = import.meta.env.VITE_IMGBB_API_KEY;
+    if (apiKey) {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data?.data?.url) {
+        return data.data.url;
+      }
+    }
+  } catch (err) {
+    console.warn("Fallo subida a ImgBB...", err);
+  }
+
+  // 3. Fallback: Base64 directo si es menor a 500KB
+  if (file.size < 500 * 1024) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  throw new Error("No se pudo subir la imagen. Por favor intenta con otra foto o pega el enlace URL.");
+}
+
+export function resolveProductCategory(data: Record<string, any>): string {
+  let raw = "";
+  for (const [k, v] of Object.entries(data)) {
+    const cleanK = k.trim().toLowerCase();
+    if (
+      (cleanK === "categoria" || cleanK === "categorias" || cleanK === "category") &&
+      v &&
+      typeof v === "string" &&
+      v.trim()
+    ) {
+      raw = v.trim();
+      break;
+    }
+  }
+
+  const norm = raw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const title = (data.titulo || data.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+  // 1. Placa Madre (EXACTO: solo placas madre, nunca computadoras completas)
+  if (
+    norm.includes("placa") ||
+    norm.includes("motherboard") ||
+    (!norm && (title.includes("placa madre") || title.includes("motherboard")) && !title.includes("pc ") && !title.includes("computadora"))
+  ) {
+    return "Placa madre";
+  }
+
+  // 2. Tarjetas de Video (EXACTO: solo GPUs sueltas, nunca computadoras armadas)
+  if (
+    norm.includes("tarjeta") ||
+    norm.includes("video") ||
+    norm.includes("grafica") ||
+    (!norm &&
+      (title.includes("tarjeta de video") || title.includes("rtx ") || title.includes("gtx ") || title.includes("rx ")) &&
+      !title.includes("pc ") &&
+      !title.includes("computadora"))
+  ) {
+    return "Tarjetas de video";
+  }
+
+  // 3. Procesadores
+  if (
+    norm.includes("procesador") ||
+    norm.includes("cpu") ||
+    (!norm && title.includes("procesador") && !title.includes("pc ") && !title.includes("computadora"))
+  ) {
+    return "Procesadores";
+  }
+
+  // 4. Monitores
+  if (
+    norm.includes("monitor") ||
+    (!norm && title.includes("monitor") && !title.includes("pc ") && !title.includes("computadora"))
+  ) {
+    return "Monitores";
+  }
+
+  // 5. Laptops
+  if (norm.includes("laptop") || norm.includes("portatil") || (!norm && title.includes("laptop"))) {
+    return "Laptops";
+  }
+
+  // 6. Refrigeración líquida
+  if (
+    norm.includes("refrig") ||
+    norm.includes("liquida") ||
+    norm.includes("cooler") ||
+    (!norm && title.includes("refrigeracion liquida"))
+  ) {
+    return "Refrigeración líquida";
+  }
+
+  // 7. Memoria RAM
+  if (
+    norm.includes("ram") ||
+    (!norm && title.includes("memoria") && title.includes("ddr") && !title.includes("pc ") && !title.includes("computadora"))
+  ) {
+    return "Memoria RAM";
+  }
+
+  // 8. PC Completas (Subdivididas en Gamer, Oficina, Ingenierías)
+  if (
+    norm.includes("pc") ||
+    norm.includes("computadora") ||
+    title.includes("pc ") ||
+    title.includes("computadora")
+  ) {
+    if (norm.includes("ingenier") || title.includes("ingenier")) {
+      return "PC Completa Ingenierías";
+    }
+    if (norm.includes("oficina") || title.includes("oficina")) {
+      return "PC Completa Oficina";
+    }
+    if (norm.includes("gamer") || norm.includes("gaming") || title.includes("gamer") || title.includes("gaming")) {
+      return "PC Completa Gamer";
+    }
+    return "PC Completa";
+  }
+
+  // 9. Otros componentes
+  if (norm.includes("disco") || norm.includes("ssd")) return "Disco SSD";
+  if (norm.includes("fuente")) return "Fuente de poder";
+  if (norm.includes("case") || norm.includes("gabinete")) return "Case";
+  if (norm.includes("estabilizador")) return "Estabilizador";
+  if (norm.includes("periferico")) return "Periféricos";
+
+  return raw || "General";
+}
+
+export function matchesCategory(p: ProductItem, selected: string): boolean {
+  if (selected === "Todas") return true;
+  const pCat = (p.categoria || "").trim().toLowerCase();
+  
+  if (selected === "Todas las PC") {
+    return pCat.includes("pc");
+  }
+  
+  return pCat === selected.toLowerCase();
+}
+
+export const CATEGORIAS_FILTRO_PC = [
+  { id: "PC Completa Gamer", label: "PC Gamer" },
+  { id: "PC Completa Oficina", label: "PC Oficina" },
+  { id: "PC Completa Ingenierías", label: "PC Ingenierías" },
+  { id: "Todas las PC", label: "Todas las PC" },
+];
+
+export const CATEGORIAS_FILTRO_COMP = [
+  { id: "Tarjetas de video", label: "Tarjetas de video" },
+  { id: "Procesadores", label: "Procesadores" },
+  { id: "Monitores", label: "Monitores" },
+  { id: "Placa madre", label: "Placa madre" },
+  { id: "Refrigeración líquida", label: "Refrigeración líquida" },
+  { id: "Laptops", label: "Laptops" },
+  { id: "Memoria RAM", label: "Memoria RAM" },
+  { id: "Disco SSD", label: "Disco SSD" },
+  { id: "Fuente de poder", label: "Fuente de poder" },
+  { id: "Case", label: "Case" },
+  { id: "Estabilizador", label: "Estabilizador" },
+  { id: "Periféricos", label: "Periféricos" },
 ];
 
 interface SpecRow {
@@ -74,7 +257,6 @@ interface ProductItem {
 
 interface ToastNotification {
   type: "success" | "error";
-  title: string;
   message: string;
 }
 
@@ -98,15 +280,62 @@ export function AdminPanel() {
   // Form Fields
   const [titulo, setTitulo] = useState("");
   const [precio, setPrecio] = useState("");
-  const [categoria, setCategoria] = useState(CATEGORIAS_EAGLE[0]);
+  const [categoria, setCategoria] = useState("PC COMPLETA GAMER");
   const [stock, setStock] = useState("10");
   const [imagenesText, setImagenesText] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [specsList, setSpecsList] = useState<SpecRow[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  // Función para disparar alertas destacadas simples
-  const showToast = (type: "success" | "error", title: string, message?: string) => {
-    setToast({ type, title, message: message || "" });
+  // Alerta simple en verde o rojo
+  const showToast = (type: "success" | "error", message: string) => {
+    setToast({ type, message });
+  };
+
+  // Subir imagen desde el equipo (Descargas, etc.)
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploadingImage(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const url = await uploadImageFile(file);
+        uploadedUrls.push(url);
+      }
+
+      setImagenesText((prev) => {
+        const current = prev.trim();
+        const addition = uploadedUrls.join("\n");
+        return current ? `${current}\n${addition}` : addition;
+      });
+
+      showToast(
+        "success",
+        files.length === 1 ? "Imagen subida exitosamente" : `${files.length} imágenes subidas exitosamente`
+      );
+    } catch (err: any) {
+      console.error("Error al subir archivo:", err);
+      showToast("error", err?.message || "No se pudo subir la imagen");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Eliminar una imagen directamente desde su miniatura
+  const handleRemoveImageUrl = (indexToRemove: number) => {
+    const urls = imagenesText
+      .split(/[\n,]/)
+      .map((u) => u.trim())
+      .filter((u) => u.length > 0);
+    urls.splice(indexToRemove, 1);
+    setImagenesText(urls.join("\n"));
   };
 
   // Auto-cerrar toast tras 6 segundos
@@ -130,30 +359,36 @@ export function AdminPanel() {
     return () => unsubscribe();
   }, []);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    try {
-      const snap = await getDocs(collection(db, "productos"));
-      const list: ProductItem[] = [];
-      snap.forEach((d) => {
-        const data = d.data();
-        list.push({ 
-          id: d.id, 
-          ...data,
-          precio: parsePrice(data.precio) 
-        });
-      });
-      setProducts(list);
-    } catch (err: any) {
-      console.error("Error al cargar productos:", err);
-      showToast("error", "Error al cargar", err?.message || "No se pudieron cargar los productos.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Sincronización en TIEMPO REAL con Firebase (onSnapshot)
+  // Cualquier cambio, creación o eliminación en Firebase Console se refleja al instante en el Admin Panel y viceversa.
   useEffect(() => {
-    fetchProducts();
+    setLoading(true);
+    const unsubscribe = onSnapshot(
+      collection(db, "productos"),
+      (snap) => {
+        const list: ProductItem[] = [];
+        snap.forEach((d) => {
+          const data = d.data();
+          const canonical = resolveProductCategory(data);
+          list.push({ 
+            id: d.id, 
+            ...data,
+            categoria: canonical,
+            rawCategoria: data.categoria || data.Categoria || canonical,
+            precio: parsePrice(data.precio) 
+          });
+        });
+        setProducts(list);
+        setLoading(false);
+      },
+      (err: any) => {
+        console.error("Error en tiempo real al sincronizar productos:", err);
+        showToast("error", err?.message || "No se pudieron cargar los productos.");
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, []);
 
   const handleCerrarSesion = async () => {
@@ -165,7 +400,17 @@ export function AdminPanel() {
     setEditingId(null);
     setTitulo("");
     setPrecio("");
-    setCategoria(selectedCat !== "Todas" ? selectedCat : CATEGORIAS_EAGLE[0]);
+
+    let defaultCat = "PC COMPLETA GAMER";
+    if (selectedCat === "PC Completa Gamer") defaultCat = "PC COMPLETA GAMER";
+    else if (selectedCat === "PC Completa Oficina") defaultCat = "PC COMPLETA OFICINA";
+    else if (selectedCat === "PC Completa Ingenierías") defaultCat = "PC COMPLETA INGENIERIAS";
+    else if (selectedCat === "PC Completa" || selectedCat === "Todas las PC") defaultCat = "PC COMPLETA";
+    else if (selectedCat !== "Todas") {
+      defaultCat = selectedCat;
+    }
+
+    setCategoria(defaultCat);
     setStock("10");
     setImagenesText("");
     setDescripcion("");
@@ -185,14 +430,14 @@ export function AdminPanel() {
     const cleanPrice = parsePrice(product.precio);
     setPrecio(cleanPrice > 0 ? String(cleanPrice) : "");
 
-    // Normalizar categoría
-    const prodCat = product.categoria || product.Categoria || "";
-    const matched = CATEGORIAS_EAGLE.find((c) => 
-      c.toLowerCase() === prodCat.toLowerCase() || 
-      prodCat.toLowerCase().includes(c.toLowerCase()) ||
-      c.toLowerCase().includes(prodCat.toLowerCase())
-    );
-    setCategoria(matched || prodCat || CATEGORIAS_EAGLE[0]);
+    // Normalizar categoría para el selector del modal
+    const canonical = resolveProductCategory(product);
+    let selectVal = canonical;
+    if (canonical === "PC Completa Gamer") selectVal = "PC COMPLETA GAMER";
+    else if (canonical === "PC Completa Oficina") selectVal = "PC COMPLETA OFICINA";
+    else if (canonical === "PC Completa Ingenierías") selectVal = "PC COMPLETA INGENIERIAS";
+    else if (canonical === "PC Completa") selectVal = "PC COMPLETA";
+    setCategoria(selectVal);
 
     setStock(product.stock !== undefined ? String(product.stock) : "10");
     setDescripcion(product.descripcion || product.Descripcion || "");
@@ -206,7 +451,7 @@ export function AdminPanel() {
         }
       });
     }
-    ["url", "url1", "url2", "url3", "url4", "url5"].forEach((k) => {
+    ["url", "url1", "url2", "url3", "url4", "url5", "url6", "url7", "url8", "url9"].forEach((k) => {
       const val = product[k];
       if (typeof val === "string" && val.trim() && !collectedUrls.includes(val.trim())) {
         collectedUrls.push(val.trim());
@@ -223,6 +468,8 @@ export function AdminPanel() {
       "precio",
       "categoria",
       "Categoria",
+      "categoría",
+      "Categoría",
       "stock",
       "descripcion",
       "Descripcion",
@@ -233,6 +480,10 @@ export function AdminPanel() {
       "url3",
       "url4",
       "url5",
+      "url6",
+      "url7",
+      "url8",
+      "url9",
       "creadoEn",
       "creadoen",
       "actualizadoEn",
@@ -305,7 +556,7 @@ export function AdminPanel() {
   const handleGuardarProducto = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!titulo.trim() || !precio.trim() || !categoria) {
-      showToast("error", "Campos Requeridos", "Por favor completa título, precio y categoría.");
+      showToast("error", "Por favor completa título, precio y categoría.");
       return;
     }
 
@@ -326,7 +577,8 @@ export function AdminPanel() {
       const uniqueUrls = Array.from(new Set(rawUrls));
       const finalUrls = uniqueUrls.length > 0 ? uniqueUrls : ["https://placehold.co/600x400?text=Eagle+Gaming"];
 
-      // 2. Construir objeto base limpio sin duplicar 'nombre' ni 'url1, url2...'
+      // 2. Construir documento limpio idéntico al esquema original de Firebase
+      // SIN array 'especificaciones', SIN 'nombre', SIN array 'imagenes'
       const parsedPrice = parsePrice(precio);
       const dataToSave: Record<string, any> = {
         titulo: titulo.trim(),
@@ -334,28 +586,18 @@ export function AdminPanel() {
         categoria: categoria,
         stock: parseInt(stock, 10) || 0,
         descripcion: descripcion.trim(),
-        imagenes: finalUrls,
-        url: finalUrls[0],
         actualizadoEn: serverTimestamp(),
       };
 
-      // 3. Guardar especificaciones dentro del array `especificaciones`
-      // Solo atributos estándar de indexación (marca, modelo, garantía, procesador, pulgadas, etc.) se guardan también como propiedad limpia
-      const arraySpecs: string[] = [];
-      const savedKeys = new Set<string>();
-      const standardFilterKeys = new Set([
-        "marca",
-        "modelo",
-        "garantia",
-        "tamaño de pantalla",
-        "pulgadas",
-        "procesador",
-        "capacidad",
-        "ram",
-        "memoria ram",
-        "color",
-      ]);
+      // Guardar primera imagen en 'url' y adicionales en 'url1', 'url2', 'url3'...
+      dataToSave.url = finalUrls[0];
+      for (let i = 1; i < finalUrls.length; i++) {
+        dataToSave[`url${i}`] = finalUrls[i];
+      }
 
+      // 3. Guardar CADA especificación DIRECTAMENTE como campo en el documento
+      // (Ej: "Procesador": "Intel Core...", "Memoria RAM": "16GB...", "Garantia": "1 año", etc.)
+      const savedKeys = new Set<string>();
       specsList.forEach((row) => {
         const cleanKey = row.key.trim().replace(/\./g, " ");
         const cleanVal = row.value.trim();
@@ -363,16 +605,11 @@ export function AdminPanel() {
 
         if (cleanKey && cleanVal && !savedKeys.has(normKey)) {
           savedKeys.add(normKey);
-          arraySpecs.push(`${cleanKey}: ${cleanVal}`);
-
-          if (standardFilterKeys.has(normKey)) {
-            dataToSave[normKey] = cleanVal;
-          }
+          dataToSave[cleanKey] = cleanVal;
         }
       });
-      dataToSave.especificaciones = arraySpecs;
 
-      // Limpiar cualquier propiedad undefined que pueda provocar error en Firestore
+      // Limpiar cualquier propiedad undefined
       Object.keys(dataToSave).forEach((key) => {
         if (dataToSave[key] === undefined) {
           delete dataToSave[key];
@@ -390,28 +627,17 @@ export function AdminPanel() {
         }
 
         // Reemplazar documento en Firestore SIN merge: true
-        // Esto elimina automáticamente todos los campos duplicados o residuales
+        // Esto elimina de raíz los arrays 'especificaciones', 'imagenes' o claves residuales
         await setDoc(doc(db, "productos", editingId), dataToSave);
-        showToast(
-          "success",
-          "Producto actualizado",
-          "Los cambios se guardaron limpiamente en Firebase sin duplicados."
-        );
+        showToast("success", "Producto actualizado");
       } else {
         // CREAR PRODUCTO NUEVO
-        await addDoc(collection(db, "productos"), {
-          ...dataToSave,
-          creadoEn: serverTimestamp(),
-        });
-        showToast(
-          "success",
-          "Producto publicado",
-          "El producto se publicó limpiamente sin duplicados."
-        );
+        dataToSave.creadoEn = serverTimestamp();
+        await addDoc(collection(db, "productos"), dataToSave);
+        showToast("success", "Producto publicado");
       }
 
       setShowModal(false);
-      await fetchProducts();
     } catch (err: any) {
       console.error("Error al guardar en Firebase:", err);
       let errorMsg = "Error al guardar en Firebase.";
@@ -420,7 +646,7 @@ export function AdminPanel() {
       } else if (err?.message) {
         errorMsg = err.message;
       }
-      showToast("error", "Error al Guardar", errorMsg);
+      showToast("error", errorMsg);
     } finally {
       setSaving(false);
     }
@@ -436,123 +662,10 @@ export function AdminPanel() {
         await ensureAdminDocument(auth.currentUser);
       }
       await deleteDoc(doc(db, "productos", id));
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-      showToast(
-        "success",
-        "¡Producto Eliminado Exitosamente!",
-        `"${nombreProd || 'El producto'}" fue eliminado de la base de datos.`
-      );
+      showToast("success", "Producto eliminado");
     } catch (err: any) {
       console.error("Error al eliminar:", err);
-      showToast("error", "Error al Eliminar", err?.message || "No se pudo eliminar el producto de Firebase.");
-    }
-  };
-
-  const handleLimpiarDuplicadosProducto = async (product: ProductItem) => {
-    const prodTitle = product.titulo || product.nombre || product.título || "este producto";
-    if (!window.confirm(`¿Deseas optimizar y limpiar los campos duplicados de "${prodTitle}" en Firebase?`)) {
-      return;
-    }
-
-    try {
-      if (auth.currentUser) {
-        await ensureAdminDocument(auth.currentUser);
-      }
-
-      // 1. Recolectar URLs deduplicadas
-      const collectedUrls: string[] = [];
-      if (Array.isArray(product.imagenes)) {
-        product.imagenes.forEach((u) => {
-          if (typeof u === "string" && u.trim() && !collectedUrls.includes(u.trim())) {
-            collectedUrls.push(u.trim());
-          }
-        });
-      }
-      ["url", "url1", "url2", "url3", "url4", "url5"].forEach((k) => {
-        const val = product[k];
-        if (typeof val === "string" && val.trim() && !collectedUrls.includes(val.trim())) {
-          collectedUrls.push(val.trim());
-        }
-      });
-      const finalUrls = collectedUrls.length > 0 ? collectedUrls : ["https://placehold.co/600x400?text=Eagle+Gaming"];
-
-      // 2. Extraer especificaciones deduplicadas
-      const arraySpecs: string[] = [];
-      const seenSpecKeys = new Set<string>();
-
-      if (Array.isArray(product.especificaciones)) {
-        product.especificaciones.forEach((item) => {
-          if (typeof item === "string" && item.trim()) {
-            const parts = item.split(":");
-            const rawKey = parts[0].trim();
-            const rawVal = parts.slice(1).join(":").trim();
-            const normKey = rawKey.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-            if (normKey && rawVal && !seenSpecKeys.has(normKey)) {
-              seenSpecKeys.add(normKey);
-              arraySpecs.push(`${rawKey}: ${rawVal}`);
-            }
-          }
-        });
-      }
-
-      const ignoredKeys = new Set([
-        "id", "titulo", "título", "nombre", "precio", "categoria", "Categoria",
-        "stock", "descripcion", "Descripcion", "imagenes", "url", "url1", "url2", "url3",
-        "url4", "url5", "creadoEn", "creadoen", "actualizadoEn", "actualizadoen",
-        "especificaciones", "caracteristicas", "tendencia"
-      ]);
-
-      const standardFilterKeys = new Set([
-        "marca", "modelo", "garantia", "tamaño de pantalla", "pulgadas",
-        "procesador", "capacidad", "ram", "memoria ram", "color"
-      ]);
-
-      const standardData: Record<string, string> = {};
-
-      Object.entries(product).forEach(([k, v]) => {
-        const normKey = k.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if (!ignoredKeys.has(k) && !ignoredKeys.has(normKey) && typeof v === "string" && v.trim() !== "") {
-          if (!seenSpecKeys.has(normKey)) {
-            seenSpecKeys.add(normKey);
-            const prettyKey = k.charAt(0).toUpperCase() + k.slice(1);
-            arraySpecs.push(`${prettyKey}: ${v.trim()}`);
-          }
-          if (standardFilterKeys.has(normKey)) {
-            standardData[normKey] = v.trim();
-          }
-        }
-      });
-
-      const cleanTitle = (product.titulo || product.nombre || product.título || "").trim();
-      const cleanPrice = parsePrice(product.precio);
-      const cleanDocData: Record<string, any> = {
-        titulo: cleanTitle,
-        precio: cleanPrice,
-        categoria: product.categoria || product.Categoria || "General",
-        stock: product.stock !== undefined ? Number(product.stock) : 10,
-        descripcion: (product.descripcion || product.Descripcion || "").trim(),
-        imagenes: finalUrls,
-        url: finalUrls[0],
-        especificaciones: arraySpecs,
-        actualizadoEn: serverTimestamp(),
-        ...standardData
-      };
-
-      if (product.creadoEn) cleanDocData.creadoEn = product.creadoEn;
-      if (product.tendencia !== undefined) cleanDocData.tendencia = product.tendencia;
-
-      // Sobrescribir documento en Firestore (reemplaza limpiando las claves residuales)
-      await setDoc(doc(db, "productos", product.id), cleanDocData);
-
-      showToast(
-        "success",
-        "¡Producto optimizado!",
-        `Se eliminaron todos los campos duplicados de "${cleanTitle}" en Firebase.`
-      );
-      await fetchProducts();
-    } catch (err: any) {
-      console.error("Error al optimizar producto:", err);
-      showToast("error", "Error al limpiar", err?.message || "No se pudo optimizar el producto.");
+      showToast("error", err?.message || "No se pudo eliminar el producto de Firebase.");
     }
   };
 
@@ -563,12 +676,7 @@ export function AdminPanel() {
     const cat = (p.categoria || "").toLowerCase();
 
     const matchesSearch = !q || name.includes(q) || cat.includes(q);
-
-    let matchesCat = true;
-    if (selectedCat !== "Todas") {
-      const targetCat = selectedCat.toLowerCase();
-      matchesCat = cat.includes(targetCat) || targetCat.includes(cat);
-    }
+    const matchesCat = matchesCategory(p, selectedCat);
 
     return matchesSearch && matchesCat;
   });
@@ -595,7 +703,7 @@ export function AdminPanel() {
             ) : (
               <AlertCircle className="w-5 h-5 text-white shrink-0" />
             )}
-            <span className="font-bold text-sm text-white tracking-wide">{toast.title}</span>
+            <span className="font-bold text-sm text-white tracking-wide">{toast.message}</span>
             <button
               onClick={() => setToast(null)}
               className="text-white/80 hover:text-white p-0.5 ml-1.5 hover:bg-white/10 rounded-lg transition cursor-pointer"
@@ -686,47 +794,93 @@ export function AdminPanel() {
         </div>
 
         {/* Barra de Filtros por Categoría */}
-        <div className="mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
-            <Filter className="w-3.5 h-3.5 text-[#e81950]" />
-            <span>Filtrar por Categoría</span>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+              <Filter className="w-4 h-4 text-[#e81950]" />
+              <span>Filtrar por Categoría</span>
+            </div>
             <button
               type="button"
               onClick={() => setSelectedCat("Todas")}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                 selectedCat === "Todas"
-                  ? "bg-slate-900 text-white shadow-sm"
+                  ? "bg-slate-900 text-white shadow-sm ring-2 ring-slate-900/30"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
-              Todas ({products.length})
+              Ver Todas ({products.length})
             </button>
+          </div>
 
-            {CATEGORIAS_EAGLE.map((cat) => {
-              const count = products.filter((p) => {
-                const pCat = (p.categoria || "").toLowerCase();
-                const tCat = cat.toLowerCase();
-                return pCat.includes(tCat) || tCat.includes(pCat);
-              }).length;
+          {/* Grupo 1: Combos PC Completa */}
+          <div>
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+              <span>Combos PC Completa:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIAS_FILTRO_PC.map((cat) => {
+                const count = products.filter((p) => matchesCategory(p, cat.id)).length;
+                const isSelected = selectedCat === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCat(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      isSelected
+                        ? "bg-[#e81950] text-white shadow-sm ring-2 ring-[#e81950]/30"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    <span>{cat.label}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                        isSelected ? "bg-white/20 text-white font-black" : "bg-white text-slate-600 font-bold"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setSelectedCat(cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                    selectedCat === cat
-                      ? "bg-[#e81950] text-white shadow-sm"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                  }`}
-                >
-                  {cat} ({count})
-                </button>
-              );
-            })}
+          {/* Grupo 2: Componentes y Equipos */}
+          <div>
+            <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+              <span>Componentes y Equipos:</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIAS_FILTRO_COMP.map((cat) => {
+                const count = products.filter((p) => matchesCategory(p, cat.id)).length;
+                const isSelected = selectedCat === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCat(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      isSelected
+                        ? "bg-[#e81950] text-white shadow-sm ring-2 ring-[#e81950]/30"
+                        : count > 0
+                        ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                        : "bg-slate-50 text-slate-400 hover:bg-slate-100"
+                    }`}
+                  >
+                    <span>{cat.label}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                        isSelected ? "bg-white/20 text-white font-black" : "bg-white text-slate-500 font-bold"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -809,13 +963,6 @@ export function AdminPanel() {
                         </td>
                         <td className="py-3 px-4 text-right">
                           <div className="inline-flex items-center gap-1.5">
-                            <button
-                              onClick={() => handleLimpiarDuplicadosProducto(p)}
-                              title="Limpiar campos duplicados en Firebase"
-                              className="p-2 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
-                            >
-                              <Sparkles className="w-4 h-4" />
-                            </button>
                             <button
                               onClick={() => handleOpenEdit(p)}
                               title="Editar producto, precio, imágenes y especificaciones"
@@ -917,13 +1064,28 @@ export function AdminPanel() {
                     <select
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
-                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm bg-white focus:border-[#e81950] outline-none font-semibold"
+                      className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm bg-white focus:border-[#e81950] outline-none font-semibold text-slate-800"
                     >
-                      {CATEGORIAS_EAGLE.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
+                      <optgroup label="💻 Combos PC Completa">
+                        <option value="PC COMPLETA GAMER">PC Gamer (Combo Gaming)</option>
+                        <option value="PC COMPLETA OFICINA">PC de Oficina (Trabajo / Estudio)</option>
+                        <option value="PC COMPLETA INGENIERIAS">PC de Ingenierías (Alto Rendimiento / Diseño)</option>
+                        <option value="PC COMPLETA">PC Completa (Estándar)</option>
+                      </optgroup>
+                      <optgroup label="Componentes y Equipos">
+                        <option value="Tarjetas de video">Tarjetas de video</option>
+                        <option value="Procesadores">Procesadores</option>
+                        <option value="Monitores">Monitores</option>
+                        <option value="Placa madre">Placa madre</option>
+                        <option value="Laptops">Laptops</option>
+                        <option value="Memoria RAM">Memoria RAM</option>
+                        <option value="Disco SSD">Disco SSD</option>
+                        <option value="Fuente de poder">Fuente de poder</option>
+                        <option value="Case">Case</option>
+                        <option value="Refrigeración líquida">Refrigeración líquida</option>
+                        <option value="Estabilizador">Estabilizador</option>
+                        <option value="Periféricos">Periféricos</option>
+                      </optgroup>
                     </select>
                   </div>
 
@@ -942,47 +1104,144 @@ export function AdminPanel() {
                 </div>
               </div>
 
-              {/* Sección 2: URLs de Imágenes */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between border-b pb-1">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                    2. Imágenes del Producto
-                  </h4>
-                  <span className="text-[11px] text-slate-500">Una URL por línea</span>
+              {/* Sección 2: URLs de Imágenes y Subida desde Equipo */}
+              <div className="space-y-3 bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                  <div>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                      <ImagePlus className="w-4 h-4 text-[#e81950]" />
+                      <span>2. Imágenes del Producto</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Sube fotos desde tu computadora (Descargas, etc.) o escribe enlaces web directos:
+                    </p>
+                  </div>
+
+                  {/* Botón para subir archivos desde la PC */}
+                  <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileSelect}
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      disabled={uploadingImage}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-2 bg-[#e81950] hover:bg-[#c01119] text-white text-xs font-bold px-4 py-2 rounded-xl transition shadow-sm hover:shadow cursor-pointer disabled:opacity-60"
+                    >
+                      {uploadingImage ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Subiendo imagen...</span>
+                        </>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-4 h-4" />
+                          <span>Subir Imagen desde tu PC</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <textarea
-                  rows={3}
-                  placeholder={`https://eaglegamingperu.com/foto1.png\nhttps://eaglegamingperu.com/foto2.png`}
-                  value={imagenesText}
-                  onChange={(e) => setImagenesText(e.target.value)}
-                  className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:border-[#e81950] outline-none"
-                />
-
-                {/* Previsualización rápida de imágenes */}
-                {imagenesText.trim() && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {imagenesText
-                      .split(/[\n,]/)
-                      .map((u) => u.trim())
-                      .filter((u) => u.length > 0)
-                      .map((url, idx) => (
-                        <div key={idx} className="relative group w-14 h-14 rounded-lg border border-slate-200 overflow-hidden bg-white p-0.5">
-                          <img
-                            src={url}
-                            alt={`Preview ${idx + 1}`}
-                            className="w-full h-full object-contain"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "https://placehold.co/60x60?text=Inválida";
-                            }}
-                          />
-                          <span className="absolute bottom-0 right-0 bg-black/70 text-[9px] text-white px-1 rounded-tl">
-                            #{idx + 1}
-                          </span>
-                        </div>
-                      ))}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-slate-600">
+                      Enlaces directos de imagen (1 URL por línea):
+                    </label>
+                    <span className="text-[10px] text-slate-400">
+                      La 1era imagen (#1) será la portada principal en la tienda
+                    </span>
                   </div>
-                )}
+                  <textarea
+                    rows={3}
+                    placeholder={`https://eaglegamingperu.com/foto1.png\nhttps://eaglegamingperu.com/foto2.png`}
+                    value={imagenesText}
+                    onChange={(e) => setImagenesText(e.target.value)}
+                    className="w-full px-3.5 py-2 border border-slate-300 rounded-xl text-xs font-mono focus:border-[#e81950] outline-none bg-white"
+                  />
+                </div>
+
+                {/* Previsualización grande de imágenes */}
+                {(() => {
+                  const urls = imagenesText
+                    .split(/[\n,]/)
+                    .map((u) => u.trim())
+                    .filter((u) => u.length > 0);
+
+                  if (urls.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-xs text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
+                        No hay imágenes todavía. Haz clic en <strong>Subir Imagen desde tu PC</strong> o pega enlaces URL arriba.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-2 pt-1">
+                      <div className="text-[11px] font-bold text-slate-600 flex items-center justify-between">
+                        <span>Vista previa de imágenes ({urls.length}):</span>
+                        <span className="text-[10px] text-slate-400">Haz clic en la papelera para quitar una foto</span>
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5">
+                        {urls.map((url, idx) => (
+                          <div
+                            key={idx}
+                            className="group relative bg-white rounded-xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition aspect-square flex flex-col justify-between p-2"
+                          >
+                            {/* Insignia de orden y botones de acción */}
+                            <div className="flex items-center justify-between z-10">
+                              <span
+                                className={`text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs ${
+                                  idx === 0
+                                    ? "bg-[#e81950] text-white"
+                                    : "bg-slate-800/80 text-white backdrop-blur-xs"
+                                }`}
+                              >
+                                {idx === 0 ? "★ #1 Portada" : `#${idx + 1}`}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  title="Ver imagen completa"
+                                  className="p-1 bg-white/90 hover:bg-white text-slate-600 hover:text-slate-900 rounded-md shadow-xs transition"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveImageUrl(idx)}
+                                  title="Quitar esta foto"
+                                  className="p-1 bg-red-500 hover:bg-red-600 text-white rounded-md shadow-xs transition cursor-pointer"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Imagen grande en el centro */}
+                            <div className="flex-1 flex items-center justify-center p-2 overflow-hidden">
+                              <img
+                                src={url}
+                                alt={`Imagen ${idx + 1}`}
+                                className="max-w-full max-h-full object-contain group-hover:scale-105 transition duration-200"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = "https://placehold.co/200x200?text=Error+URL";
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Sección 3: ESPECIFICACIONES DINÁMICAS (Pulgadas, Procesador, RAM, GPU, etc.) */}
