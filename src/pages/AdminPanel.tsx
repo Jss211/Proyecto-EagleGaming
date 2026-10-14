@@ -318,36 +318,43 @@ export function AdminPanel() {
         await ensureAdminDocument(auth.currentUser);
       }
 
-      // 1. Procesar URLs de imágenes
-      const urls = imagenesText
+      // 1. Procesar URLs de imágenes (limpias y deduplicadas)
+      const rawUrls = imagenesText
         .split(/[\n,]/)
         .map((u) => u.trim())
         .filter((u) => u.length > 0);
+      const uniqueUrls = Array.from(new Set(rawUrls));
+      const finalUrls = uniqueUrls.length > 0 ? uniqueUrls : ["https://placehold.co/600x400?text=Eagle+Gaming"];
 
-      // 2. Construir objeto base con precio numérico seguro
+      // 2. Construir objeto base limpio sin duplicar 'nombre' ni 'url1, url2...'
       const parsedPrice = parsePrice(precio);
       const dataToSave: Record<string, any> = {
         titulo: titulo.trim(),
-        nombre: titulo.trim(),
         precio: parsedPrice,
         categoria: categoria,
         stock: parseInt(stock, 10) || 0,
         descripcion: descripcion.trim(),
-        imagenes: urls.length > 0 ? urls : ["https://placehold.co/600x400?text=Eagle+Gaming"],
-        url: urls[0] || "https://placehold.co/600x400?text=Eagle+Gaming",
+        imagenes: finalUrls,
+        url: finalUrls[0],
         actualizadoEn: serverTimestamp(),
       };
 
-      // Mapear url1, url2, url3... para compatibilidad con las vistas existentes
-      urls.forEach((u, i) => {
-        if (i > 0 && i <= 6) {
-          dataToSave[`url${i}`] = u;
-        }
-      });
-
-      // 3. Guardar CADA especificación limpia y DEDUPLICADA (sin puntos en clave)
+      // 3. Guardar especificaciones dentro del array `especificaciones`
+      // Solo atributos estándar de indexación (marca, modelo, garantía, procesador, pulgadas, etc.) se guardan también como propiedad limpia
       const arraySpecs: string[] = [];
       const savedKeys = new Set<string>();
+      const standardFilterKeys = new Set([
+        "marca",
+        "modelo",
+        "garantia",
+        "tamaño de pantalla",
+        "pulgadas",
+        "procesador",
+        "capacidad",
+        "ram",
+        "memoria ram",
+        "color",
+      ]);
 
       specsList.forEach((row) => {
         const cleanKey = row.key.trim().replace(/\./g, " ");
@@ -356,8 +363,11 @@ export function AdminPanel() {
 
         if (cleanKey && cleanVal && !savedKeys.has(normKey)) {
           savedKeys.add(normKey);
-          dataToSave[cleanKey] = cleanVal;
           arraySpecs.push(`${cleanKey}: ${cleanVal}`);
+
+          if (standardFilterKeys.has(normKey)) {
+            dataToSave[normKey] = cleanVal;
+          }
         }
       });
       dataToSave.especificaciones = arraySpecs;
@@ -370,12 +380,22 @@ export function AdminPanel() {
       });
 
       if (editingId) {
-        // ACTUALIZAR PRODUCTO EXISTENTE usando setDoc con merge: true
-        await setDoc(doc(db, "productos", editingId), dataToSave, { merge: true });
+        // Preservar creadoEn y tendencia del producto original si existen
+        const existing = products.find((p) => p.id === editingId);
+        if (existing?.creadoEn) {
+          dataToSave.creadoEn = existing.creadoEn;
+        }
+        if (existing?.tendencia !== undefined) {
+          dataToSave.tendencia = existing.tendencia;
+        }
+
+        // Reemplazar documento en Firestore SIN merge: true
+        // Esto elimina automáticamente todos los campos duplicados o residuales
+        await setDoc(doc(db, "productos", editingId), dataToSave);
         showToast(
           "success",
           "Producto actualizado",
-          "Los cambios se guardaron exitosamente."
+          "Los cambios se guardaron limpiamente en Firebase sin duplicados."
         );
       } else {
         // CREAR PRODUCTO NUEVO
@@ -386,7 +406,7 @@ export function AdminPanel() {
         showToast(
           "success",
           "Producto publicado",
-          "El producto se publicó exitosamente."
+          "El producto se publicó limpiamente sin duplicados."
         );
       }
 
@@ -425,6 +445,114 @@ export function AdminPanel() {
     } catch (err: any) {
       console.error("Error al eliminar:", err);
       showToast("error", "Error al Eliminar", err?.message || "No se pudo eliminar el producto de Firebase.");
+    }
+  };
+
+  const handleLimpiarDuplicadosProducto = async (product: ProductItem) => {
+    const prodTitle = product.titulo || product.nombre || product.título || "este producto";
+    if (!window.confirm(`¿Deseas optimizar y limpiar los campos duplicados de "${prodTitle}" en Firebase?`)) {
+      return;
+    }
+
+    try {
+      if (auth.currentUser) {
+        await ensureAdminDocument(auth.currentUser);
+      }
+
+      // 1. Recolectar URLs deduplicadas
+      const collectedUrls: string[] = [];
+      if (Array.isArray(product.imagenes)) {
+        product.imagenes.forEach((u) => {
+          if (typeof u === "string" && u.trim() && !collectedUrls.includes(u.trim())) {
+            collectedUrls.push(u.trim());
+          }
+        });
+      }
+      ["url", "url1", "url2", "url3", "url4", "url5"].forEach((k) => {
+        const val = product[k];
+        if (typeof val === "string" && val.trim() && !collectedUrls.includes(val.trim())) {
+          collectedUrls.push(val.trim());
+        }
+      });
+      const finalUrls = collectedUrls.length > 0 ? collectedUrls : ["https://placehold.co/600x400?text=Eagle+Gaming"];
+
+      // 2. Extraer especificaciones deduplicadas
+      const arraySpecs: string[] = [];
+      const seenSpecKeys = new Set<string>();
+
+      if (Array.isArray(product.especificaciones)) {
+        product.especificaciones.forEach((item) => {
+          if (typeof item === "string" && item.trim()) {
+            const parts = item.split(":");
+            const rawKey = parts[0].trim();
+            const rawVal = parts.slice(1).join(":").trim();
+            const normKey = rawKey.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            if (normKey && rawVal && !seenSpecKeys.has(normKey)) {
+              seenSpecKeys.add(normKey);
+              arraySpecs.push(`${rawKey}: ${rawVal}`);
+            }
+          }
+        });
+      }
+
+      const ignoredKeys = new Set([
+        "id", "titulo", "título", "nombre", "precio", "categoria", "Categoria",
+        "stock", "descripcion", "Descripcion", "imagenes", "url", "url1", "url2", "url3",
+        "url4", "url5", "creadoEn", "creadoen", "actualizadoEn", "actualizadoen",
+        "especificaciones", "caracteristicas", "tendencia"
+      ]);
+
+      const standardFilterKeys = new Set([
+        "marca", "modelo", "garantia", "tamaño de pantalla", "pulgadas",
+        "procesador", "capacidad", "ram", "memoria ram", "color"
+      ]);
+
+      const standardData: Record<string, string> = {};
+
+      Object.entries(product).forEach(([k, v]) => {
+        const normKey = k.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (!ignoredKeys.has(k) && !ignoredKeys.has(normKey) && typeof v === "string" && v.trim() !== "") {
+          if (!seenSpecKeys.has(normKey)) {
+            seenSpecKeys.add(normKey);
+            const prettyKey = k.charAt(0).toUpperCase() + k.slice(1);
+            arraySpecs.push(`${prettyKey}: ${v.trim()}`);
+          }
+          if (standardFilterKeys.has(normKey)) {
+            standardData[normKey] = v.trim();
+          }
+        }
+      });
+
+      const cleanTitle = (product.titulo || product.nombre || product.título || "").trim();
+      const cleanPrice = parsePrice(product.precio);
+      const cleanDocData: Record<string, any> = {
+        titulo: cleanTitle,
+        precio: cleanPrice,
+        categoria: product.categoria || product.Categoria || "General",
+        stock: product.stock !== undefined ? Number(product.stock) : 10,
+        descripcion: (product.descripcion || product.Descripcion || "").trim(),
+        imagenes: finalUrls,
+        url: finalUrls[0],
+        especificaciones: arraySpecs,
+        actualizadoEn: serverTimestamp(),
+        ...standardData
+      };
+
+      if (product.creadoEn) cleanDocData.creadoEn = product.creadoEn;
+      if (product.tendencia !== undefined) cleanDocData.tendencia = product.tendencia;
+
+      // Sobrescribir documento en Firestore (reemplaza limpiando las claves residuales)
+      await setDoc(doc(db, "productos", product.id), cleanDocData);
+
+      showToast(
+        "success",
+        "¡Producto optimizado!",
+        `Se eliminaron todos los campos duplicados de "${cleanTitle}" en Firebase.`
+      );
+      await fetchProducts();
+    } catch (err: any) {
+      console.error("Error al optimizar producto:", err);
+      showToast("error", "Error al limpiar", err?.message || "No se pudo optimizar el producto.");
     }
   };
 
@@ -681,6 +809,13 @@ export function AdminPanel() {
                         </td>
                         <td className="py-3 px-4 text-right">
                           <div className="inline-flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleLimpiarDuplicadosProducto(p)}
+                              title="Limpiar campos duplicados en Firebase"
+                              className="p-2 text-amber-500 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                            >
+                              <Sparkles className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => handleOpenEdit(p)}
                               title="Editar producto, precio, imágenes y especificaciones"
