@@ -64,17 +64,23 @@ export function ProductDetailPage() {
   const title = product.titulo || product.Titulo || product.título || product.Título || product.nombre || product.Nombre || `${product.marca || product.Marca || ""} ${product.modelo || product.Modelo || ""}`.trim() || "Producto sin título";
   const price = product.precio || product.Precio || 0;
 
-  // Recolectar todas las imágenes disponibles
+  // Recolectar todas las imágenes disponibles (url, url1, url2... e imagenes[])
   const images: string[] = [];
+  if (product.url && typeof product.url === "string" && product.url.trim()) {
+    images.push(product.url.trim());
+  }
+  ["url1", "url2", "url3", "url4", "url5", "url6", "url7", "url8"].forEach((k) => {
+    const val = product[k];
+    if (typeof val === "string" && val.trim() && !images.includes(val.trim())) {
+      images.push(val.trim());
+    }
+  });
   if (Array.isArray(product.imagenes)) {
-    images.push(...product.imagenes);
-  } else {
-    if (product.url) images.push(product.url);
-    if (product.url1) images.push(product.url1);
-    if (product.url2) images.push(product.url2);
-    if (product.url3) images.push(product.url3);
-    if (product.url4) images.push(product.url4);
-    if (product.url5) images.push(product.url5);
+    product.imagenes.forEach((u: string) => {
+      if (typeof u === "string" && u.trim() && !images.includes(u.trim())) {
+        images.push(u.trim());
+      }
+    });
   }
   // Imagen por defecto si no hay ninguna
   if (images.length === 0) {
@@ -173,23 +179,76 @@ export function ProductDetailPage() {
               S/ {price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
             </p>
 
-            <ul style={{ listStyleType: "disc", paddingLeft: "1.5rem", color: "#555", fontSize: "0.95rem", display: "flex", flexDirection: "column", gap: "0.8rem", marginBottom: "2rem" }}>
-              {Object.entries(product)
-                .filter(([key, value]) => {
-                  const k = key.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                  const ignoredKeys = ["id", "titulo", "nombre", "precio", "categoria", "descripcion", "imagenes", "url", "url1", "url2", "url3", "url4", "url5"];
-                  return !ignoredKeys.includes(k) && typeof value === 'string' && value.trim() !== '';
-                })
-                .map(([key, value]) => {
-                  // Formatear la clave para que se vea bien (ej. "fuente de poder" -> "Fuente de poder")
-                  const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ');
-                  return (
-                    <li key={key}>
-                      <strong>{formattedKey}:</strong> {String(value)}
+            {/* Lista Unificada y Deduplicada de Especificaciones */}
+            {(() => {
+              const displaySpecs: { id: string; text: string; isSubItem: boolean }[] = [];
+              const seenKeys = new Set<string>();
+
+              const addSpec = (raw: string) => {
+                if (!raw || !raw.trim()) return;
+                const clean = raw.trim();
+                const parts = clean.split(":");
+                const keyPart = parts[0].trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                
+                // Si la clave ya fue agregada, NO duplicar
+                if (keyPart && seenKeys.has(keyPart)) return;
+                if (keyPart) seenKeys.add(keyPart);
+
+                const isSubItem = clean.startsWith("-") || clean.startsWith("  ") || clean.startsWith("\t");
+                displaySpecs.push({
+                  id: `spec-${displaySpecs.length}-${keyPart}`,
+                  text: clean.replace(/^[-•*]\s*/, ""),
+                  isSubItem,
+                });
+              };
+
+              // 1. Procesar especificaciones si viene como Array
+              const rawArray = product.especificaciones || product.caracteristicas;
+              if (Array.isArray(rawArray)) {
+                rawArray.forEach((item: string) => {
+                  if (typeof item === "string") addSpec(item);
+                });
+              } else if (typeof rawArray === "string") {
+                rawArray.split("\n").forEach((line: string) => addSpec(line));
+              }
+
+              // 2. Procesar atributos individuales de Firebase SOLO si no están ya en la lista
+              const ignoredKeys = [
+                "id", "titulo", "título", "nombre", "precio", "categoria", "descripcion", 
+                "especificaciones", "caracteristicas", "imagenes", "url", 
+                "url1", "url2", "url3", "url4", "url5", "stock", "creadoen", "actualizadoen", "tendencia"
+              ];
+
+              Object.entries(product).forEach(([key, value]) => {
+                const k = key.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+                if (!ignoredKeys.includes(k) && typeof value === "string" && value.trim() !== "") {
+                  if (!seenKeys.has(k)) {
+                    seenKeys.add(k);
+                    const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
+                    displaySpecs.push({
+                      id: `field-${k}`,
+                      text: `${formattedKey}: ${value.trim()}`,
+                      isSubItem: false,
+                    });
+                  }
+                }
+              });
+
+              if (displaySpecs.length === 0) return null;
+
+              return (
+                <ul style={{ listStyleType: "disc", paddingLeft: "1.5rem", color: "#555", fontSize: "0.95rem", display: "flex", flexDirection: "column", gap: "0.8rem", marginBottom: "2rem" }}>
+                  {displaySpecs.map((item) => (
+                    <li 
+                      key={item.id} 
+                      style={item.isSubItem ? { marginLeft: "1.5rem", listStyleType: "circle" } : {}}
+                    >
+                      {item.text}
                     </li>
-                  );
-                })}
-            </ul>
+                  ))}
+                </ul>
+              );
+            })()}
 
             {(product.descripcion || product.Descripcion) && (
               <div style={{ marginBottom: "2rem", borderTop: "1px solid #eaeaea", paddingTop: "1.5rem" }}>
