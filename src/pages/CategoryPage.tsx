@@ -159,6 +159,20 @@ const matchesCategory = (
 
   if (!catField) return false;
 
+  // Si la categoría buscada es monitores, excluir estrictamente cualquier PC o computadora
+  if (categoryId === "monitores") {
+    if (
+      catField.includes("pc") ||
+      catField.includes("computadora") ||
+      catField.includes("combo") ||
+      catField.includes("gamer") ||
+      catField.includes("oficina") ||
+      catField.includes("ingenieria")
+    ) {
+      return false;
+    }
+  }
+
   return terms.some((t) => catField.includes(t));
 };
 

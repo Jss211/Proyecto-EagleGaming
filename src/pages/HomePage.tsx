@@ -67,34 +67,33 @@ const normalize = (text: string): string =>
 
 const getCategoryKey = (category: string, title?: string): CategoryKey | null => {
   const cat = normalize(category || "");
-  const tit = normalize(title || "");
 
-  if (cat.includes("laptop") || tit.includes("laptop")) return "laptops";
-  if (cat.includes("refrig") || cat.includes("liquida") || tit.includes("refrigeracion")) return "refrigeracion";
-  if (cat.includes("monitor") || tit.includes("monitor")) return "monitores";
+  // Si tiene categoría en la base de datos, clasificar estrictamente por esa categoría:
   if (
     cat.includes("pc") ||
     cat.includes("computadora") ||
     cat.includes("combo") ||
-    tit.startsWith("pc ") ||
-    tit.startsWith("computadora") ||
-    tit.includes("pc gamer") ||
-    tit.includes("pc completa")
+    cat.includes("gamer") ||
+    cat.includes("oficina")
   ) {
     return "pc completa";
   }
-  if (cat.includes("procesador") || tit.includes("procesador")) return "procesadores";
-  if (
-    cat.includes("tarjeta") ||
-    cat.includes("video") ||
-    cat.includes("grafica") ||
-    tit.includes("rtx") ||
-    tit.includes("rx ") ||
-    tit.includes("geforce")
-  ) {
-    return "tarjetas de video";
-  }
-  if (cat.includes("placa") || cat.includes("madre") || tit.includes("placa")) return "placas madre";
+  if (cat.includes("laptop")) return "laptops";
+  if (cat.includes("refrig") || cat.includes("liquida")) return "refrigeracion";
+  if (cat.includes("monitor")) return "monitores";
+  if (cat.includes("procesador")) return "procesadores";
+  if (cat.includes("tarjeta") || cat.includes("video") || cat.includes("grafica")) return "tarjetas de video";
+  if (cat.includes("placa") || cat.includes("madre")) return "placas madre";
+
+  // Solo si la categoría en Firestore está vacía o indefinida, inferir por el inicio del título:
+  const tit = normalize(title || "");
+  if (tit.startsWith("pc ") || tit.startsWith("computadora")) return "pc completa";
+  if (tit.startsWith("monitor")) return "monitores";
+  if (tit.startsWith("laptop")) return "laptops";
+  if (tit.startsWith("procesador")) return "procesadores";
+  if (tit.startsWith("tarjeta") || tit.includes("geforce") || tit.startsWith("placa de video")) return "tarjetas de video";
+  if (tit.startsWith("placa")) return "placas madre";
+
   return null;
 };
 
