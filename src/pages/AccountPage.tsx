@@ -24,6 +24,7 @@ import {
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { isAdminUser } from "../utils/admin";
+import { getTimeGreeting, getUserDisplayName, getUserFirstName } from "../utils/userProfile";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 
@@ -101,7 +102,8 @@ export function AccountPage() {
 
   if (!currentUser) return null;
 
-  const displayName = currentUser.displayName?.trim() || "Usuario Eagle";
+  const displayName = getUserDisplayName(currentUser);
+  const firstName = getUserFirstName(displayName);
   const initials = displayName
     .split(/\s+/)
     .slice(0, 2)
@@ -185,9 +187,15 @@ export function AccountPage() {
       <SecondaryNav />
       <main className="account-page">
         <div className="account-shell">
-          <header className="mb-10 border-b border-slate-700/30 pb-8">
-            <h1 className="text-4xl font-black tracking-tight sm:text-5xl">Mi Cuenta</h1>
-            <p className="mt-2 text-sm text-slate-400 font-medium tracking-wide">Administra tu información y credenciales</p>
+          <header className="mb-10 border-b border-slate-700/30 pb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-black tracking-tight sm:text-4xl text-gray-900">
+                ¡Hola, {getTimeGreeting().greeting}, {firstName}!
+              </h1>
+              <p className="mt-2 text-sm text-slate-500 font-medium tracking-wide">
+                Bienvenido a tu panel de cuenta en Eagle Gaming.
+              </p>
+            </div>
           </header>
 
           <div className="grid grid-cols-1 md:grid-cols-[340px_1fr] gap-12 lg:gap-24">
@@ -243,36 +251,34 @@ export function AccountPage() {
                   <p className="mt-1 text-xs text-slate-500">Estamos para ayudarte</p>
                 </div>
                 <div className="flex justify-end mt-2">
-                  <button type="button" className="text-xs font-bold text-red-500 hover:text-red-400 transition-all hover:scale-110 active:scale-95">Contáctanos</button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/contactenos")}
+                    className="text-xs font-bold text-red-500 hover:text-red-400 transition-all hover:scale-110 active:scale-95 cursor-pointer"
+                  >
+                    Contáctanos
+                  </button>
                 </div>
               </div>
 
               {/* Admin Card */}
               {isAdminUser(currentUser.email) && (
-                <div className="rounded-2xl shadow-md border-2 border-[#e81950] bg-gradient-to-br from-red-50 via-white to-red-50/30 p-6 flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-5 w-5 text-[#e81950]" />
-                      <h3 className="text-sm font-black uppercase tracking-wide text-[#e81950]">
-                        Administración
-                      </h3>
-                    </div>
-                    <span className="text-[10px] font-black bg-[#e81950] text-white px-2 py-0.5 rounded-full uppercase tracking-wider">
-                      ADMIN
-                    </span>
+                <div className="rounded-2xl shadow-md border-2 border-[#e81950] bg-gradient-to-br from-red-50 via-white to-red-50/30 p-6 flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <LayoutDashboard className="h-5 w-5 text-[#e81950]" />
+                    <h3 className="text-sm font-black uppercase tracking-wide text-gray-900">
+                      Panel de Control
+                    </h3>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">Panel de Control</p>
-                    <p className="mt-1 text-xs text-gray-600 leading-relaxed">
-                      Sube productos, gestiona especificaciones y controla el stock de la tienda.
-                    </p>
-                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Sube productos, gestiona especificaciones y controla el stock de la tienda.
+                  </p>
                   <button
                     type="button"
                     onClick={() => navigate("/admin")}
                     className="w-full mt-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow"
                   >
-                    <LayoutDashboard className="h-4 w-4 text-[#e81950]" />
+                    <ShieldAlert className="h-4 w-4 text-[#e81950]" />
                     <span>Ir al Panel de Admin</span>
                   </button>
                 </div>

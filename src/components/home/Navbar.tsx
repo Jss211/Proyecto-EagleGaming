@@ -1,11 +1,14 @@
 import { useCart } from "../../context/CartContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   ShoppingCart,
   User,
   Menu,
   X,
   ChevronRight,
+  ChevronDown,
+  LogOut,
+  ShieldAlert,
   Monitor,
   HardDrive,
   Cpu,
@@ -32,8 +35,14 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { onAuthStateChanged, signOut, type User as FirebaseUser } from "firebase/auth";
 import { auth } from "../../firebase";
+import {
+  getTimeGreeting,
+  getUserDisplayName,
+  getUserFirstName,
+  getUserRole,
+} from "../../utils/userProfile";
 
 export type Subcategory = {
   id: string;
@@ -200,11 +209,32 @@ export function Navbar() {
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>("monitores");
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => onAuthStateChanged(auth, setCurrentUser), []);
 
-  const firstName = currentUser?.displayName?.trim().split(/\s+/)[0];
-  const accountLabel = firstName ? `Bienvenido, ${firstName}` : "Acceder";
+  // Cierra el dropdown al hacer click afuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    }
+    if (userDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [userDropdownOpen]);
+
+  const timeGreeting = getTimeGreeting();
+  const fullName = getUserDisplayName(currentUser);
+  const firstName = getUserFirstName(fullName);
+  const role = getUserRole(currentUser?.email);
+  const isAdmin = role === "Admin";
+  const userInitial = (firstName || "U")[0]?.toUpperCase();
 
   const activeCategoryId = hoveredCategory || CATEGORY_LINKS[0].id;
   const hoveredCategoryData = CATEGORY_LINKS.find(
@@ -397,15 +427,83 @@ export function Navbar() {
           )}
         </button>
 
-        {/* Acceder */}
-        <button
-          className="navbar__acceder-btn"
-          onClick={() => navigate(currentUser ? "/cuenta" : "/login")}
-          aria-label="Iniciar sesion o registrarse"
-        >
-          <User className="w-4 h-4" />
-          <span>{accountLabel}</span>
-        </button>
+        {/* Perfil de usuario o Botón Acceder */}
+        {currentUser ? (
+          <div className="navbar__user-profile-wrap" ref={dropdownRef}>
+            <button
+              type="button"
+              className="navbar__user-profile-btn"
+              onClick={() => setUserDropdownOpen((prev) => !prev)}
+              aria-label={`Perfil de ${fullName}`}
+              aria-expanded={userDropdownOpen}
+            >
+              <div className="navbar__user-avatar">
+                {userInitial}
+              </div>
+              <span className="navbar__user-greeting">
+                ¡Hola, {timeGreeting.greeting}, {firstName}!
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-gray-500 ml-0.5" />
+            </button>
+
+            {userDropdownOpen && (
+              <div className="navbar__user-dropdown">
+                <div className="navbar__user-dropdown-header">
+                  <p className="navbar__user-dropdown-name">{fullName}</p>
+                  <p className="navbar__user-dropdown-email">{currentUser.email}</p>
+                </div>
+
+                {isAdmin && (
+                  <button
+                    type="button"
+                    className="navbar__user-dropdown-item navbar__user-dropdown-item--admin"
+                    onClick={() => {
+                      setUserDropdownOpen(false);
+                      navigate("/admin");
+                    }}
+                  >
+                    <ShieldAlert className="w-4 h-4 text-[#e81950]" />
+                    <span>Panel de Administración</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="navbar__user-dropdown-item"
+                  onClick={() => {
+                    setUserDropdownOpen(false);
+                    navigate("/cuenta");
+                  }}
+                >
+                  <User className="w-4 h-4 text-gray-600" />
+                  <span>Mi Cuenta</span>
+                </button>
+
+                <button
+                  type="button"
+                  className="navbar__user-dropdown-item navbar__user-dropdown-item--logout"
+                  onClick={async () => {
+                    setUserDropdownOpen(false);
+                    await signOut(auth);
+                    navigate("/");
+                  }}
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Cerrar Sesión</span>
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            className="navbar__acceder-btn"
+            onClick={() => navigate("/login")}
+            aria-label="Iniciar sesion o registrarse"
+          >
+            <User className="w-4 h-4" />
+            <span>Acceder</span>
+          </button>
+        )}
 
         {/* Toggle movil */}
         <button
@@ -424,9 +522,58 @@ export function Navbar() {
           <NavLink to="/" end className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Inicio</NavLink>
           <NavLink to="/nosotros" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Nosotros</NavLink>
           <NavLink to="/contactenos" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Contactenos</NavLink>
-          <button className="navbar__mobile-link text-left" onClick={() => { navigate(currentUser ? "/cuenta" : "/login"); setMobileMenuOpen(false); }}>
-            {accountLabel}
-          </button>
+          
+          {currentUser ? (
+            <div className="navbar__mobile-user-box">
+              <div className="navbar__mobile-user-greeting">
+                <span>¡Hola, {timeGreeting.greeting}, {firstName}!</span>
+              </div>
+              {isAdmin && (
+                <button
+                  className="navbar__mobile-link text-left font-bold text-[#e81950] flex items-center gap-2"
+                  onClick={() => {
+                    navigate("/admin");
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Panel de Administración</span>
+                </button>
+              )}
+              <button
+                className="navbar__mobile-link text-left flex items-center gap-2"
+                onClick={() => {
+                  navigate("/cuenta");
+                  setMobileMenuOpen(false);
+                }}
+              >
+                <User className="w-4 h-4" />
+                <span>Mi Cuenta</span>
+              </button>
+              <button
+                className="navbar__mobile-link text-left text-red-600 flex items-center gap-2"
+                onClick={async () => {
+                  await signOut(auth);
+                  setMobileMenuOpen(false);
+                  navigate("/");
+                }}
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Cerrar Sesión</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              className="navbar__mobile-link text-left font-bold text-[#e81950] flex items-center gap-2"
+              onClick={() => {
+                navigate("/login");
+                setMobileMenuOpen(false);
+              }}
+            >
+              <User className="w-4 h-4" />
+              <span>Acceder</span>
+            </button>
+          )}
         </nav>
       )}
     </header>

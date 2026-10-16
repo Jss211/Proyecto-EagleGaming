@@ -11,31 +11,41 @@ import type { Product } from "../components/home/ProductCard";
 import { CombosSection } from "../components/home/CombosSection";
 
 type CategoryKey =
+  | "pc completa"
   | "productos en tendencia"
   | "laptops"
-  | "pc completa"
   | "procesadores"
+  | "tarjetas de video"
   | "monitores"
+  | "placas madre"
   | "refrigeracion";
 
 type ProductsByCategory = Record<CategoryKey, Product[]>;
 
-// Orden en el que se muestran las secciones en la página
+// Orden exacto solicitado:
+// 1. PC Completas
+// 2. Productos en tendencia
+// 3. Laptops (destacando la laptop existente)
+// 4. Otras categorías
 const SECTIONS: { key: CategoryKey; title: string }[] = [
-  { key: "productos en tendencia", title: "Productos en tendencia" },
-  { key: "laptops", title: "Laptops Destacadas" },
   { key: "pc completa", title: "PC Completas" },
+  { key: "productos en tendencia", title: "Productos en tendencia" },
   { key: "procesadores", title: "Procesadores" },
+  { key: "tarjetas de video", title: "Tarjetas de Video" },
   { key: "monitores", title: "Monitores" },
+  { key: "placas madre", title: "Placas Madre" },
   { key: "refrigeracion", title: "Refrigeración Líquida" },
+  { key: "laptops", title: "Laptops" },
 ];
 
 const createEmptyGroups = (): ProductsByCategory => ({
+  "pc completa": [],
   "productos en tendencia": [],
   laptops: [],
-  "pc completa": [],
   procesadores: [],
+  "tarjetas de video": [],
   monitores: [],
+  "placas madre": [],
   refrigeracion: [],
 });
 
@@ -55,20 +65,42 @@ const normalize = (text: string): string =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-const getCategoryKey = (category: string): CategoryKey | null => {
-  const cat = normalize(category);
+const getCategoryKey = (category: string, title?: string): CategoryKey | null => {
+  const cat = normalize(category || "");
+  const tit = normalize(title || "");
 
-  if (cat.includes("laptop")) return "laptops";
-  if (cat.includes("refrig") || cat.includes("liquida")) return "refrigeracion";
-  if (cat.includes("monitor")) return "monitores";
-  if (cat.includes("pc")) return "pc completa";
-  if (cat.includes("procesador")) return "procesadores";
+  if (cat.includes("laptop") || tit.includes("laptop")) return "laptops";
+  if (cat.includes("refrig") || cat.includes("liquida") || tit.includes("refrigeracion")) return "refrigeracion";
+  if (cat.includes("monitor") || tit.includes("monitor")) return "monitores";
+  if (
+    cat.includes("pc") ||
+    cat.includes("computadora") ||
+    cat.includes("combo") ||
+    tit.startsWith("pc ") ||
+    tit.startsWith("computadora") ||
+    tit.includes("pc gamer") ||
+    tit.includes("pc completa")
+  ) {
+    return "pc completa";
+  }
+  if (cat.includes("procesador") || tit.includes("procesador")) return "procesadores";
+  if (
+    cat.includes("tarjeta") ||
+    cat.includes("video") ||
+    cat.includes("grafica") ||
+    tit.includes("rtx") ||
+    tit.includes("rx ") ||
+    tit.includes("geforce")
+  ) {
+    return "tarjetas de video";
+  }
+  if (cat.includes("placa") || cat.includes("madre") || tit.includes("placa")) return "placas madre";
   return null;
 };
 
 const isTrending = (data: Record<string, unknown>): boolean => {
   const value = pickField(data, ["tendencia", "Tendencia"]);
-  return value === true || value === "true";
+  return value === true || value === "true" || value === 1;
 };
 
 const buildProduct = (id: string, data: Record<string, unknown>): Product => {
@@ -103,12 +135,13 @@ export function HomePage() {
           const data = doc.data() as Record<string, unknown>;
           const product = buildProduct(doc.id, data);
 
-          // Un producto puede estar en "tendencia" y además en su categoría
+          // Si tiene flag de tendencia va a la sección de tendencia
           if (isTrending(data)) {
             grouped["productos en tendencia"].push(product);
           }
 
-          const categoryKey = getCategoryKey(product.category);
+          // Y también a su categoría respectiva
+          const categoryKey = getCategoryKey(product.category, product.name);
           if (categoryKey) {
             grouped[categoryKey].push(product);
           }

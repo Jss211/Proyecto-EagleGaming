@@ -36,10 +36,6 @@ export async function ensureAdminDocument(user: FirebaseUser | null): Promise<bo
   }
 }
 
-/**
- * Convierte de manera segura cualquier formato de precio ("2,799.00", "S/ 3,500", 3500)
- * a un número válido y nunca devuelve NaN.
- */
 export function parsePrice(val: any): number {
   if (typeof val === "number") return isNaN(val) ? 0 : val;
   if (!val) return 0;
