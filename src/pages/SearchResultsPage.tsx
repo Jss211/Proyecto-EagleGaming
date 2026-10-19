@@ -8,6 +8,8 @@ import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
 
+import { buildNormalizedProduct } from "../utils/productUtils";
+
 export function SearchResultsPage() {
   const [searchParams] = useSearchParams();
   const term = (searchParams.get("q") || "").trim().toLowerCase();
@@ -22,16 +24,9 @@ export function SearchResultsPage() {
     const fetchAndFilter = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "productos"));
-        const all: Product[] = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            name: data.titulo || data.nombre || `${data.marca || ""} ${data.modelo || ""}`.trim(),
-            category: data.categoria || "",
-            price: data.precio || 0,
-            imageUrl: data.url || "https://placehold.co/400x300?text=Producto",
-          };
-        });
+        const all: Product[] = querySnapshot.docs.map((doc) =>
+          buildNormalizedProduct(doc.id, doc.data())
+        );
 
         const filtered = all.filter(
           (p) =>

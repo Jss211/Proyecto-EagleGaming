@@ -29,7 +29,7 @@ import { LibroDeReclamacionesPage } from "./pages/LibroDeReclamacionesPage";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminPanel } from "./pages/AdminPanel";
 import { AdminRoute } from "./components/AdminRoute";
-import { Chatbot } from "./chatbot-frontend/Chatbot";
+// import { Chatbot } from "./chatbot-frontend/Chatbot";
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -42,11 +42,8 @@ function ScrollToTop() {
 }
 
 function ConditionalChatbot() {
-  const { pathname } = useLocation();
-  const hiddenRoutes = ["/login", "/register", "/forgot-password", "/admin-login", "/admin"];
-  const shouldHide = hiddenRoutes.some((route) => pathname.startsWith(route));
-  if (shouldHide) return null;
-  return <Chatbot />;
+  // Desactivado temporalmente por solicitud del usuario
+  return null;
 }
 
 export default function App() {

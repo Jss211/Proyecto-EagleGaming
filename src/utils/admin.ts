@@ -36,13 +36,5 @@ export async function ensureAdminDocument(user: FirebaseUser | null): Promise<bo
   }
 }
 
-export function parsePrice(val: any): number {
-  if (typeof val === "number") return isNaN(val) ? 0 : val;
-  if (!val) return 0;
-  if (typeof val === "string") {
-    const cleaned = val.replace(/[^0-9.]/g, "");
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;
-}
+export { parsePrice } from "./productUtils";
+

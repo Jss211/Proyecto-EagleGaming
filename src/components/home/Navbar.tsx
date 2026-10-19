@@ -32,6 +32,7 @@ import {
   Briefcase,
   Flame,
   ArrowRight,
+  Cable,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -142,6 +143,7 @@ const CATEGORY_LINKS: Category[] = [
       { id: "audifonos", label: "Headsets & Audífonos", icon: Headphones },
       { id: "webcam", label: "Cámaras & Webcams", icon: Video },
       { id: "combos", label: "Kits Teclado + Mouse", icon: Sparkles },
+      { id: "cables", label: "Cables y Adaptadores", icon: Cable },
       { id: "todos", label: "Ver todos los periféricos", icon: Sparkles },
     ],
   },

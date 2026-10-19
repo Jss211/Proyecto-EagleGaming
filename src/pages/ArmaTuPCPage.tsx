@@ -6,6 +6,7 @@ import { Footer } from "../components/home/Footer";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
+import { buildNormalizedProduct } from "../utils/productUtils";
 import {
   X,
   CheckCircle2,
@@ -42,18 +43,7 @@ const normalize = (text: string) =>
   (text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const buildProduct = (id: string, data: Record<string, unknown>): Product => {
-  const pick = (keys: string[]) => keys.find((k) => data[k] != null && data[k] !== "") ?? "";
-  const name =
-    (data[pick(["titulo", "Titulo", "título", "Título", "nombre", "Nombre"])] as string) ??
-    (`${data["marca"] ?? ""} ${data["modelo"] ?? ""}`.trim() || "Producto sin título");
-  return {
-    id,
-    name,
-    category: (data[pick(["categoria", "Categoria", "categoría", "Categoría"])] as string) ?? "",
-    price: Number(data[pick(["precio", "Precio"])] ?? 0),
-    imageUrl: (data[pick(["url", "Url"])] as string) ?? `https://placehold.co/400x300?text=Producto`,
-    inStock: data["stock"] !== false,
-  };
+  return buildNormalizedProduct(id, data);
 };
 
 // ─── Detección de Socket, Generación y Compatibilidad ─────────────────────────

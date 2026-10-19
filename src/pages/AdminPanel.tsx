@@ -32,7 +32,16 @@ import {
   ImagePlus,
   Loader2
 } from "lucide-react";
-import { ensureAdminDocument, parsePrice } from "../utils/admin";
+import { ensureAdminDocument } from "../utils/admin";
+import {
+  parsePrice,
+  PERIPHERAL_SUBCATEGORIES,
+  PC_SUBCATEGORIES,
+  resolveProductImage,
+  resolveProductTitle,
+  resolveProductSubcategory,
+  normalizeDocumentData,
+} from "../utils/productUtils";
 
 export async function uploadImageFile(file: File): Promise<string> {
   // 1. Catbox.moe (gratuito, sin límite de expiración, permanente)
@@ -201,34 +210,71 @@ export function matchesCategory(p: ProductItem, selected: string): boolean {
   if (selected === "Todas") return true;
   const pCat = (p.categoria || "").trim().toLowerCase();
   
-  if (selected === "Todas las PC") {
+  if (selected === "PC Completa" || selected === "Todas las PC") {
     return pCat.includes("pc");
   }
   
   return pCat === selected.toLowerCase();
 }
 
-export const CATEGORIAS_FILTRO_PC = [
-  { id: "PC Completa Gamer", label: "PC Gamer" },
-  { id: "PC Completa Oficina", label: "PC Oficina" },
-  { id: "PC Completa Ingenierías", label: "PC Ingenierías" },
-  { id: "Todas las PC", label: "Todas las PC" },
-];
+export function matchesPcSubcat(p: ProductItem, selectedSubcat: string): boolean {
+  if (selectedSubcat === "Todas") return true;
+  const pSub = (p.subcategoria || "").trim().toUpperCase();
+  const pCat = (p.rawCategoria || p.categoria || "").trim().toUpperCase();
+  const pTit = (p.titulo || p.nombre || "").trim().toUpperCase();
+  const full = `${pSub} ${pCat} ${pTit}`;
 
-export const CATEGORIAS_FILTRO_COMP = [
+  if (selectedSubcat === "PC COMPLETA GAMER" || selectedSubcat === "PC Gamer") {
+    return full.includes("GAMER") || full.includes("GAMING") || (!full.includes("OFICINA") && !full.includes("INGENIER"));
+  }
+  if (selectedSubcat === "PC COMPLETA OFICINA" || selectedSubcat === "PC de Oficina" || selectedSubcat === "PC Oficina") {
+    return full.includes("OFICINA");
+  }
+  if (selectedSubcat === "PC COMPLETA INGENIERIAS" || selectedSubcat === "PC de Ingenierías" || selectedSubcat === "PC Ingenierías") {
+    return full.includes("INGENIER");
+  }
+  return false;
+}
+
+export const CATEGORIAS_FILTRO = [
+  { id: "PC Completa", label: "PC Completa" },
   { id: "Tarjetas de video", label: "Tarjetas de video" },
   { id: "Procesadores", label: "Procesadores" },
   { id: "Monitores", label: "Monitores" },
   { id: "Placa madre", label: "Placa madre" },
-  { id: "Refrigeración líquida", label: "Refrigeración líquida" },
   { id: "Laptops", label: "Laptops" },
   { id: "Memoria RAM", label: "Memoria RAM" },
   { id: "Disco SSD", label: "Disco SSD" },
   { id: "Fuente de poder", label: "Fuente de poder" },
   { id: "Case", label: "Case" },
+  { id: "Refrigeración líquida", label: "Refrigeración líquida" },
   { id: "Estabilizador", label: "Estabilizador" },
   { id: "Periféricos", label: "Periféricos" },
 ];
+
+export function matchesPeripheralSubcat(p: ProductItem, selectedSubcat: string): boolean {
+  if (selectedSubcat === "Todas") return true;
+  const pSub = (p.subcategoria || "").trim().toUpperCase();
+  if (pSub === selectedSubcat.trim().toUpperCase()) return true;
+
+  // Fallback por si la subcategoría aún no está guardada explícitamente
+  const normTitle = (p.titulo || p.nombre || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  const sub = selectedSubcat.toUpperCase();
+  if (sub === "AUDIFONOS") return normTitle.includes("audifono") || normTitle.includes("headset") || normTitle.includes("auricular");
+  if (sub === "CABLE") return normTitle.includes("cable");
+  if (sub === "COOLER") return normTitle.includes("cooler") || normTitle.includes("ventilador") || normTitle.includes("fan");
+  if (sub === "KIT TECLADO Y MOUSE") return normTitle.includes("kit") || normTitle.includes("combo teclado") || normTitle.includes("4 en 1");
+  if (sub === "MOUSE") return normTitle.includes("mouse") || normTitle.includes("raton");
+  if (sub === "PARLANTES") return normTitle.includes("parlante") || normTitle.includes("speaker") || normTitle.includes("bocina");
+  if (sub === "TECLADO") return normTitle.includes("teclado") || normTitle.includes("keyboard");
+  if (sub === "WEBCAM (CAMARA)") return normTitle.includes("webcam") || normTitle.includes("camara");
+
+  return false;
+}
 
 interface SpecRow {
   id: string;
@@ -242,6 +288,7 @@ interface ProductItem {
   nombre?: string;
   precio?: number | string;
   categoria?: string;
+  subcategoria?: string;
   stock?: number;
   imagenes?: string[];
   url?: string;
@@ -267,6 +314,8 @@ export function AdminPanel() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState("Todas");
+  const [selectedSubcatPerifericos, setSelectedSubcatPerifericos] = useState("Todas");
+  const [selectedSubcatPc, setSelectedSubcatPc] = useState("Todas");
   
   // Modal & Form State
   const [showModal, setShowModal] = useState(false);
@@ -280,7 +329,9 @@ export function AdminPanel() {
   // Form Fields
   const [titulo, setTitulo] = useState("");
   const [precio, setPrecio] = useState("");
-  const [categoria, setCategoria] = useState("PC COMPLETA GAMER");
+  const [categoria, setCategoria] = useState("PC Completa");
+  const [subcategoriaPc, setSubcategoriaPc] = useState<string>("PC COMPLETA GAMER");
+  const [subcategoriaPerifericos, setSubcategoriaPerifericos] = useState<string>("AUDIFONOS");
   const [stock, setStock] = useState("10");
   const [imagenesText, setImagenesText] = useState("");
   const [descripcion, setDescripcion] = useState("");
@@ -368,12 +419,15 @@ export function AdminPanel() {
       (snap) => {
         const list: ProductItem[] = [];
         snap.forEach((d) => {
-          const data = d.data();
+          const rawData = d.data();
+          const data = normalizeDocumentData(rawData);
           const canonical = resolveProductCategory(data);
+          const subcat = resolveProductSubcategory(data);
           list.push({ 
             id: d.id, 
             ...data,
             categoria: canonical,
+            subcategoria: subcat,
             rawCategoria: data.categoria || data.Categoria || canonical,
             precio: parsePrice(data.precio) 
           });
@@ -401,16 +455,14 @@ export function AdminPanel() {
     setTitulo("");
     setPrecio("");
 
-    let defaultCat = "PC COMPLETA GAMER";
-    if (selectedCat === "PC Completa Gamer") defaultCat = "PC COMPLETA GAMER";
-    else if (selectedCat === "PC Completa Oficina") defaultCat = "PC COMPLETA OFICINA";
-    else if (selectedCat === "PC Completa Ingenierías") defaultCat = "PC COMPLETA INGENIERIAS";
-    else if (selectedCat === "PC Completa" || selectedCat === "Todas las PC") defaultCat = "PC COMPLETA";
-    else if (selectedCat !== "Todas") {
+    let defaultCat = "PC Completa";
+    if (selectedCat !== "Todas") {
       defaultCat = selectedCat;
     }
 
     setCategoria(defaultCat);
+    setSubcategoriaPc(selectedSubcatPc !== "Todas" ? selectedSubcatPc : "PC COMPLETA GAMER");
+    setSubcategoriaPerifericos(selectedSubcatPerifericos !== "Todas" ? selectedSubcatPerifericos : "AUDIFONOS");
     setStock("10");
     setImagenesText("");
     setDescripcion("");
@@ -432,12 +484,16 @@ export function AdminPanel() {
 
     // Normalizar categoría para el selector del modal
     const canonical = resolveProductCategory(product);
-    let selectVal = canonical;
-    if (canonical === "PC Completa Gamer") selectVal = "PC COMPLETA GAMER";
-    else if (canonical === "PC Completa Oficina") selectVal = "PC COMPLETA OFICINA";
-    else if (canonical === "PC Completa Ingenierías") selectVal = "PC COMPLETA INGENIERIAS";
-    else if (canonical === "PC Completa") selectVal = "PC COMPLETA";
-    setCategoria(selectVal);
+    setCategoria(canonical);
+
+    if (canonical === "PC Completa") {
+      const pcSub = product.subcategoria || resolveProductSubcategory(product) || "PC COMPLETA GAMER";
+      setSubcategoriaPc(pcSub);
+    }
+    if (canonical === "Periféricos") {
+      const periSub = product.subcategoria || resolveProductSubcategory(product) || "AUDIFONOS";
+      setSubcategoriaPerifericos(periSub);
+    }
 
     setStock(product.stock !== undefined ? String(product.stock) : "10");
     setDescripcion(product.descripcion || product.Descripcion || "");
@@ -589,6 +645,13 @@ export function AdminPanel() {
         actualizadoEn: serverTimestamp(),
       };
 
+      // Guardar subcategoría si es PC Completa o Periféricos (desglosados)
+      if (categoria === "PC Completa") {
+        dataToSave.subcategoria = subcategoriaPc;
+      } else if (categoria === "Periféricos") {
+        dataToSave.subcategoria = subcategoriaPerifericos;
+      }
+
       // Guardar primera imagen en 'url' y adicionales en 'url1', 'url2', 'url3'...
       dataToSave.url = finalUrls[0];
       for (let i = 1; i < finalUrls.length; i++) {
@@ -669,7 +732,7 @@ export function AdminPanel() {
     }
   };
 
-  // Filtrado por buscador Y categoría
+  // Filtrado por buscador, categoría Y subcategoría (para PC Completa y Periféricos)
   const filteredProducts = products.filter((p) => {
     const q = search.toLowerCase().trim();
     const name = (p.titulo || p.nombre || "").toLowerCase();
@@ -678,7 +741,14 @@ export function AdminPanel() {
     const matchesSearch = !q || name.includes(q) || cat.includes(q);
     const matchesCat = matchesCategory(p, selectedCat);
 
-    return matchesSearch && matchesCat;
+    let matchesSubcat = true;
+    if (selectedCat === "PC Completa") {
+      matchesSubcat = matchesPcSubcat(p, selectedSubcatPc);
+    } else if (selectedCat === "Periféricos") {
+      matchesSubcat = matchesPeripheralSubcat(p, selectedSubcatPerifericos);
+    }
+
+    return matchesSearch && matchesCat && matchesSubcat;
   });
 
   return (
@@ -813,54 +883,21 @@ export function AdminPanel() {
             </button>
           </div>
 
-          {/* Grupo 1: Combos PC Completa */}
+          {/* Categorías Principales */}
           <div>
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-              <span>Combos PC Completa:</span>
-            </div>
             <div className="flex flex-wrap gap-2">
-              {CATEGORIAS_FILTRO_PC.map((cat) => {
+              {CATEGORIAS_FILTRO.map((cat) => {
                 const count = products.filter((p) => matchesCategory(p, cat.id)).length;
                 const isSelected = selectedCat === cat.id;
                 return (
                   <button
                     key={cat.id}
                     type="button"
-                    onClick={() => setSelectedCat(cat.id)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                      isSelected
-                        ? "bg-[#e81950] text-white shadow-sm ring-2 ring-[#e81950]/30"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    <span>{cat.label}</span>
-                    <span
-                      className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                        isSelected ? "bg-white/20 text-white font-black" : "bg-white text-slate-600 font-bold"
-                      }`}
-                    >
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Grupo 2: Componentes y Equipos */}
-          <div>
-            <div className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
-              <span>Componentes y Equipos:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIAS_FILTRO_COMP.map((cat) => {
-                const count = products.filter((p) => matchesCategory(p, cat.id)).length;
-                const isSelected = selectedCat === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setSelectedCat(cat.id)}
+                    onClick={() => {
+                      setSelectedCat(cat.id);
+                      if (cat.id === "PC Completa") setSelectedSubcatPc("Todas");
+                      if (cat.id === "Periféricos") setSelectedSubcatPerifericos("Todas");
+                    }}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                       isSelected
                         ? "bg-[#e81950] text-white shadow-sm ring-2 ring-[#e81950]/30"
@@ -882,6 +919,106 @@ export function AdminPanel() {
               })}
             </div>
           </div>
+
+          {/* Subcategorías SOLO para PC Completa */}
+          {selectedCat === "PC Completa" && (
+            <div className="pt-3 border-t border-slate-100 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 mb-2 flex items-center gap-1.5">
+                <span>Subcategorías de PC Completa:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSubcatPc("Todas")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    selectedSubcatPc === "Todas"
+                      ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  <span>Todas ({products.filter((p) => matchesCategory(p, "PC Completa")).length})</span>
+                </button>
+
+                {PC_SUBCATEGORIES.map((subcat) => {
+                  const count = products.filter(
+                    (p) => matchesCategory(p, "PC Completa") && matchesPcSubcat(p, subcat.id)
+                  ).length;
+                  const isSelected = selectedSubcatPc === subcat.id;
+                  return (
+                    <button
+                      key={subcat.id}
+                      type="button"
+                      onClick={() => setSelectedSubcatPc(subcat.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? "bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      }`}
+                    >
+                      <span>{subcat.label}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                          isSelected ? "bg-white/20 text-white font-black" : "bg-white text-slate-500 font-bold"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Subcategorías SOLO para Periféricos */}
+          {selectedCat === "Periféricos" && (
+            <div className="pt-3 border-t border-slate-100 animate-in fade-in slide-in-from-top-1 duration-200">
+              <div className="text-[11px] font-extrabold uppercase tracking-wider text-[#e81950] mb-2 flex items-center gap-1.5">
+                <span>Subcategorías de Periféricos:</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSubcatPerifericos("Todas")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                    selectedSubcatPerifericos === "Todas"
+                      ? "bg-[#e81950] text-white shadow-sm ring-2 ring-[#e81950]/30"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  <span>Todas ({products.filter((p) => matchesCategory(p, "Periféricos")).length})</span>
+                </button>
+
+                {PERIPHERAL_SUBCATEGORIES.map((subcat) => {
+                  const count = products.filter(
+                    (p) => matchesCategory(p, "Periféricos") && matchesPeripheralSubcat(p, subcat)
+                  ).length;
+                  const isSelected = selectedSubcatPerifericos === subcat;
+                  return (
+                    <button
+                      key={subcat}
+                      type="button"
+                      onClick={() => setSelectedSubcatPerifericos(subcat)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? "bg-[#e81950] text-white shadow-sm ring-2 ring-[#e81950]/30"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                      }`}
+                    >
+                      <span>{subcat}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                          isSelected ? "bg-white/20 text-white font-black" : "bg-white text-slate-500 font-bold"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Buscador */}
@@ -932,8 +1069,8 @@ export function AdminPanel() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredProducts.map((p) => {
-                    const imgUrl = (p.imagenes && p.imagenes[0]) || p.url || "https://placehold.co/60x60?text=IMG";
-                    const title = p.titulo || p.nombre || p.título || "Sin título";
+                    const imgUrl = resolveProductImage(p, "https://placehold.co/60x60?text=IMG");
+                    const title = resolveProductTitle(p);
                     const price = parsePrice(p.precio);
                     return (
                       <tr key={p.id} className="hover:bg-slate-50/80 transition">
@@ -951,9 +1088,21 @@ export function AdminPanel() {
                           {title}
                         </td>
                         <td className="py-3 px-4">
-                          <span className="bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-md">
-                            {p.categoria || "General"}
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className="bg-slate-100 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-md">
+                              {p.categoria || "General"}
+                            </span>
+                            {p.categoria === "PC Completa" && p.subcategoria && (
+                              <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                {p.subcategoria.replace("PC COMPLETA ", "PC ")}
+                              </span>
+                            )}
+                            {p.categoria === "Periféricos" && p.subcategoria && (
+                              <span className="bg-rose-50 text-[#e81950] border border-rose-200 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                {p.subcategoria}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3 px-4 font-black text-[#e81950]">
                           S/ {price.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1066,26 +1215,19 @@ export function AdminPanel() {
                       onChange={(e) => setCategoria(e.target.value)}
                       className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm bg-white focus:border-[#e81950] outline-none font-semibold text-slate-800"
                     >
-                      <optgroup label="💻 Combos PC Completa">
-                        <option value="PC COMPLETA GAMER">PC Gamer (Combo Gaming)</option>
-                        <option value="PC COMPLETA OFICINA">PC de Oficina (Trabajo / Estudio)</option>
-                        <option value="PC COMPLETA INGENIERIAS">PC de Ingenierías (Alto Rendimiento / Diseño)</option>
-                        <option value="PC COMPLETA">PC Completa (Estándar)</option>
-                      </optgroup>
-                      <optgroup label="Componentes y Equipos">
-                        <option value="Tarjetas de video">Tarjetas de video</option>
-                        <option value="Procesadores">Procesadores</option>
-                        <option value="Monitores">Monitores</option>
-                        <option value="Placa madre">Placa madre</option>
-                        <option value="Laptops">Laptops</option>
-                        <option value="Memoria RAM">Memoria RAM</option>
-                        <option value="Disco SSD">Disco SSD</option>
-                        <option value="Fuente de poder">Fuente de poder</option>
-                        <option value="Case">Case</option>
-                        <option value="Refrigeración líquida">Refrigeración líquida</option>
-                        <option value="Estabilizador">Estabilizador</option>
-                        <option value="Periféricos">Periféricos</option>
-                      </optgroup>
+                      <option value="PC Completa">PC Completa</option>
+                      <option value="Tarjetas de video">Tarjetas de video</option>
+                      <option value="Procesadores">Procesadores</option>
+                      <option value="Monitores">Monitores</option>
+                      <option value="Placa madre">Placa madre</option>
+                      <option value="Laptops">Laptops</option>
+                      <option value="Memoria RAM">Memoria RAM</option>
+                      <option value="Disco SSD">Disco SSD</option>
+                      <option value="Fuente de poder">Fuente de poder</option>
+                      <option value="Case">Case</option>
+                      <option value="Refrigeración líquida">Refrigeración líquida</option>
+                      <option value="Estabilizador">Estabilizador</option>
+                      <option value="Periféricos">Periféricos</option>
                     </select>
                   </div>
 
@@ -1102,6 +1244,52 @@ export function AdminPanel() {
                     />
                   </div>
                 </div>
+
+                {/* Subcategoría condicional: SOLO para PC Completa */}
+                {categoria === "PC Completa" && (
+                  <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl animate-in fade-in duration-200">
+                    <label className="block text-xs font-extrabold uppercase text-blue-700 mb-1">
+                      Subcategoría de PC Completa * (Elegir tipo de combo)
+                    </label>
+                    <select
+                      value={subcategoriaPc}
+                      onChange={(e) => setSubcategoriaPc(e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-blue-300 rounded-xl text-sm bg-white focus:border-blue-600 outline-none font-bold text-slate-800"
+                    >
+                      {PC_SUBCATEGORIES.map((subcat) => (
+                        <option key={subcat.id} value={subcat.id}>
+                          {subcat.label} ({subcat.id})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Selecciona si esta PC Completa es Gamer, de Oficina o de Ingenierías.
+                    </p>
+                  </div>
+                )}
+
+                {/* Subcategoría condicional: SOLO para Periféricos */}
+                {categoria === "Periféricos" && (
+                  <div className="p-3.5 bg-rose-50/80 border border-rose-200 rounded-xl animate-in fade-in duration-200">
+                    <label className="block text-xs font-extrabold uppercase text-[#e81950] mb-1">
+                      Subcategoría de Periférico * (Elegir tipo)
+                    </label>
+                    <select
+                      value={subcategoriaPerifericos}
+                      onChange={(e) => setSubcategoriaPerifericos(e.target.value)}
+                      className="w-full px-3.5 py-2.5 border border-rose-300 rounded-xl text-sm bg-white focus:border-[#e81950] outline-none font-bold text-slate-800"
+                    >
+                      {PERIPHERAL_SUBCATEGORIES.map((subcat) => (
+                        <option key={subcat} value={subcat}>
+                          {subcat}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      Selecciona si este periférico es Audífonos, Cooler, Teclado, Mouse, etc. Solo aplica para la categoría Periféricos.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Sección 2: URLs de Imágenes y Subida desde Equipo */}

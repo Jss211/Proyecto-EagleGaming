@@ -9,6 +9,13 @@ import { doc, getDoc } from "firebase/firestore";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LiquidMetalButton } from "../components/ui/liquid-metal-button";
 import { ProductReviewForm, ProductReviewList } from "../components/product/ProductReviews";
+import {
+  normalizeDocumentData,
+  resolveProductTitle,
+  parsePrice,
+  resolveAllProductImages,
+  extractProductSpecifications,
+} from "../utils/productUtils";
 
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -25,7 +32,9 @@ export function ProductDetailPage() {
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          setProduct({ id: docSnap.id, ...docSnap.data() });
+          const rawData = docSnap.data();
+          const clean = normalizeDocumentData(rawData);
+          setProduct({ id: docSnap.id, ...clean });
         } else {
           console.log("No existe el producto!");
         }
@@ -61,27 +70,10 @@ export function ProductDetailPage() {
     );
   }
 
-  const title = product.titulo || product.Titulo || product.título || product.Título || product.nombre || product.Nombre || `${product.marca || product.Marca || ""} ${product.modelo || product.Modelo || ""}`.trim() || "Producto sin título";
-  const price = product.precio || product.Precio || 0;
+  const title = resolveProductTitle(product);
+  const price = parsePrice(product.precio ?? product.Precio);
+  const images = resolveAllProductImages(product);
 
-  // Recolectar todas las imágenes disponibles (url, url1, url2... e imagenes[])
-  const images: string[] = [];
-  if (product.url && typeof product.url === "string" && product.url.trim()) {
-    images.push(product.url.trim());
-  }
-  ["url1", "url2", "url3", "url4", "url5", "url6", "url7", "url8"].forEach((k) => {
-    const val = product[k];
-    if (typeof val === "string" && val.trim() && !images.includes(val.trim())) {
-      images.push(val.trim());
-    }
-  });
-  if (Array.isArray(product.imagenes)) {
-    product.imagenes.forEach((u: string) => {
-      if (typeof u === "string" && u.trim() && !images.includes(u.trim())) {
-        images.push(u.trim());
-      }
-    });
-  }
   // Imagen por defecto si no hay ninguna
   if (images.length === 0) {
     images.push("https://placehold.co/600x400?text=Imagen+No+Disponible");
@@ -181,59 +173,7 @@ export function ProductDetailPage() {
 
             {/* Lista Unificada y Deduplicada de Especificaciones */}
             {(() => {
-              const displaySpecs: { id: string; text: string; isSubItem: boolean }[] = [];
-              const seenKeys = new Set<string>();
-
-              const addSpec = (raw: string) => {
-                if (!raw || !raw.trim()) return;
-                const clean = raw.trim();
-                const parts = clean.split(":");
-                const keyPart = parts[0].trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                
-                // Si la clave ya fue agregada, NO duplicar
-                if (keyPart && seenKeys.has(keyPart)) return;
-                if (keyPart) seenKeys.add(keyPart);
-
-                const isSubItem = clean.startsWith("-") || clean.startsWith("  ") || clean.startsWith("\t");
-                displaySpecs.push({
-                  id: `spec-${displaySpecs.length}-${keyPart}`,
-                  text: clean.replace(/^[-•*]\s*/, ""),
-                  isSubItem,
-                });
-              };
-
-              // 1. Procesar especificaciones si viene como Array
-              const rawArray = product.especificaciones || product.caracteristicas;
-              if (Array.isArray(rawArray)) {
-                rawArray.forEach((item: string) => {
-                  if (typeof item === "string") addSpec(item);
-                });
-              } else if (typeof rawArray === "string") {
-                rawArray.split("\n").forEach((line: string) => addSpec(line));
-              }
-
-              // 2. Procesar atributos individuales de Firebase SOLO si no están ya en la lista
-              const ignoredKeys = [
-                "id", "titulo", "título", "nombre", "precio", "categoria", "descripcion", 
-                "especificaciones", "caracteristicas", "imagenes", "url", 
-                "url1", "url2", "url3", "url4", "url5", "stock", "creadoen", "actualizadoen", "tendencia"
-              ];
-
-              Object.entries(product).forEach(([key, value]) => {
-                const k = key.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-                if (!ignoredKeys.includes(k) && typeof value === "string" && value.trim() !== "") {
-                  if (!seenKeys.has(k)) {
-                    seenKeys.add(k);
-                    const formattedKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, " ");
-                    displaySpecs.push({
-                      id: `field-${k}`,
-                      text: `${formattedKey}: ${value.trim()}`,
-                      isSubItem: false,
-                    });
-                  }
-                }
-              });
-
+              const displaySpecs = extractProductSpecifications(product);
               if (displaySpecs.length === 0) return null;
 
               return (

@@ -8,6 +8,7 @@ import type { Product } from "../components/home/ProductCard";
 import { useCart } from "../context/CartContext";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { buildNormalizedProduct, normalizeDocumentData } from "../utils/productUtils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -45,7 +46,7 @@ const CATEGORY_TERMS: Record<string, string[]> = {
   "estabilizador":     ["estabilizador", "ups", "regulador"],
   "fuente-de-poder":   ["fuente de poder", "fuente-de-poder", "fuente poder", "psu"],
   "memoria-ram":       ["memoria ram", "memoria-ram", "ram"],
-  "perifericos":       ["periferico", "audifonos", "teclado", "mouse", "webcam", "camara", "parlante", "cooler", "kit"],
+  "perifericos":       ["periferico", "audifonos", "teclado", "mouse", "webcam", "camara", "parlante", "cooler", "kit", "cable"],
   "placa-madre":       ["placa madre", "placa-madre", "motherboard", "mainboard"],
   "tarjetas-de-video": ["tarjeta de video", "tarjeta-de-video", "gpu", "grafica", "grafico", "video card"],
   "procesadores":      ["procesador", "cpu", "intel", "amd ryzen"],
@@ -91,17 +92,21 @@ const SUBCATEGORY_TERMS: Record<string, string[]> = {
   "ddr5":              ["ddr5"],
   "certificadas":      ["80 plus", "80+", "certificad", "bronze", "gold", "white"],
   "modulares":         ["modular", "semi modular"],
-  "audifonos":         ["audifono", "auricular", "headset"],
-  "cooler":            ["cooler", "ventilador", "fan"],
-  "teclados":          ["teclado", "keyboard"],
-  "teclado":           ["teclado", "keyboard"],
-  "mouse":             ["mouse", "raton"],
-  "parlantes":         ["parlante", "speaker", "bocina"],
-  "webcam":            ["webcam", "camara", "camweb", "streaming"],
-  "combos":            ["kit", "combo", "4 en 1", "kit gamer"],
-  "kit-teclado-mouse": ["kit", "combo teclado"],
-  "estabilizadores":   ["estabilizador", "regulador"],
-  "ups":               ["ups", "bateria"],
+  "audifonos":           ["audifono", "auricular", "headset"],
+  "cable":               ["cable", "adaptador", "hdmi", "displayport", "vga", "usb"],
+  "cables":              ["cable", "adaptador", "hdmi", "displayport", "vga", "usb"],
+  "cooler":              ["cooler", "ventilador", "fan"],
+  "teclados":            ["teclado", "keyboard"],
+  "teclado":             ["teclado", "keyboard"],
+  "mouse":               ["mouse", "raton"],
+  "parlantes":           ["parlante", "speaker", "bocina"],
+  "webcam":              ["webcam", "camara", "camweb", "streaming"],
+  "webcam-camara":       ["webcam", "camara", "camweb", "streaming"],
+  "combos":              ["kit", "combo", "4 en 1", "kit gamer"],
+  "kit-teclado-mouse":   ["kit", "combo teclado", "teclado y mouse"],
+  "kit-teclado-y-mouse": ["kit", "combo teclado", "teclado y mouse"],
+  "estabilizadores":     ["estabilizador", "regulador"],
+  "ups":                 ["ups", "bateria"],
 };
 
 /** Devuelve el primer campo que exista en el objeto */
@@ -115,26 +120,7 @@ const pickField = (data: Record<string, unknown>, keys: string[]): unknown => {
 
 /** Construye un Product a partir de un doc de Firestore */
 const buildProduct = (id: string, data: Record<string, unknown>): Product => {
-  const marca  = String(pickField(data, ["marca",  "Marca"])  ?? "");
-  const modelo = String(pickField(data, ["modelo", "Modelo"]) ?? "");
-
-  const name = String(
-    pickField(data, ["titulo", "Titulo", "título", "Título", "nombre", "Nombre"]) ??
-    (`${marca} ${modelo}`.trim() || "Producto sin título")
-  );
-
-  return {
-    id,
-    name,
-    category: String(
-      pickField(data, ["categoria", "Categoria", "categoría", "Categoría"]) ?? ""
-    ),
-    price: Number(pickField(data, ["precio", "Precio"]) ?? 0),
-    imageUrl: String(
-      pickField(data, ["url", "Url"]) ??
-      "https://placehold.co/400x300?text=Producto"
-    ),
-  };
+  return buildNormalizedProduct(id, data);
 };
 
 /**
@@ -260,6 +246,8 @@ const LABEL_MAP: Record<string, string> = {
   "certificadas":      "Fuentes 80 Plus",
   "modulares":         "Fuentes Modulares",
   "audifonos":         "Audífonos",
+  "cable":             "Cables",
+  "cables":            "Cables y Adaptadores",
   "cooler":            "Cooler",
   "teclados":          "Teclados Mecánicos",
   "teclado":           "Teclado",
@@ -331,7 +319,8 @@ export function CategoryPage() {
         let globalMax = -Infinity;
 
         snapshot.docs.forEach((doc) => {
-          const data = doc.data() as Record<string, unknown>;
+          const rawData = doc.data() as Record<string, unknown>;
+          const data = normalizeDocumentData(rawData);
 
           const matchesCat = matchesCategory(data, id);
           if (!matchesCat) return;

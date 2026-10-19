@@ -9,6 +9,7 @@ import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
 import { CombosSection } from "../components/home/CombosSection";
+import { buildNormalizedProduct, normalizeDocumentData } from "../utils/productUtils";
 
 type CategoryKey =
   | "pc completa"
@@ -103,20 +104,7 @@ const isTrending = (data: Record<string, unknown>): boolean => {
 };
 
 const buildProduct = (id: string, data: Record<string, unknown>): Product => {
-  const marca = String(pickField(data, ["marca", "Marca"]) ?? "");
-  const modelo = String(pickField(data, ["modelo", "Modelo"]) ?? "");
-
-  const name =
-    pickField(data, ["titulo", "Titulo", "título", "Título", "nombre", "Nombre"]) ??
-    (`${marca} ${modelo}`.trim() || "Producto sin título");
-
-  return {
-    id,
-    name: String(name),
-    category: String(pickField(data, ["categoria", "Categoria", "categoría", "Categoría"]) ?? ""),
-    price: Number(pickField(data, ["precio", "Precio"]) ?? 0),
-    imageUrl: String(pickField(data, ["url", "Url"]) ?? "https://placehold.co/400x300?text=Producto"),
-  };
+  return buildNormalizedProduct(id, data);
 };
 
 export function HomePage() {
@@ -131,7 +119,8 @@ export function HomePage() {
         const grouped = createEmptyGroups();
 
         querySnapshot.docs.forEach((doc) => {
-          const data = doc.data() as Record<string, unknown>;
+          const rawData = doc.data() as Record<string, unknown>;
+          const data = normalizeDocumentData(rawData);
           const product = buildProduct(doc.id, data);
 
           // Si tiene flag de tendencia va a la sección de tendencia
