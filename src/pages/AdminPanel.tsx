@@ -264,6 +264,7 @@ export function matchesPeripheralSubcat(p: ProductItem, selectedSubcat: string):
     .replace(/[\u0300-\u036f]/g, "");
 
   const sub = selectedSubcat.toUpperCase();
+  if (sub === "ADAPTADOR" || sub === "ADAPTADORES") return normTitle.includes("adaptador") || normTitle.includes("converter") || normTitle.includes("conversor") || normTitle.includes("dongle");
   if (sub === "AUDIFONOS") return normTitle.includes("audifono") || normTitle.includes("headset") || normTitle.includes("auricular");
   if (sub === "CABLE") return normTitle.includes("cable");
   if (sub === "COOLER") return normTitle.includes("cooler") || normTitle.includes("ventilador") || normTitle.includes("fan");

@@ -8,6 +8,7 @@
 import type { Product } from "../components/home/ProductCard";
 
 export const PERIPHERAL_SUBCATEGORIES = [
+  "ADAPTADOR",
   "AUDIFONOS",
   "CABLE",
   "COOLER",
@@ -303,13 +304,14 @@ export function resolveProductCategory(data: Record<string, any>): string {
   // Periféricos
   if (
     norm.includes("periferic") ||
+    norm.includes("adaptador") ||
     norm.includes("audifono") ||
     norm.includes("teclado") ||
     norm.includes("mouse") ||
     norm.includes("parlante") ||
     norm.includes("webcam") ||
     norm.includes("cable") ||
-    (!norm && (title.includes("audifono") || title.includes("teclado") || title.includes("mouse") || title.includes("webcam") || title.includes("cable")))
+    (!norm && (title.includes("adaptador") || title.includes("audifono") || title.includes("teclado") || title.includes("mouse") || title.includes("webcam") || title.includes("cable")))
   ) {
     return "Periféricos";
   }
@@ -384,7 +386,10 @@ export function resolveProductSubcategory(data: Record<string, any>): string {
     return "PC COMPLETA GAMER";
   }
 
-  // Si es Periférico: inferir audífonos, cable, cooler, teclado, etc.
+  // Si es Periférico: inferir adaptador, audífonos, cable, cooler, teclado, etc.
+  if (title.includes("adaptador") || rawCat.includes("adaptador") || title.includes("converter") || title.includes("conversor") || title.includes("dongle")) {
+    return "ADAPTADOR";
+  }
   if (title.includes("audifono") || title.includes("auricular") || title.includes("headset")) {
     return "AUDIFONOS";
   }
