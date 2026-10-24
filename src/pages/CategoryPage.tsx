@@ -407,7 +407,7 @@ export function CategoryPage() {
       <SecondaryNav />
 
       <main style={{ minHeight: "60vh", background: "#f3f4f6" }}>
-        <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "2rem 1.5rem 4rem" }}>
+        <div className="category-page-container" style={{ maxWidth: "1400px", margin: "0 auto" }}>
           
           {/* Breadcrumb */}
           <nav style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "#6b7280", marginBottom: "1.5rem" }}>
@@ -424,10 +424,10 @@ export function CategoryPage() {
             )}
           </nav>
 
-          <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+          <div className="category-layout">
             
             {/* SIDEBAR (Filtros) */}
-            <aside style={{ width: "260px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <aside className="category-sidebar">
               <div style={{ background: "#fff", padding: "1.5rem", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
                 <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", marginBottom: "1.25rem" }}>
                   Filter By Price
@@ -525,11 +525,7 @@ export function CategoryPage() {
                 </div>
               ) : (
                 <>
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                    gap: "1.25rem",
-                  }}>
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5 w-full">
                     {paginatedProducts.map((product) => (
                       <ProductCard 
                         key={product.id} 

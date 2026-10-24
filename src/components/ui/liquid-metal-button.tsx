@@ -34,186 +34,113 @@ export function LiquidMetalButton({
   const shaderRef = useRef<HTMLDivElement>(null);
   const shaderMount = useRef<ShaderMount | null>(null);
 
-  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
-  const rippleTimers = useRef<
-    Set<ReturnType<typeof setTimeout>>
-  >(new Set());
-
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rippleTimers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const rippleId = useRef(0);
   const buttonWidth = viewMode === "icon" ? 46 : width;
 
-  // Velocidad actual del shader (se guarda en un ref para poder
-  // reaplicarla cada vez que el shader se vuelve a crear).
-  const speedRef = useRef(0.6);
-  speedRef.current = added ? 2.4 : isHovered ? 1 : 0.6;
-
-  /**
-   * Montaje del shader basado en visibilidad real.
-   *
-   * CAUSA DEL ERROR: cada botón crea un contexto WebGL. Los navegadores
-   * permiten ~16 contextos activos; al superarlos, el navegador "mata" los
-   * más antiguos (los primeros botones de la página) y esos quedan
-   * congelados hasta que se vuelven a montar (cambiar de vista / recargar).
-   *
-   * SOLUCIÓN:
-   *  1. El shader solo existe mientras el botón está visible en pantalla
-   *     (se destruye al salir y se crea al entrar), así nunca se acumulan
-   *     contextos WebGL.
-   *  2. Si aun así el contexto se pierde, se detecta y se recrea solo.
-   */
+  // Montaje del shader WebGL bajo demanda (solo en hover o al añadir al carrito).
+  // Esto garantiza que nunca se supere el límite de contextos WebGL del navegador (~16),
+  // eliminando por completo los tirones de scroll y las advertencias de WebGL en consola.
   useEffect(() => {
     const container = shaderRef.current;
     if (!container) return;
 
-    let instance: ShaderMount | null = null;
-    let visible = false;
-    let disposed = false;
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    let detachContextListener: (() => void) | null = null;
-
-    const destroyShader = () => {
-      detachContextListener?.();
-      detachContextListener = null;
-
-      if (instance) {
+    if (isHovered || added) {
+      if (!shaderMount.current) {
         try {
-          instance.dispose();
-        } catch {
-          /* ignorar errores al liberar */
-        }
-
-        if (shaderMount.current === instance) {
-          shaderMount.current = null;
-        }
-
-        instance = null;
-      }
-    };
-
-    const createShader = () => {
-      if (disposed || instance || !visible) return;
-
-      const rect = container.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-
-      try {
-        instance = new ShaderMount(
-          container,
-          liquidMetalFragmentShader,
-          {
-            u_repetition: 4,
-            u_softness: 0.5,
-            u_shiftRed: 0.3,
-            u_shiftBlue: 0.3,
-            u_distortion: 0,
-            u_contour: 0,
-            u_angle: 45,
-            u_scale: 8,
-            u_shape: 0,
-            u_offsetX: 0.1,
-            u_offsetY: -0.1,
-          },
-          undefined,
-          speedRef.current,
-        );
-
-        shaderMount.current = instance;
-
-        // Si el navegador pierde el contexto WebGL, lo recreamos.
-        const canvas = container.querySelector("canvas");
-
-        if (canvas) {
-          const onContextLost = (event: Event) => {
-            event.preventDefault();
-            destroyShader();
-
-            if (retryTimer) clearTimeout(retryTimer);
-
-            retryTimer = setTimeout(() => {
-              retryTimer = null;
-              createShader();
-            }, 250);
-          };
-
-          canvas.addEventListener(
-            "webglcontextlost",
-            onContextLost,
-          );
-
-          detachContextListener = () =>
-            canvas.removeEventListener(
-              "webglcontextlost",
-              onContextLost,
+          const rect = container.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) {
+            const instance = new ShaderMount(
+              container,
+              liquidMetalFragmentShader,
+              {
+                u_repetition: 4,
+                u_softness: 0.5,
+                u_shiftRed: 0.3,
+                u_shiftBlue: 0.3,
+                u_distortion: 0,
+                u_contour: 0,
+                u_angle: 45,
+                u_scale: 8,
+                u_shape: 0,
+                u_offsetX: 0.1,
+                u_offsetY: -0.1,
+              },
+              undefined,
+              added ? 2.4 : 1.0,
             );
-        }
-      } catch (error) {
-        instance = null;
-        console.error(
-          "Error al inicializar el shader metálico:",
-          error,
-        );
-      }
-    };
-
-    // Crear al entrar en pantalla y destruir al salir.
-    const intersectionObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          visible = entry.isIntersecting;
-
-          if (visible) {
-            createShader();
-          } else {
-            destroyShader();
+            shaderMount.current = instance;
           }
-        });
-      },
-      { threshold: 0.01, rootMargin: "120px" },
-    );
-
-    // Por si el contenedor pasa de display:none a visible (pestañas).
-    const resizeObserver = new ResizeObserver((entries) => {
-      entries.forEach((entry) => {
-        if (
-          entry.contentRect.width > 0 &&
-          entry.contentRect.height > 0
-        ) {
-          createShader();
+        } catch (error) {
+          console.error("Error al inicializar el shader metálico:", error);
         }
-      });
-    });
+      } else {
+        shaderMount.current.setSpeed(added ? 2.4 : 1.0);
+      }
+    } else {
+      // Al salir de hover/añadir, liberar el contexto WebGL para que el navegador mantenga 0 contextos activos
+      if (shaderMount.current) {
+        try {
+          shaderMount.current.dispose();
+        } catch {
+          /* ignorar */
+        }
+        shaderMount.current = null;
+      }
+      const canvas = container.querySelector("canvas");
+      if (canvas) {
+        try {
+          const gl = canvas.getContext("webgl") || canvas.getContext("webgl2");
+          if (gl) {
+            gl.getExtension("WEBGL_lose_context")?.loseContext();
+          }
+        } catch {
+          /* ignorar */
+        }
+        canvas.remove();
+      }
+      container.innerHTML = "";
+    }
+  }, [isHovered, added]);
 
-    intersectionObserver.observe(container);
-    resizeObserver.observe(container);
-
+  // Limpieza total al desmontar el componente
+  useEffect(() => {
     return () => {
-      disposed = true;
-
-      if (retryTimer) clearTimeout(retryTimer);
-
-      intersectionObserver.disconnect();
-      resizeObserver.disconnect();
-      destroyShader();
+      if (shaderMount.current) {
+        try {
+          shaderMount.current.dispose();
+        } catch {
+          /* ignorar */
+        }
+        shaderMount.current = null;
+      }
+      const container = shaderRef.current;
+      if (container) {
+        const canvas = container.querySelector("canvas");
+        if (canvas) {
+          try {
+            const gl = canvas.getContext("webgl") || canvas.getContext("webgl2");
+            if (gl) {
+              gl.getExtension("WEBGL_lose_context")?.loseContext();
+            }
+          } catch {
+            /* ignorar */
+          }
+          canvas.remove();
+        }
+        container.innerHTML = "";
+      }
     };
   }, []);
-
-  // Ajustar la velocidad del efecto metálico.
-  useEffect(() => {
-    shaderMount.current?.setSpeed(speedRef.current);
-  }, [added, isHovered]);
 
   // Limpiar temporizadores al salir del componente.
   useEffect(() => {
     const timers = rippleTimers.current;
-
     return () => {
       if (addedTimer.current) {
         clearTimeout(addedTimer.current);
       }
-
       timers.forEach((timer) => clearTimeout(timer));
       timers.clear();
     };
@@ -221,11 +148,9 @@ export function LiquidMetalButton({
 
   function handleClick(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
-
     if (!onClick) return;
 
     onClick();
-
     setAdded(true);
     setAnimationKey((previous) => previous + 1);
 
@@ -257,7 +182,6 @@ export function LiquidMetalButton({
       setRipples((previous) =>
         previous.filter((ripple) => ripple.id !== id),
       );
-
       rippleTimers.current.delete(timer);
     }, 650);
 
@@ -324,6 +248,12 @@ export function LiquidMetalButton({
           border-radius: inherit;
           pointer-events: none;
           z-index: 0;
+          background: linear-gradient(
+            135deg,
+            #b6b6b6,
+            #525252,
+            #e3e3e3
+          );
         }
 
         .eg-cart-button__shader canvas {
@@ -457,6 +387,23 @@ export function LiquidMetalButton({
           }
         }
 
+        @media (max-width: 420px) {
+          .eg-cart-button {
+            height: 38px !important;
+          }
+
+          .eg-cart-button__content {
+            font-size: 11.5px !important;
+            gap: 4px !important;
+            padding: 0 6px !important;
+          }
+
+          .eg-cart-button__icon {
+            width: 15px !important;
+            height: 15px !important;
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .eg-cart-button,
           .eg-cart-button__surface,
@@ -494,7 +441,7 @@ export function LiquidMetalButton({
         ]
           .filter(Boolean)
           .join(" ")}
-        style={{ width: buttonWidth }}
+        style={{ width: viewMode === "icon" ? `${buttonWidth}px` : "100%", maxWidth: `${buttonWidth}px` }}
         aria-label={label}
       >
         <div

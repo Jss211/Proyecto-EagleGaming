@@ -84,7 +84,7 @@ export function ProductDetailPage() {
       <Navbar />
       <SecondaryNav />
 
-      <main style={{ maxWidth: "1200px", margin: "0 auto", padding: "2rem" }}>
+      <main className="product-detail-main">
         {/* Breadcrumbs */}
         <div style={{ fontSize: "0.85rem", color: "#666", marginBottom: "2rem", textTransform: "uppercase", letterSpacing: "1px" }}>
           <Link to="/" style={{ color: "#999", textDecoration: "none" }}>INICIO</Link> / 
@@ -92,14 +92,7 @@ export function ProductDetailPage() {
           <span style={{ color: "#333", fontWeight: "bold" }}> {product.categoria || product.Categoria || product.categoría || product.Categoría || "PRODUCTO"}</span>
         </div>
 
-        <div 
-          style={{ 
-            display: "grid", 
-            gridTemplateColumns: "1fr 1.2fr", 
-            gap: "3rem",
-            alignItems: "start"
-          }}
-        >
+        <div className="product-detail-grid">
           {/* Columna Izquierda: Imagen y Carrusel */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px" }}>
             {/* Imagen Principal */}
@@ -114,14 +107,14 @@ export function ProductDetailPage() {
                 <>
                   <button 
                     onClick={() => setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
-                    style={{ position: "absolute", left: "-22px", top: "50%", transform: "translateY(-50%)", background: "white", border: "1px solid #eaeaea", borderRadius: "50%", width: "45px", height: "45px", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", color: "#333", transition: "all 0.2s", zIndex: 10 }}
+                    className="product-detail-arrow-left" style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", background: "white", border: "1px solid #eaeaea", borderRadius: "50%", width: "45px", height: "45px", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", color: "#333", transition: "all 0.2s", zIndex: 10 }}
                     onMouseOver={(e) => e.currentTarget.style.borderColor = "#ccc"} 
                     onMouseOut={(e) => e.currentTarget.style.borderColor = "#eaeaea"}>
                     <ChevronLeft size={24} />
                   </button>
                   <button 
                     onClick={() => setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
-                    style={{ position: "absolute", right: "-22px", top: "50%", transform: "translateY(-50%)", background: "white", border: "1px solid #eaeaea", borderRadius: "50%", width: "45px", height: "45px", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", color: "#333", transition: "all 0.2s", zIndex: 10 }}
+                    className="product-detail-arrow-right" style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", background: "white", border: "1px solid #eaeaea", borderRadius: "50%", width: "45px", height: "45px", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", color: "#333", transition: "all 0.2s", zIndex: 10 }}
                     onMouseOver={(e) => e.currentTarget.style.borderColor = "#ccc"} 
                     onMouseOut={(e) => e.currentTarget.style.borderColor = "#eaeaea"}>
                     <ChevronRight size={24} />

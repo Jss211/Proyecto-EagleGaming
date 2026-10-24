@@ -21,18 +21,19 @@ import {
   Package, 
   ExternalLink, 
   CheckCircle2, 
-  AlertCircle,
-  X,
-  Filter,
-  Check,
-  PlusCircle,
-  SlidersHorizontal,
-  Sparkles,
-  UploadCloud,
-  ImagePlus,
-  Loader2
+  AlertCircle, 
+  X, 
+  Filter, 
+  Check, 
+  PlusCircle, 
+  SlidersHorizontal, 
+  Sparkles, 
+  UploadCloud, 
+  ImagePlus, 
+  Loader2,
+  FileText
 } from "lucide-react";
-import { ensureAdminDocument } from "../utils/admin";
+import { AdminReclamaciones } from "../components/admin/AdminReclamaciones";
 import {
   parsePrice,
   PERIPHERAL_SUBCATEGORIES,
@@ -312,6 +313,7 @@ export function AdminPanel() {
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(auth.currentUser);
   const [products, setProducts] = useState<ProductItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"productos" | "reclamaciones">("productos");
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCat, setSelectedCat] = useState("Todas");
@@ -405,7 +407,7 @@ export function AdminPanel() {
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       setCurrentUser(u);
       if (u) {
-        await ensureAdminDocument(u);
+        // verifyAdminDocument(u) -- verificacion solo-lectura, sin auto-crear
       }
     });
     return () => unsubscribe();
@@ -623,7 +625,7 @@ export function AdminPanel() {
     try {
       // Garantizar permisos en Firebase antes de escribir
       if (auth.currentUser) {
-        await ensureAdminDocument(auth.currentUser);
+        // La autorizaci�n la manejan las Firestore Security Rules
       }
 
       // 1. Procesar URLs de imágenes (limpias y deduplicadas)
@@ -723,7 +725,7 @@ export function AdminPanel() {
 
     try {
       if (auth.currentUser) {
-        await ensureAdminDocument(auth.currentUser);
+        // La autorizaci�n la manejan las Firestore Security Rules
       }
       await deleteDoc(doc(db, "productos", id));
       showToast("success", "Producto eliminado");
@@ -787,7 +789,7 @@ export function AdminPanel() {
 
       {/* Header Superior */}
       <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-auto min-h-16 py-2.5 sm:py-0 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Link
               to="/"
@@ -823,7 +825,38 @@ export function AdminPanel() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-8">
+        {/* Pestañas de Navegación del Panel */}
+        <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8 border-b border-slate-200 pb-3 overflow-x-auto whitespace-nowrap">
+          <button
+            onClick={() => setActiveTab("productos")}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition cursor-pointer ${
+              activeTab === "productos"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <Package className="w-4 h-4" />
+            <span>Productos ({products.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("reclamaciones")}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition cursor-pointer ${
+              activeTab === "reclamaciones"
+                ? "bg-slate-900 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>Libro de Reclamaciones</span>
+          </button>
+        </div>
+
+        {activeTab === "reclamaciones" ? (
+          <AdminReclamaciones />
+        ) : (
+          <>
         {/* Banner de Error en Página (si ocurriera algún problema) */}
         {statusMsg && statusMsg.type === "error" && (
           <div className="mb-6 p-4 rounded-2xl flex items-center justify-between shadow-sm animate-in fade-in duration-200 border-2 bg-red-50 text-red-950 border-red-400 ring-4 ring-red-100">
@@ -1145,16 +1178,18 @@ export function AdminPanel() {
             </div>
           )}
         </div>
+        </>
+        )}
       </main>
 
       {/* ========================================================================= */}
       {/* MODAL DE EDICIÓN / CREACIÓN COMPLETA CON ESPECIFICACIONES DINÁMICAS */}
       {/* ========================================================================= */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl max-w-3xl w-full max-h-[95vh] flex flex-col shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 overflow-hidden">
             {/* Modal Header */}
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/50 rounded-t-2xl">
+            <div className="p-4 sm:p-6 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/50 rounded-t-xl sm:rounded-t-2xl">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal className="w-5 h-5 text-[#e81950]" />
                 <h3 className="font-extrabold text-lg text-slate-900">
@@ -1170,7 +1205,7 @@ export function AdminPanel() {
             </div>
 
             {/* Formulario con Scroll */}
-            <form onSubmit={handleGuardarProducto} className="p-6 overflow-y-auto space-y-6 flex-1">
+            <form onSubmit={handleGuardarProducto} className="p-3.5 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6 flex-1">
               {/* Sección 1: Datos Generales */}
               <div className="space-y-4">
                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 border-b pb-1">
@@ -1462,13 +1497,13 @@ export function AdminPanel() {
                 ) : (
                   <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
                     {specsList.map((row) => (
-                      <div key={row.id} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
+                      <div key={row.id} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white p-2 rounded-lg border border-slate-200 shadow-2xs">
                         <input
                           type="text"
                           placeholder="Nombre (ej. Pulgadas, Monitor, Procesador)"
                           value={row.key}
                           onChange={(e) => handleUpdateSpec(row.id, "key", e.target.value)}
-                          className="w-1/3 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:border-[#e81950] outline-none"
+                          className="w-full sm:w-1/3 px-2.5 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:border-[#e81950] outline-none"
                         />
                         <span className="text-slate-400 font-bold">:</span>
                         <input

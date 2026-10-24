@@ -1,5 +1,6 @@
 import { useCart } from "../../context/CartContext";
 import { useState, useCallback, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Package } from "lucide-react";
 import { ProductCard, type Product } from "./ProductCard";
 
@@ -8,12 +9,16 @@ interface ProductGridProps {
   products?: Product[];
   /** "carousel" (default) → slider con flechas y dots  |  "grid" → cuadrícula completa sin paginación */
   mode?: "carousel" | "grid";
+  viewMoreUrl?: string;
+  viewMoreText?: string;
 }
 
 export function ProductGrid({
   title = "Recomendados para ti",
   products = [],
   mode = "carousel",
+  viewMoreUrl,
+  viewMoreText = "Ver todos",
 }: ProductGridProps) {
   const { addItem } = useCart();
   const [page, setPage] = useState(0);
@@ -23,8 +28,9 @@ export function ProductGrid({
     if (mode !== "carousel") return;
     const updateItemsPerPage = () => {
       const width = window.innerWidth;
-      if (width >= 900) setItemsPerPage(5);
-      else if (width >= 500) setItemsPerPage(3);
+      if (width >= 1200) setItemsPerPage(5);
+      else if (width >= 900) setItemsPerPage(4);
+      else if (width >= 640) setItemsPerPage(3);
       else setItemsPerPage(2);
     };
     updateItemsPerPage();
@@ -53,11 +59,45 @@ export function ProductGrid({
     addItem(product);
   }
 
+  const headingId = `heading-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+
   return (
-    <section className="product-grid-section" aria-labelledby="product-grid-heading">
-      <h2 id="product-grid-heading" className="product-grid-section__title page-title">
-        {title}
-      </h2>
+    <section className="product-grid-section" aria-labelledby={headingId}>
+      {viewMoreUrl ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "1.25rem",
+            flexWrap: "wrap",
+            gap: "0.75rem",
+          }}
+        >
+          <h2 id={headingId} className="product-grid-section__title page-title" style={{ margin: 0, textAlign: "left" }}>
+            {title}
+          </h2>
+          <Link
+            to={viewMoreUrl}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              color: "#e81950",
+              fontWeight: 600,
+              fontSize: "0.95rem",
+              textDecoration: "none",
+            }}
+          >
+            {viewMoreText}
+            <ChevronRight style={{ width: "18px", height: "18px" }} />
+          </Link>
+        </div>
+      ) : (
+        <h2 id={headingId} className="product-grid-section__title page-title">
+          {title}
+        </h2>
+      )}
 
       {products.length === 0 ? (
         <div className="product-grid-section__empty" role="status">
@@ -67,12 +107,13 @@ export function ProductGrid({
           </p>
         </div>
       ) : mode === "grid" ? (
-        /* ── Modo grid: todos los productos, 4 columnas ── */
+        /* ── Modo grid responsive ── */
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "1.25rem",
+            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))",
+            gap: "1rem",
+            width: "100%",
           }}
           role="list"
         >
@@ -83,7 +124,7 @@ export function ProductGrid({
           ))}
         </div>
       ) : (
-        /* ── Modo carousel: slider con flechas y dots ── */
+        /* ── Modo carousel responsive ── */
         <>
           <div className="product-grid" role="list">
             {visibleProducts.map((product) => (

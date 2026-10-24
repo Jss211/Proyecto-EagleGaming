@@ -203,7 +203,10 @@ export function ProductReviewList({ productId }: { productId: string }) {
       setReviews(fetchedReviews);
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching reviews:", error);
+      // Solo loguear si no es error de permisos (normal si aun no hay resenas)
+      if ((error as { code?: string }).code !== "permission-denied") {
+        console.error("Error fetching reviews:", error);
+      }
       setLoading(false);
     });
 

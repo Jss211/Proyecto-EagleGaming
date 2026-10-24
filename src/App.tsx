@@ -2,7 +2,6 @@ import {
   BrowserRouter,
   Routes,
   Route,
-  Navigate,
   useLocation,
 } from "react-router-dom";
 
@@ -10,6 +9,7 @@ import { useEffect } from "react";
 
 import { CarouselProvider } from "./context/CarouselContext";
 import { CartProvider } from "./context/CartContext";
+import { AuthProvider } from "./context/AuthContext";
 
 import { HomePage } from "./pages/HomePage";
 import { ProductDetailPage } from "./pages/ProductDetailPage";
@@ -29,10 +29,14 @@ import { LibroDeReclamacionesPage } from "./pages/LibroDeReclamacionesPage";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminPanel } from "./pages/AdminPanel";
 import { AdminRoute } from "./components/AdminRoute";
+import { NotFoundPage } from "./pages/NotFoundPage";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { useDynamicTitle } from "./hooks/useDynamicTitle";
 // import { Chatbot } from "./chatbot-frontend/Chatbot";
 
-function ScrollToTop() {
+function PageNavigationHandler() {
   const { pathname } = useLocation();
+  useDynamicTitle();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -48,10 +52,12 @@ function ConditionalChatbot() {
 
 export default function App() {
   return (
+    <AuthProvider>
     <CartProvider>
       <CarouselProvider>
+        <ErrorBoundary>
         <BrowserRouter>
-          <ScrollToTop />
+          <PageNavigationHandler />
 
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -110,14 +116,13 @@ export default function App() {
             <Route path="/libro-de-reclamaciones" element={<LibroDeReclamacionesPage />} />
             <Route path="/reclamaciones" element={<LibroDeReclamacionesPage />} />
 
-            <Route
-              path="*"
-              element={<Navigate to="/" replace />}
-            />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
           <ConditionalChatbot />
         </BrowserRouter>
+      </ErrorBoundary>
       </CarouselProvider>
     </CartProvider>
+    </AuthProvider>
   );
 }

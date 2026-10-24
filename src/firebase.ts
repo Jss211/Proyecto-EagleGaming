@@ -1,8 +1,23 @@
+// Declaración global para soporte del debug token en desarrollo sin errores de TypeScript
+declare global {
+  // eslint-disable-next-line no-var
+  var FIREBASE_APPCHECK_DEBUG_TOKEN: boolean | string | undefined;
+}
+
+// Activar debug token ÚNICAMENTE en desarrollo local (DEV).
+// En producción (Hostinger / PROD), se desactiva para que los usuarios finales
+// utilicen reCAPTCHA Enterprise real y ningún token de depuración se imprima en consola.
+if (typeof window !== "undefined" && import.meta.env.DEV) {
+  const customDebugToken = import.meta.env.VITE_APPCHECK_DEBUG_TOKEN;
+  window.FIREBASE_APPCHECK_DEBUG_TOKEN = customDebugToken || true;
+}
+
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider, type AppCheck } from "firebase/app-check";
 
 // Configuración web de Firebase usando variables de entorno (.env)
 const firebaseConfig = {
@@ -15,22 +30,40 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Inicializamos la aplicación de Firebase
+// 1. Inicializamos la aplicación de Firebase
 export const app = initializeApp(firebaseConfig);
 
-// Analytics es opcional y no debe impedir que la aplicación cargue.
-export const analytics = firebaseConfig.measurementId
-  ? getAnalytics(app)
-  : undefined;
+// 2. Firebase App Check (reCAPTCHA Enterprise)
+export let appCheck: AppCheck | undefined = undefined;
 
-// Inicializamos y exportamos Auth para que todo el equipo lo use en login/registro
+if (typeof window !== "undefined") {
+  const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+
+  if (recaptchaSiteKey) {
+    try {
+      appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(recaptchaSiteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn("[Firebase App Check] Aviso no crítico:", error);
+      }
+    }
+  } else if (import.meta.env.DEV) {
+    console.warn(
+      "[Firebase App Check] VITE_RECAPTCHA_SITE_KEY no configurado en .env."
+    );
+  }
+}
+
+// 3. Servicios de Firebase
 export const auth = getAuth(app);
-
-// Proveedor de Google para registro/login con Google
 export const googleProvider = new GoogleAuthProvider();
-
-// Inicializamos y exportamos Firestore
 export const db = getFirestore(app);
-
-// Storage para los avatares de los usuarios.
 export const storage = getStorage(app);
+
+export const analytics =
+  typeof window !== "undefined" && firebaseConfig.measurementId
+    ? getAnalytics(app)
+    : undefined;

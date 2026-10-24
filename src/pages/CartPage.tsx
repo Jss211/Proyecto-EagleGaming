@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ShoppingBag,
@@ -10,11 +11,25 @@ import {
   Plus,
   Check,
   PackageCheck,
+  MessageCircle,
+  Loader2,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 import { Footer } from "../components/home/Footer";
 import { useCart } from "../context/CartContext";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
+import { checkoutCustomerSchema, type CheckoutCustomerValues } from "../utils/validation";
+import {
+  verifyCartWithFirestore,
+  generateOrderCode,
+  buildWhatsAppOrderMessage,
+  createWhatsAppOrderUrl,
+  type VerifiedCartItem,
+} from "../utils/whatsappOrder";
 
 const money = (value: number) =>
   new Intl.NumberFormat("es-PE", {
@@ -32,6 +47,145 @@ export function CartPage() {
     clearCart,
     storageError,
   } = useCart();
+
+  // Estados de Checkout y Modal de Pedido por WhatsApp
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [verificationErrors, setVerificationErrors] = useState<string[]>([]);
+  const [priceNotice, setPriceNotice] = useState(false);
+  const [verifiedItems, setVerifiedItems] = useState<VerifiedCartItem[]>([]);
+  const [verifiedTotal, setVerifiedTotal] = useState<number>(total);
+
+  // Formulario de datos del cliente
+  const [customerData, setCustomerData] = useState<CheckoutCustomerValues>({
+    fullName: "",
+    phone: "",
+    cityOrDepartment: "",
+    address: "",
+    notes: "",
+    company_hp: "",
+  });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // Abrir checkout: Revalida precios y stock con Firestore al instante
+  const handleOpenCheckout = async () => {
+    if (items.length === 0) return;
+    setIsVerifying(true);
+    setVerificationErrors([]);
+    setPriceNotice(false);
+
+    try {
+      const res = await verifyCartWithFirestore(items);
+      setVerifiedItems(res.items);
+      setVerifiedTotal(res.total);
+
+      if (!res.valid && res.errors.length > 0) {
+        setVerificationErrors(res.errors);
+      }
+      if (res.priceChangedNotice) {
+        setPriceNotice(true);
+      }
+
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error("Error al verificar carrito:", err);
+      setVerificationErrors(["No se pudo verificar el inventario con el servidor. Puedes proceder con precaución."]);
+      setIsModalOpen(true);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCustomerData((prev) => ({ ...prev, [name]: value }));
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
+  };
+
+  const handleSendWhatsAppOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormErrors({});
+
+    // Validar datos del cliente con Zod
+    const validation = checkoutCustomerSchema.safeParse(customerData);
+    if (!validation.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of validation.error.issues) {
+        const fieldName = issue.path[0] as string;
+        if (fieldName && !fieldErrors[fieldName]) {
+          fieldErrors[fieldName] = issue.message;
+        }
+      }
+      setFormErrors(fieldErrors);
+      return;
+    }
+
+    // Comprobar honeypot anti-spam
+    if (customerData.company_hp && customerData.company_hp.trim().length > 0) {
+      setIsModalOpen(false);
+      clearCart();
+      return;
+    }
+
+    setIsSubmitting(true);
+    const orderCode = generateOrderCode();
+    const finalItems = verifiedItems.length > 0 ? verifiedItems : items.map(i => ({ ...i, inStock: true }));
+    const finalTotal = verifiedTotal > 0 ? verifiedTotal : total;
+
+    // 1. Guardar pedido en Firestore (colección "orders") con solo permiso de creación pública
+    try {
+      await addDoc(collection(db, "orders"), {
+        orderCode,
+        customerName: customerData.fullName.trim(),
+        customerPhone: customerData.phone.trim(),
+        cityOrDepartment: customerData.cityOrDepartment.trim(),
+        address: customerData.address?.trim() || "",
+        notes: customerData.notes?.trim() || "",
+        items: finalItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          subtotal: Math.round(item.price * item.quantity * 100) / 100,
+        })),
+        total: finalTotal,
+        status: "pendiente_whatsapp",
+        createdAt: serverTimestamp(),
+      });
+    } catch (dbErr) {
+      console.warn("No se pudo registrar orden en Firestore:", dbErr);
+    }
+
+    // 2. Construir mensaje formateado y URL wa.me
+    const message = buildWhatsAppOrderMessage({
+      orderCode,
+      customerName: customerData.fullName,
+      customerPhone: customerData.phone,
+      cityOrDepartment: customerData.cityOrDepartment,
+      address: customerData.address,
+      notes: customerData.notes,
+      items: finalItems,
+      total: finalTotal,
+    });
+
+    const targetPhone = import.meta.env.VITE_WHATSAPP_NUMBER || "51986638034";
+    const waUrl = createWhatsAppOrderUrl(targetPhone, message);
+
+    // Abrir WhatsApp en nueva pestaña
+    window.open(waUrl, "_blank", "noopener,noreferrer");
+
+    // Limpiar carrito y cerrar modal
+    clearCart();
+    setIsModalOpen(false);
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="home-page cart-page-wrapper">
@@ -423,13 +577,25 @@ export function CartPage() {
                       </p>
                     </div>
 
-                    <Link
-                      to="/"
+                    <button
+                      type="button"
+                      onClick={handleOpenCheckout}
+                      disabled={isVerifying || items.length === 0}
                       className="cart-checkout-button"
+                      style={{ cursor: isVerifying ? "wait" : "pointer" }}
                     >
-                      Continuar con la compra
-                      <ArrowRight size={18} />
-                    </Link>
+                      {isVerifying ? (
+                        <>
+                          <Loader2 size={18} className="animate-spin" />
+                          Verificando inventario...
+                        </>
+                      ) : (
+                        <>
+                          <MessageCircle size={18} />
+                          Comprar por WhatsApp
+                        </>
+                      )}
+                    </button>
 
                     <Link
                       to="/"
@@ -446,6 +612,205 @@ export function CartPage() {
             </>
           )}
         </div>
+        {/* =====================================================
+            MODAL DE CHECKOUT Y ENVÍO POR WHATSAPP
+        ===================================================== */}
+        {isModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+            style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+          >
+            <div
+              className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]"
+              style={{ background: "#ffffff", borderRadius: "18px", width: "100%", maxWidth: "540px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)" }}
+            >
+              {/* Header Modal */}
+              <div
+                style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #f0f0f3", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fcfcfd" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#10b981", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                    <MessageCircle size={20} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "#181827" }}>
+                      Finalizar Pedido por WhatsApp
+                    </h3>
+                    <p style={{ margin: 0, fontSize: "0.78rem", color: "#777" }}>
+                      Verificamos tu pedido antes de enviarlo
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  style={{ background: "transparent", border: "none", cursor: "pointer", color: "#888", padding: "6px" }}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Body Modal con scroll */}
+              <div style={{ padding: "1.5rem", overflowY: "auto", flex: 1 }}>
+                {/* Alertas de inventario / precios de Firestore */}
+                {priceNotice && (
+                  <div style={{ background: "#fffbeb", border: "1px solid #fde68a", color: "#92400e", padding: "0.8rem", borderRadius: "8px", fontSize: "0.82rem", marginBottom: "1rem", display: "flex", gap: "8px" }}>
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                    <span>Los precios de algunos productos se actualizaron con las tarifas vigentes de la tienda.</span>
+                  </div>
+                )}
+
+                {verificationErrors.length > 0 && (
+                  <div style={{ background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b", padding: "0.8rem", borderRadius: "8px", fontSize: "0.82rem", marginBottom: "1rem" }}>
+                    <strong style={{ display: "block", marginBottom: "4px" }}>Aviso de inventario:</strong>
+                    <ul style={{ margin: 0, paddingLeft: "1.2rem" }}>
+                      {verificationErrors.map((err, i) => (
+                        <li key={i}>{err}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Resumen del Pedido Revalidado */}
+                <div style={{ background: "#f8f9fa", borderRadius: "12px", padding: "1rem", marginBottom: "1.25rem", border: "1px solid #eee" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "#666", marginBottom: "6px" }}>
+                    <span>Total de ítems a comprar:</span>
+                    <strong style={{ color: "#222" }}>{verifiedItems.length > 0 ? verifiedItems.reduce((s, it) => s + it.quantity, 0) : totalItems} unidades</strong>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "1rem", fontWeight: 700, color: "#e81950", borderTop: "1px dashed #ddd", paddingTop: "6px" }}>
+                    <span>Monto Total a pagar:</span>
+                    <span>{money(verifiedTotal > 0 ? verifiedTotal : total)}</span>
+                  </div>
+                </div>
+
+                {/* Formulario del Cliente */}
+                <form id="checkout-customer-form" onSubmit={handleSendWhatsAppOrder} noValidate style={{ display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+                  {/* Honeypot invisible */}
+                  <div style={{ display: "none" }} aria-hidden="true">
+                    <input type="text" name="company_hp" tabIndex={-1} autoComplete="off" value={customerData.company_hp} onChange={handleCustomerChange} />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#444", marginBottom: "4px" }}>
+                      Nombre y Apellido completo *
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      placeholder="Ej. Carlos Mendoza"
+                      value={customerData.fullName}
+                      onChange={handleCustomerChange}
+                      maxLength={120}
+                      style={{ width: "100%", padding: "0.65rem 0.8rem", border: formErrors.fullName ? "1px solid #ef4444" : "1px solid #ccc", borderRadius: "8px", fontSize: "0.9rem", outline: "none" }}
+                    />
+                    {formErrors.fullName && (
+                      <span style={{ color: "#ef4444", fontSize: "0.78rem" }}>{formErrors.fullName}</span>
+                    )}
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#444", marginBottom: "4px" }}>
+                        Teléfono / Celular *
+                      </label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        placeholder="Ej. 987654321"
+                        value={customerData.phone}
+                        onChange={handleCustomerChange}
+                        maxLength={15}
+                        style={{ width: "100%", padding: "0.65rem 0.8rem", border: formErrors.phone ? "1px solid #ef4444" : "1px solid #ccc", borderRadius: "8px", fontSize: "0.9rem", outline: "none" }}
+                      />
+                      {formErrors.phone && (
+                        <span style={{ color: "#ef4444", fontSize: "0.78rem" }}>{formErrors.phone}</span>
+                      )}
+                    </div>
+
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#444", marginBottom: "4px" }}>
+                        Ciudad / Dpto *
+                      </label>
+                      <input
+                        type="text"
+                        name="cityOrDepartment"
+                        placeholder="Ej. Lima / Arequipa"
+                        value={customerData.cityOrDepartment}
+                        onChange={handleCustomerChange}
+                        maxLength={80}
+                        style={{ width: "100%", padding: "0.65rem 0.8rem", border: formErrors.cityOrDepartment ? "1px solid #ef4444" : "1px solid #ccc", borderRadius: "8px", fontSize: "0.9rem", outline: "none" }}
+                      />
+                      {formErrors.cityOrDepartment && (
+                        <span style={{ color: "#ef4444", fontSize: "0.78rem" }}>{formErrors.cityOrDepartment}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#444", marginBottom: "4px" }}>
+                      Dirección de entrega (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      name="address"
+                      placeholder="Calle, número, urbanización o agencia Shalom/Olva"
+                      value={customerData.address}
+                      onChange={handleCustomerChange}
+                      maxLength={200}
+                      style={{ width: "100%", padding: "0.65rem 0.8rem", border: "1px solid #ccc", borderRadius: "8px", fontSize: "0.9rem", outline: "none" }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#444", marginBottom: "4px" }}>
+                      Observaciones o instrucciones adicionales (opcional)
+                    </label>
+                    <textarea
+                      name="notes"
+                      rows={2}
+                      placeholder="Ej. Necesito factura con RUC, entrega en la tarde..."
+                      value={customerData.notes}
+                      onChange={handleCustomerChange}
+                      maxLength={500}
+                      style={{ width: "100%", padding: "0.65rem 0.8rem", border: "1px solid #ccc", borderRadius: "8px", fontSize: "0.85rem", outline: "none", resize: "none" }}
+                    ></textarea>
+                  </div>
+                </form>
+              </div>
+
+              {/* Footer Modal con botón enviar */}
+              <div
+                style={{ padding: "1.1rem 1.5rem", borderTop: "1px solid #f0f0f3", background: "#fcfcfd", display: "flex", gap: "12px", justifyContent: "flex-end" }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  style={{ padding: "0.65rem 1.2rem", borderRadius: "8px", border: "1px solid #ddd", background: "#fff", color: "#555", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  form="checkout-customer-form"
+                  disabled={isSubmitting}
+                  style={{ padding: "0.65rem 1.5rem", borderRadius: "8px", border: "none", background: "#10b981", color: "#fff", fontSize: "0.9rem", fontWeight: 700, cursor: isSubmitting ? "wait" : "pointer", display: "inline-flex", alignItems: "center", gap: "8px", boxShadow: "0 4px 12px rgba(16,185,129,0.3)" }}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle size={18} />
+                      Enviar a WhatsApp
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       <Footer />

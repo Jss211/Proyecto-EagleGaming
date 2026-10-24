@@ -1,38 +1,38 @@
 import { Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
-import { auth } from "../firebase";
-import { isAdminUser, ensureAdminDocument } from "../utils/admin";
+import { useAuth } from "../context/AuthContext";
 
+/**
+ * Protege las rutas de administrador.
+ * Verifica:
+ *  1. Que haya un usuario autenticado en Firebase Auth.
+ *  2. Que ese usuario tenga un documento en /admins/{uid} en Firestore
+ *     (verificado a través del AuthContext, que es server-side).
+ *
+ * NO auto-crea documentos de admin ni confía solo en el email.
+ */
 export function AdminRoute({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [cargando, setCargando] = useState(true);
+  const { user, loading, isAdmin } = useAuth();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        // Garantizar que el usuario tenga su documento admin en Firestore
-        await ensureAdminDocument(currentUser);
-      }
-      setCargando(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  if (cargando) {
+  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-zinc-950">
-        <p className="text-lg text-gray-600 dark:text-gray-400">Verificando sesión de administrador...</p>
+      <div
+        className="flex items-center justify-center min-h-screen bg-gray-50"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-gray-500 font-medium">
+            Verificando acceso…
+          </p>
+        </div>
       </div>
     );
   }
 
-  // Si no hay usuario logueado o no es un email de admin permitido
-  if (!user || !isAdminUser(user.email)) {
+  if (!user || !isAdmin) {
     return <Navigate to="/admin-login" replace />;
   }
 
-  // Si sí es admin autenticado, mostramos el panel de admin
   return <>{children}</>;
 }

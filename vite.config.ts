@@ -14,4 +14,23 @@ export default defineConfig({
       '@': import.meta.dirname + '/src',
     },
   },
+  build: {
+    sourcemap: false, // Desactivar mapas de fuente en producción
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/firebase')) {
+            return 'firebase';
+          }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'icons';
+          }
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router-dom')) {
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
 })

@@ -6,15 +6,6 @@ const AUTO_PLAY_MS = 5000;
 
 export function HeroCarousel() {
   const [current, setCurrent] = useState(0);
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const next = useCallback(() => {
     setCurrent((c) => (c + 1) % HERO_SLIDES.length);
@@ -113,19 +104,17 @@ export function HeroCarousel() {
         ))}
       </div>
       
-      {/* Dynamic scroll gradient */}
+      {/* Scroll gradient estático y suave sin recalcular en scroll */}
       <div 
         style={{
           position: "absolute",
           bottom: 0,
           left: 0,
           width: "100%",
-          height: "250px",
+          height: "140px",
           background: "linear-gradient(to bottom, transparent, #ffffff)",
           pointerEvents: "none",
           zIndex: 5,
-          opacity: Math.min(scrollY / 300, 1),
-          transition: "opacity 0.1s ease-out"
         }}
       />
     </section>

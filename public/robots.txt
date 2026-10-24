@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://eaglegamingperu.com/sitemap.xml
+
+# Bloquear rutas privadas de rastreo
+Disallow: /admin
+Disallow: /admin-login
+Disallow: /cuenta
+Disallow: /forgot-password

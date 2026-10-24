@@ -20,14 +20,24 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const imageUrl = product.imageUrl || "https://placehold.co/400x300?text=Producto";
   const [hovered, setHovered] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
+  const tickingRef = useRef(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    const angle = (Math.atan2(y, x) * 180) / Math.PI + 90;
-    cardRef.current.style.setProperty("--rotation", `${angle}deg`);
+    if (!cardRef.current || tickingRef.current) return;
+    tickingRef.current = true;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+
+    requestAnimationFrame(() => {
+      if (cardRef.current) {
+        const rect = cardRef.current.getBoundingClientRect();
+        const x = clientX - rect.left - rect.width / 2;
+        const y = clientY - rect.top - rect.height / 2;
+        const angle = (Math.atan2(y, x) * 180) / Math.PI + 90;
+        cardRef.current.style.setProperty("--rotation", `${angle}deg`);
+      }
+      tickingRef.current = false;
+    });
   };
 
   const handleMouseLeave = () => {
@@ -43,17 +53,19 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={handleMouseLeave}
-      className="flex flex-col items-center group relative transition-all duration-300" 
+      className="flex flex-col items-center group relative transition-transform duration-200" 
       aria-label={product.name}
       style={{ 
         width: "100%", 
+        height: "100%",
         padding: "3px", // Espacio para el borde giratorio
         boxSizing: "border-box",
         borderRadius: "0.75rem",
         overflow: "hidden",
         position: "relative",
-        boxShadow: hovered ? "0 20px 25px -5px rgba(232, 25, 80, 0.3)" : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-        transform: hovered ? "translateY(-8px)" : "translateY(0)"
+        boxShadow: hovered ? "0 14px 20px -4px rgba(232, 25, 80, 0.25)" : "0 2px 4px rgba(0, 0, 0, 0.05)",
+        transform: hovered ? "translateY(-6px)" : "translateY(0)",
+        willChange: "transform",
       }}
     >
       {/* Fondo estático del borde */}
@@ -91,21 +103,22 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         width: "100%",
         height: "100%",
         borderRadius: "calc(0.75rem - 3px)",
-        padding: "1rem",
+        padding: "0.85rem",
         zIndex: 2,
         display: "flex",
         flexDirection: "column",
-        alignItems: "center"
+        alignItems: "center",
+        boxSizing: "border-box",
       }}>
         <Link to={`/producto/${product.id}`} className="block w-full text-center" style={{ textDecoration: "none" }}>
           {/* Imagen del producto con zoom al pasar el mouse */}
           <div style={{ 
             width: "100%", 
-            height: "200px", 
+            height: "180px", 
             display: "flex", 
             justifyContent: "center", 
             alignItems: "center", 
-            marginBottom: "1rem",
+            marginBottom: "0.75rem",
             overflow: "hidden",
             borderRadius: "0.5rem",
             position: "relative"
@@ -113,11 +126,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <img 
               src={imageUrl} 
               alt={product.name}
+              loading="lazy"
               style={{ 
                 maxWidth: "100%", 
                 maxHeight: "100%", 
                 objectFit: "contain",
-                transform: hovered ? "scale(1.15)" : "scale(1)",
+                transform: hovered ? "scale(1.1)" : "scale(1)",
                 transition: "transform 0.4s ease-in-out",
                 transformOrigin: "center"
               }}
@@ -128,16 +142,16 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           <h3 
             style={{ 
               color: "#000", 
-              fontSize: "0.95rem", 
+              fontSize: "0.92rem", 
               fontWeight: "600", 
-              margin: "0 0 0.75rem 0",
+              margin: "0 0 0.5rem 0",
               display: "-webkit-box",
-              WebkitLineClamp: 3,
+              WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              lineHeight: "1.4",
-              minHeight: "4rem",
-              letterSpacing: "0.3px"
+              lineHeight: "1.35",
+              minHeight: "2.5rem",
+              letterSpacing: "0.2px"
             }}
           >
             {product.name}
@@ -146,9 +160,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {/* Precio */}
           <p style={{ 
             color: "#e81950", 
-            fontSize: "1.3rem", 
+            fontSize: "1.2rem", 
             fontWeight: "700", 
-            margin: "0 0 1rem 0",
+            margin: "0 0 0.6rem 0",
             letterSpacing: "0.5px"
           }}>
             S/ {product.price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}
@@ -156,18 +170,18 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </Link>
 
         {/* Indicador de Stock */}
-        <div style={{ width: "100%", marginBottom: "1rem" }}>
+        <div style={{ width: "100%", marginBottom: "0.75rem" }}>
           {product.inStock !== false && (
             <div style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "flex-start",
-              gap: "0.5rem",
-              fontSize: "0.95rem",
+              justifyContent: "center",
+              gap: "0.4rem",
+              fontSize: "0.85rem",
               fontWeight: "600",
-              color: "#333"
+              color: "#166534"
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#28a745" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"></polyline>
               </svg>
               En stock
@@ -177,13 +191,13 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <div style={{
               display: "flex",
               alignItems: "center",
-              justifyContent: "flex-start",
-              gap: "0.5rem",
-              fontSize: "0.95rem",
+              justifyContent: "center",
+              gap: "0.4rem",
+              fontSize: "0.85rem",
               fontWeight: "600",
-              color: "#721c24"
+              color: "#991b1b"
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc3545" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -198,7 +212,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             label="Añadir al carrito" 
             onClick={() => onAddToCart?.(product)} 
             viewMode="text" 
-            width={210} 
+            width={200} 
           />
         </div>
       </div>

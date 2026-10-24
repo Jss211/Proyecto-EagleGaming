@@ -1,40 +1,54 @@
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import type { User as FirebaseUser } from "firebase/auth";
 
-export const ADMIN_EMAILS = [
+/**
+ * Lista blanca estricta de emails de administrador.
+ * NUNCA uses .includes("admin") — eso deja pasar myadmin@evil.com.
+ * Para añadir un nuevo admin: (1) agrégalo aquí, (2) crea el documento
+ * manualmente en Firebase Console → Firestore → admins/{uid}.
+ */
+export const ADMIN_EMAILS: ReadonlySet<string> = new Set([
   "eaglegaming@gmail.com",
   "admin@eaglegaming.com",
   "eaglegamingperu@gmail.com",
   "administrador@eaglegaming.com",
-];
+]);
 
-export function isAdminUser(email?: string | null): boolean {
+/**
+ * Comprobación SOLO de lista blanca estricta.
+ */
+export function isAdminEmail(email?: string | null): boolean {
   if (!email) return false;
-  const clean = email.trim().toLowerCase();
-  return ADMIN_EMAILS.includes(clean) || clean.includes("admin");
+  return ADMIN_EMAILS.has(email.trim().toLowerCase());
 }
 
-export async function ensureAdminDocument(user: FirebaseUser | null): Promise<boolean> {
+/**
+ * Alias de compatibilidad hacia atrás que usa la lista blanca estricta
+ */
+export const isAdminUser = isAdminEmail;
+
+/**
+ * Verifica en Firestore si el usuario tiene un documento en /admins/{uid}.
+ * No crea ni modifica nada — solo lee. La escritura de admins solo ocurre
+ * desde Firebase Console o Cloud Functions.
+ */
+export async function verifyAdminDocument(user: FirebaseUser | null): Promise<boolean> {
   if (!user) return false;
   try {
     const adminRef = doc(db, "admins", user.uid);
     const snap = await getDoc(adminRef);
-    if (!snap.exists()) {
-      await setDoc(adminRef, {
-        email: user.email || "",
-        uid: user.uid,
-        role: "admin",
-        createdAt: serverTimestamp(),
-      });
-      console.log("Registro admin creado en Firestore para:", user.email);
-    }
-    return true;
-  } catch (err) {
-    console.warn("No se pudo verificar registro admin en Firestore:", err);
+    return snap.exists();
+  } catch {
     return false;
   }
 }
 
-export { parsePrice } from "./productUtils";
+/**
+ * Función segura de compatibilidad: únicamente verifica la existencia sin auto-crear.
+ */
+export async function ensureAdminDocument(user: FirebaseUser | null): Promise<boolean> {
+  return verifyAdminDocument(user);
+}
 
+export { parsePrice } from "./productUtils";

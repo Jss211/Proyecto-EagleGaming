@@ -23,20 +23,13 @@ type CategoryKey =
 
 type ProductsByCategory = Record<CategoryKey, Product[]>;
 
-// Orden exacto solicitado:
-// 1. PC Completas
-// 2. Productos en tendencia
-// 3. Laptops (destacando la laptop existente)
-// 4. Otras categorías
-const SECTIONS: { key: CategoryKey; title: string }[] = [
-  { key: "pc completa", title: "PC Completas" },
-  { key: "productos en tendencia", title: "Productos en tendencia" },
-  { key: "procesadores", title: "Procesadores" },
-  { key: "tarjetas de video", title: "Tarjetas de Video" },
-  { key: "monitores", title: "Monitores" },
-  { key: "placas madre", title: "Placas Madre" },
-  { key: "refrigeracion", title: "Refrigeración Líquida" },
-  { key: "laptops", title: "Laptops" },
+const PRINCIPAL_SECTIONS: { key: CategoryKey; title: string; slug: string; limit: number }[] = [
+  { key: "productos en tendencia", title: "Productos en Tendencia", slug: "pc-gamer", limit: 5 },
+  { key: "pc completa", title: "PC Completas y Combos", slug: "pc-completa", limit: 5 },
+  { key: "tarjetas de video", title: "Tarjetas de Video Destacadas", slug: "tarjetas-de-video", limit: 5 },
+  { key: "laptops", title: "Laptops Destacadas", slug: "laptops", limit: 5 },
+  { key: "procesadores", title: "Procesadores Principales", slug: "procesadores", limit: 5 },
+  { key: "monitores", title: "Monitores Gaming", slug: "monitores", limit: 5 },
 ];
 
 const createEmptyGroups = (): ProductsByCategory => ({
@@ -50,7 +43,6 @@ const createEmptyGroups = (): ProductsByCategory => ({
   refrigeracion: [],
 });
 
-// Devuelve el primer campo que exista (Firestore puede tener variaciones de nombre)
 const pickField = (data: Record<string, unknown>, keys: string[]): unknown => {
   for (const key of keys) {
     const value = data[key];
@@ -59,34 +51,18 @@ const pickField = (data: Record<string, unknown>, keys: string[]): unknown => {
   return undefined;
 };
 
-// Minúsculas y sin tildes, para comparar categorías de forma robusta
 const normalize = (text: string): string =>
-  text
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+  text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const getCategoryKey = (category: string, title?: string): CategoryKey | null => {
   const cat = normalize(category || "");
-
-  // Si tiene categoría en la base de datos, clasificar estrictamente por esa categoría:
-  if (
-    cat.includes("pc") ||
-    cat.includes("computadora") ||
-    cat.includes("combo") ||
-    cat.includes("gamer") ||
-    cat.includes("oficina")
-  ) {
-    return "pc completa";
-  }
+  if (cat.includes("pc") || cat.includes("computadora") || cat.includes("combo") || cat.includes("gamer") || cat.includes("oficina")) return "pc completa";
   if (cat.includes("laptop")) return "laptops";
   if (cat.includes("refrig") || cat.includes("liquida")) return "refrigeracion";
   if (cat.includes("monitor")) return "monitores";
   if (cat.includes("procesador")) return "procesadores";
   if (cat.includes("tarjeta") || cat.includes("video") || cat.includes("grafica")) return "tarjetas de video";
   if (cat.includes("placa") || cat.includes("madre")) return "placas madre";
-
-  // Solo si la categoría en Firestore está vacía o indefinida, inferir por el inicio del título:
   const tit = normalize(title || "");
   if (tit.startsWith("pc ") || tit.startsWith("computadora")) return "pc completa";
   if (tit.startsWith("monitor")) return "monitores";
@@ -94,17 +70,12 @@ const getCategoryKey = (category: string, title?: string): CategoryKey | null =>
   if (tit.startsWith("procesador")) return "procesadores";
   if (tit.startsWith("tarjeta") || tit.includes("geforce") || tit.startsWith("placa de video")) return "tarjetas de video";
   if (tit.startsWith("placa")) return "placas madre";
-
   return null;
 };
 
 const isTrending = (data: Record<string, unknown>): boolean => {
   const value = pickField(data, ["tendencia", "Tendencia"]);
   return value === true || value === "true" || value === 1;
-};
-
-const buildProduct = (id: string, data: Record<string, unknown>): Product => {
-  return buildNormalizedProduct(id, data);
 };
 
 export function HomePage() {
@@ -121,14 +92,12 @@ export function HomePage() {
         querySnapshot.docs.forEach((doc) => {
           const rawData = doc.data() as Record<string, unknown>;
           const data = normalizeDocumentData(rawData);
-          const product = buildProduct(doc.id, data);
+          const product = buildNormalizedProduct(doc.id, data);
 
-          // Si tiene flag de tendencia va a la sección de tendencia
           if (isTrending(data)) {
             grouped["productos en tendencia"].push(product);
           }
 
-          // Y también a su categoría respectiva
           const categoryKey = getCategoryKey(product.category, product.name);
           if (categoryKey) {
             grouped[categoryKey].push(product);
@@ -158,24 +127,35 @@ export function HomePage() {
         <CategoriesSection />
         <CombosSection />
 
-        <div
-          style={{
-            padding: "0 2rem",
-            marginTop: "2rem",
-            display: "flex",
-            flexDirection: "column",
-            gap: "3rem",
-            marginBottom: "4rem",
-          }}
-        >
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 mt-6 sm:mt-8 flex flex-col gap-8 sm:gap-12 mb-12 w-full box-border">
           {loading ? (
-            <div style={{ textAlign: "center", padding: "2rem" }}>Cargando productos...</div>
+            <div style={{
+              textAlign: "center",
+              padding: "4rem 1rem",
+              color: "#64748b",
+              background: "#fff",
+            }}>
+              <div
+                style={{
+                  display: "inline-block",
+                  width: "2.5rem",
+                  height: "2.5rem",
+                  border: "3px solid #e2e8f0",
+                  borderTopColor: "#e81950",
+                  borderRadius: "50%",
+                  animation: "spin 0.8s linear infinite",
+                  marginBottom: "1rem",
+                }}
+              />
+              <p style={{ margin: 0, fontWeight: 500 }}>Cargando catálogo principal...</p>
+            </div>
           ) : error ? (
             <div
               role="alert"
               style={{
                 textAlign: "center",
                 padding: "2rem",
+                margin: "2rem",
                 color: "#b91c1c",
                 background: "#fef2f2",
                 borderRadius: "0.75rem",
@@ -184,11 +164,23 @@ export function HomePage() {
               {error}
             </div>
           ) : (
-            SECTIONS.map(({ key, title }) =>
-              productsByCategory[key].length > 0 ? (
-                <ProductGrid key={key} title={title} products={productsByCategory[key]} />
-              ) : null
-            )
+            PRINCIPAL_SECTIONS.map(({ key, title, slug, limit }) => {
+              const items = productsByCategory[key];
+              if (!items || items.length === 0) return null;
+
+              const principalItems = items.slice(0, limit);
+              const hasMore = items.length > limit;
+
+              return (
+                <ProductGrid
+                  key={key}
+                  title={title}
+                  products={principalItems}
+                  viewMoreUrl={`/categoria/${slug}`}
+                  viewMoreText={hasMore ? `Ver todos (${items.length})` : "Ver categoría"}
+                />
+              );
+            })
           )}
         </div>
       </main>

@@ -222,24 +222,7 @@ export function AboutPage() {
           />
 
           <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto" }} className="animate-fade-in">
-            <span style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "8px",
-              background: "rgba(255, 255, 255, 0.18)",
-              backdropFilter: "blur(8px)",
-              padding: "6px 16px",
-              borderRadius: "50px",
-              fontSize: "0.85rem",
-              fontWeight: "600",
-              letterSpacing: "1px",
-              textTransform: "uppercase",
-              marginBottom: "1.5rem"
-            }}>
-              <Sparkles size={16} /> Sobre Eagle Gaming Perú
-            </span>
-
-            <h1 className="product-title" style={{ fontSize: "3.5rem", marginBottom: "1.5rem", fontWeight: "800", letterSpacing: "-1px" }}>
+            <h1 className="product-title" style={{ fontSize: "clamp(2rem, 6vw, 3.5rem)", marginBottom: "1.5rem", fontWeight: "800", letterSpacing: "-1px" }}>
               Nosotros
             </h1>
 

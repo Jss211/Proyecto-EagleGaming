@@ -2058,7 +2058,14 @@ body {
 
 .product-grid-section {
   background: #fff;
-  padding: 2rem 1.25rem 2.5rem;
+  padding: 1.25rem 0.75rem 1.75rem;
+  border-radius: 12px;
+}
+
+@media (min-width: 640px) {
+  .product-grid-section {
+    padding: 2rem 1.25rem 2.5rem;
+  }
 }
 
 .product-grid-section__title {
@@ -2071,28 +2078,38 @@ body {
 }
 
 .product-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
 }
 
-.product-grid > div {
-  width: calc(50% - 0.75rem);
-}
-
-@media (min-width: 500px) {
-  .product-grid > div {
-    width: calc(33.333% - 1rem);
+@media (min-width: 640px) {
+  .product-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
   }
 }
 
 @media (min-width: 900px) {
-  .product-grid > div {
-    width: calc(20% - 1.2rem); /* 5 items per row */
+  .product-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
   }
+}
+
+@media (min-width: 1200px) {
+  .product-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.25rem;
+  }
+}
+
+.product-grid > div {
+  width: 100%;
+  display: flex;
 }
 
 /* Estado vacío */
@@ -3393,3 +3410,450 @@ body {
 }
 
 
+
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (MOBILE & TABLETS: < 768px and < 1024px)
+   Garantiza adaptabilidad 100% en pantallas móviles (320px - 768px)
+   y tablets (768px - 1024px), manteniendo PC y Laptops (>= 1024px)
+   completamente intactos y pixel-perfect.
+   ========================================================================== */
+
+/* Reglas base de contención contra desbordamiento */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+img, video, svg, canvas {
+  max-width: 100%;
+}
+
+/* Detalle de producto responsive */
+.product-detail-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.product-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+.product-detail-arrow-left {
+  left: -22px;
+}
+
+.product-detail-arrow-right {
+  right: -22px;
+}
+
+/* Página de categorías responsive */
+.category-page-container {
+  padding: 2rem 1.5rem 4rem;
+  box-sizing: border-box;
+}
+
+.category-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.category-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ─── Tablets y Móviles (< 1024px) ─── */
+@media (max-width: 1023px) {
+  .hero-carousel__content {
+    padding: 2rem 2rem 2rem 3rem;
+  }
+
+  .eg-footer__inner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* ─── Tablets medianas y Móviles (< 900px) ─── */
+@media (max-width: 900px) {
+  .product-detail-main {
+    padding: 1.5rem 1rem;
+  }
+
+  .product-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .category-page-container {
+    padding: 1.25rem 0.75rem 2.5rem;
+  }
+
+  .category-layout {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .category-sidebar {
+    width: 100%;
+  }
+}
+
+/* ─── Móviles y Tablets Pequeñas (< 768px) ─── */
+@media (max-width: 768px) {
+  /* Navbar móvil en 2 filas:
+     Fila 1: Logo compacto + Botón Categorías + Carrito + Toggle Menú
+     Fila 2: Buscador completo debajo
+  */
+  .navbar {
+    height: auto !important;
+    padding: 8px 12px 10px !important;
+  }
+
+  .navbar__inner {
+    height: auto !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px 6px !important;
+  }
+
+  .navbar__logo {
+    margin-right: 0 !important;
+    gap: 0.35rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .navbar__logo-img {
+    height: 42px !important;
+    width: auto !important;
+  }
+
+  .navbar__logo-eagle,
+  .navbar__logo-gaming {
+    font-size: 0.85rem !important;
+  }
+
+  .navbar__categories-area {
+    margin-right: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .navbar__categories-btn {
+    margin-right: 0 !important;
+    padding: 0.4rem 0.65rem !important;
+    font-size: 0.78rem !important;
+    gap: 0.3rem !important;
+  }
+
+  .navbar__search {
+    order: 10 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 4px 0 0 0 !important;
+    height: 38px !important;
+    flex: none !important;
+  }
+
+  .navbar__search-input {
+    font-size: 0.85rem !important;
+    padding: 0.35rem 0.9rem !important;
+  }
+
+  .navbar__mobile-toggle {
+    margin-left: 0 !important;
+    padding: 6px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .navbar-category-sidebar {
+    position: fixed !important;
+    top: 110px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    max-height: calc(85vh - 110px) !important;
+    overflow-y: auto !important;
+    flex-direction: column !important;
+  }
+
+  /* SecondaryNav móvil */
+  .secondary-nav {
+    flex-direction: column !important;
+    padding: 0.5rem 0.75rem !important;
+    gap: 0.4rem !important;
+    min-height: auto !important;
+  }
+
+  .secondary-nav__slogan {
+    display: none !important;
+  }
+
+  .secondary-nav__center {
+    gap: 1rem !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .secondary-nav__right {
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .secondary-nav__schedule {
+    font-size: 0.72rem !important;
+    white-space: normal !important;
+    text-align: center !important;
+    margin-left: 0 !important;
+  }
+
+  /* HeroCarousel móvil */
+  .hero-carousel {
+    height: 60vh !important;
+    min-height: 380px !important;
+  }
+
+  .hero-carousel__content {
+    padding: 1.5rem 1rem !important;
+    max-width: 100% !important;
+  }
+
+  .hero-carousel__title {
+    font-size: clamp(1.6rem, 6.5vw, 2.5rem) !important;
+    word-break: break-word !important;
+  }
+
+  .hero-carousel__subtitle {
+    font-size: 0.82rem !important;
+    padding: 0.5rem 0.75rem !important;
+    max-width: 100% !important;
+  }
+
+  .hero-carousel__arrow {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .hero-carousel__arrow--prev {
+    left: 8px !important;
+  }
+
+  .hero-carousel__arrow--next {
+    right: 8px !important;
+  }
+
+  /* Secciones principales */
+  .categories-section {
+    padding: 1.25rem 0.75rem 1.5rem !important;
+  }
+
+  .product-grid-section {
+    padding: 1.25rem 0.5rem 1.75rem !important;
+  }
+
+  .product-grid-section__title {
+    font-size: 1.2rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .product-grid {
+    gap: 0.6rem !important;
+  }
+
+  /* Footer móvil compacto (reduce altura vertical en > 60%) */
+  .eg-footer__body {
+    padding: 1.5rem 1rem 1.25rem !important;
+  }
+
+  .eg-footer__inner {
+    gap: 1.25rem !important;
+  }
+
+  .eg-footer__logo-wrap {
+    margin-bottom: 0.5rem !important;
+    max-width: 180px !important;
+  }
+
+  .eg-footer__logo-img {
+    max-height: 48px !important;
+    width: auto !important;
+  }
+
+  .eg-footer__location-sub {
+    font-size: 0.7rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .eg-footer__separator {
+    margin: 0.35rem 0 0.75rem !important;
+  }
+
+  /* Ocultar párrafo genérico y dirección duplicada para ahorrar espacio */
+  .eg-footer__desc,
+  .eg-footer__contact-address {
+    display: none !important;
+  }
+
+  .eg-footer__info-block {
+    margin-bottom: 0.65rem !important;
+  }
+
+  .eg-footer__heading {
+    font-size: 0.85rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .eg-footer__contact-list {
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 0.4rem 1.25rem !important;
+  }
+
+  .eg-footer__contact-link {
+    font-size: 0.74rem !important;
+  }
+
+  .eg-footer__categories-wrap {
+    margin-bottom: 0.85rem !important;
+  }
+
+  .eg-footer__cat-title {
+    font-size: 0.9rem !important;
+    margin-bottom: 0.25rem !important;
+  }
+
+  .eg-footer__cat-row {
+    padding: 0.18rem 0 !important;
+    gap: 0.5rem !important;
+  }
+
+  .eg-footer__cat-link {
+    font-size: 0.72rem !important;
+  }
+
+  .eg-footer__subsections {
+    gap: 1rem !important;
+  }
+
+  .eg-footer__badge {
+    font-size: 0.72rem !important;
+    padding: 0.15rem 0.6rem !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .eg-footer__badge--mt {
+    margin-top: 0.65rem !important;
+  }
+
+  .eg-footer__sublist {
+    gap: 0.25rem !important;
+  }
+
+  .eg-footer__sublink {
+    font-size: 0.74rem !important;
+  }
+
+  .eg-footer__social-circles {
+    margin-top: 0.65rem !important;
+    gap: 0.45rem !important;
+  }
+
+  .eg-footer__circle-btn {
+    width: 26px !important;
+    height: 26px !important;
+  }
+
+  /* Tarjetas Libro de Reclamaciones y Métodos de Pago en una sola fila horizontal */
+  .eg-footer__col--cards {
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    width: 100% !important;
+  }
+
+  .eg-footer__card-item {
+    max-width: 140px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .eg-footer__bottom-bar {
+    padding: 0.6rem 1rem !important;
+  }
+
+  .eg-footer__bottom-inner {
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 0.25rem !important;
+  }
+
+  .eg-footer__bottom-slogan {
+    font-size: 0.72rem !important;
+  }
+
+  .eg-footer__bottom-address {
+    font-size: 0.68rem !important;
+  }
+
+  .eg-footer__bottom-hours,
+  .eg-footer__bottom-phone {
+    font-size: 0.72rem !important;
+  }
+
+  /* Flechas de detalle producto contenidas dentro del viewport */
+  .product-detail-arrow-left {
+    left: 8px !important;
+  }
+
+  .product-detail-arrow-right {
+    right: 8px !important;
+  }
+}
+
+/* ─── Pantallas compactas (< 420px: iPhone SE, 320px-390px) ─── */
+@media (max-width: 420px) {
+  .navbar {
+    padding: 6px 8px 8px !important;
+  }
+
+  .navbar__logo-eagle,
+  .navbar__logo-gaming {
+    font-size: 0.78rem !important;
+  }
+
+  .navbar__categories-btn {
+    padding: 0.35rem 0.5rem !important;
+    font-size: 0.72rem !important;
+  }
+
+  .categories-section__grid {
+    gap: 0.5rem !important;
+  }
+
+  .product-grid {
+    gap: 0.5rem !important;
+  }
+}
