@@ -144,7 +144,6 @@ export function Footer() {
                   <li><Link to="/" className="eg-footer__sublink">Inicio</Link></li>
                   <li><Link to="/nosotros" className="eg-footer__sublink">Nosotros</Link></li>
                   <li><Link to="/arma-tu-pc" className="eg-footer__sublink">Arma tu PC</Link></li>
-                  <li><Link to="/categoria/pc-completa" className="eg-footer__sublink">Combos PC</Link></li>
                 </ul>
 
                 <span className="eg-footer__badge eg-footer__badge--mt">Mi cuenta</span>
@@ -156,11 +155,47 @@ export function Footer() {
 
               {/* Nuestros Servicios & Redes Sociales */}
               <div className="eg-footer__subcol">
-                <span className="eg-footer__badge">Nuestros servicios</span>
+                <a
+                  href="https://wa.me/51986638034?text=Hola%20Eagle%20Gaming,%20deseo%20consultar%20sobre%20sus%20servicios"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="eg-footer__badge"
+                  style={{ textDecoration: "none" }}
+                  title="Consultar servicios por WhatsApp"
+                >
+                  Nuestros servicios
+                </a>
                 <ul className="eg-footer__sublist">
-                  <li><Link to="/arma-tu-pc" className="eg-footer__sublink">Cotización y Armado</Link></li>
-                  <li><Link to="/contactenos" className="eg-footer__sublink">Limpieza y Mantenimiento</Link></li>
-                  <li><Link to="/contactenos" className="eg-footer__sublink">Diagnóstico y Mejora</Link></li>
+                  <li>
+                    <a
+                      href="https://wa.me/51986638034?text=Hola%20Eagle%20Gaming,%20deseo%20informaci%C3%B3n%20sobre%20Cotizaci%C3%B3n%20y%20Armado"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="eg-footer__sublink"
+                    >
+                      Cotización y Armado
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://wa.me/51986638034?text=Hola%20Eagle%20Gaming,%20deseo%20informaci%C3%B3n%20sobre%20Limpieza%20y%20Mantenimiento"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="eg-footer__sublink"
+                    >
+                      Limpieza y Mantenimiento
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="https://wa.me/51986638034?text=Hola%20Eagle%20Gaming,%20deseo%20informaci%C3%B3n%20sobre%20Diagn%C3%B3stico%20y%20Mejora"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="eg-footer__sublink"
+                    >
+                      Diagnóstico y Mejora
+                    </a>
+                  </li>
                 </ul>
 
                 {/* Iconos de Redes Sociales en Círculos */}
@@ -175,7 +210,7 @@ export function Footer() {
                     <FacebookIcon />
                   </a>
                   <a
-                    href="https://www.instagram.com/eagle_gaming_peru"
+                    href="https://www.instagram.com/eaglegaming_peru/"
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Instagram"
@@ -240,24 +275,6 @@ export function Footer() {
             </div>
           </div>
 
-        </div>
-      </div>
-
-      {/* ── Franja Inferior Magenta / Rosada ── */}
-      <div className="eg-footer__bottom-bar">
-        <div className="eg-footer__bottom-inner">
-          <span className="eg-footer__bottom-slogan">
-            EL SIGUIENTE NIVEL DE EXPERIENCIA GAMING
-          </span>
-          <span className="eg-footer__bottom-address">
-            C.C. CYBER PLAZA 1B 133- 134, Garcilazo de la Vega 1345
-          </span>
-          <span className="eg-footer__bottom-hours">
-            Abierto 11AM A 7PM
-          </span>
-          <a href="tel:+51986638034" className="eg-footer__bottom-phone">
-            +51 986 638 034
-          </a>
         </div>
       </div>
     </footer>

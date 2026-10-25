@@ -8,7 +8,7 @@ import type { Product } from "../components/home/ProductCard";
 import { useCart } from "../context/CartContext";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
-import { buildNormalizedProduct, normalizeDocumentData } from "../utils/productUtils";
+import { buildNormalizedProduct, normalizeDocumentData, resolveProductCategory } from "../utils/productUtils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -34,24 +34,71 @@ export const normalizeSlug = (text: string) =>
  * alguno de estos términos, el producto pertenece a esta categoría.
  */
 const CATEGORY_TERMS: Record<string, string[]> = {
-  "monitores":         ["monitor"],
-  "case":              ["case", "gabinete", "caja"],
-  "pc-completa":       ["pc completa", "pc-completa", "computadora completa", "equipo completo", "computadora pc", "computadora gamer", "computadora"],
+  // Monitores
+  "monitores":         ["monitor", "pantalla"],
+  "monitor":           ["monitor", "pantalla"],
+
+  // Case
+  "case":              ["case", "gabinete", "caja", "chasis"],
+  "cases":             ["case", "gabinete", "caja", "chasis"],
+
+  // PC Completa y variaciones
+  "pc-completa":       ["pc completa", "pc-completa", "computadora completa", "equipo completo", "computadora pc", "computadora gamer", "computadora", "pc gamer", "pc oficina", "pc ingenieria", "pc completo"],
   "pc-gamer":          ["pc completa gamer", "pc gamer", "computadora gamer", "gamer", "gaming"],
   "pc-oficina":        ["pc completa oficina", "pc oficina", "computadora oficina", "oficina", "estudio"],
   "pc-ingenieria":     ["pc completa ingenieria", "pc completa ingenierias", "ingenieria", "ingenierias", "workstation"],
   "pc-ingenierias":    ["pc completa ingenieria", "pc completa ingenierias", "ingenieria", "ingenierias", "workstation"],
   "pc-diseno":         ["pc completa diseno", "pc completa diseño", "diseno", "diseño", "render"],
-  "disco-ssd":         ["disco ssd", "disco-ssd", "ssd", "disco solido", "disco duro ssd"],
-  "estabilizador":     ["estabilizador", "ups", "regulador"],
-  "fuente-de-poder":   ["fuente de poder", "fuente-de-poder", "fuente poder", "psu"],
-  "memoria-ram":       ["memoria ram", "memoria-ram", "ram"],
-  "perifericos":       ["periferico", "audifonos", "teclado", "mouse", "webcam", "camara", "parlante", "cooler", "kit", "cable", "adaptador", "adaptadores"],
-  "placa-madre":       ["placa madre", "placa-madre", "motherboard", "mainboard"],
-  "tarjetas-de-video": ["tarjeta de video", "tarjeta-de-video", "gpu", "grafica", "grafico", "video card"],
-  "procesadores":      ["procesador", "cpu", "intel", "amd ryzen"],
-  "laptops":           ["laptop", "portatil", "notebook"],
-  "refrigeracion":     ["refrigeracion", "liquida", "cooler", "enfriamiento"],
+
+  // Disco SSD / Almacenamiento
+  "disco-ssd":         ["disco ssd", "ssd", "disco solido", "disco duro ssd", "almacenamiento", "nvme", "m.2", "sata"],
+  "memoria-ssd":       ["disco ssd", "ssd", "disco solido", "disco duro ssd", "almacenamiento", "nvme", "m.2", "sata"],
+  "discos-ssd":        ["disco ssd", "ssd", "disco solido", "disco duro ssd", "almacenamiento", "nvme", "m.2", "sata"],
+  "memorias-ssd":      ["disco ssd", "ssd", "disco solido", "disco duro ssd", "almacenamiento", "nvme", "m.2", "sata"],
+  "ssd":               ["disco ssd", "ssd", "disco solido", "disco duro ssd", "almacenamiento", "nvme", "m.2", "sata"],
+  "almacenamiento":    ["disco ssd", "ssd", "disco solido", "disco duro ssd", "almacenamiento", "nvme", "m.2", "sata"],
+
+  // Estabilizador
+  "estabilizador":     ["estabilizador", "estabilizadores", "ups", "regulador"],
+  "estabilizadores":   ["estabilizador", "estabilizadores", "ups", "regulador"],
+  "ups":               ["estabilizador", "estabilizadores", "ups", "regulador"],
+
+  // Fuente de poder
+  "fuente-de-poder":   ["fuente de poder", "fuente poder", "fuentes de poder", "psu"],
+  "fuente-poder":      ["fuente de poder", "fuente poder", "fuentes de poder", "psu"],
+  "fuentes-de-poder":  ["fuente de poder", "fuente poder", "fuentes de poder", "psu"],
+
+  // Memoria RAM
+  "memoria-ram":       ["memoria ram", "memoria-ram", "memorias ram", "ram"],
+  "memoria-rams":      ["memoria ram", "memoria-ram", "memorias ram", "ram"],
+  "memorias-ram":      ["memoria ram", "memoria-ram", "memorias ram", "ram"],
+  "ram":               ["memoria ram", "memoria-ram", "memorias ram", "ram"],
+
+  // Periféricos
+  "perifericos":       ["periferico", "perifericos", "audifonos", "teclado", "mouse", "webcam", "camara", "parlante", "cooler", "kit", "cable", "adaptador", "adaptadores"],
+  "periferico":        ["periferico", "perifericos", "audifonos", "teclado", "mouse", "webcam", "camara", "parlante", "cooler", "kit", "cable", "adaptador", "adaptadores"],
+
+  // Placa madre
+  "placa-madre":       ["placa madre", "placas madre", "motherboard", "mainboard"],
+  "placas-madre":      ["placa madre", "placas madre", "motherboard", "mainboard"],
+
+  // Tarjetas de video
+  "tarjetas-de-video": ["tarjeta de video", "tarjetas de video", "tarjeta de videos", "tarjetas de videos", "gpu", "grafica", "graficas", "grafico", "video card"],
+  "tarjeta-de-video":  ["tarjeta de video", "tarjetas de video", "tarjeta de videos", "tarjetas de videos", "gpu", "grafica", "graficas", "grafico", "video card"],
+  "tarjeta-grafica":   ["tarjeta de video", "tarjetas de video", "tarjeta de videos", "tarjetas de videos", "gpu", "grafica", "graficas", "grafico", "video card"],
+  "tarjetas-graficas": ["tarjeta de video", "tarjetas de video", "tarjeta de videos", "tarjetas de videos", "gpu", "grafica", "graficas", "grafico", "video card"],
+
+  // Procesadores
+  "procesadores":      ["procesador", "procesadores", "cpu", "intel", "amd ryzen", "ryzen"],
+  "procesador":        ["procesador", "procesadores", "cpu", "intel", "amd ryzen", "ryzen"],
+
+  // Laptops
+  "laptops":           ["laptop", "laptops", "portatil", "portatiles", "notebook"],
+  "laptop":            ["laptop", "laptops", "portatil", "portatiles", "notebook"],
+
+  // Refrigeración líquida
+  "refrigeracion":     ["refrigeracion", "refrigeracion liquida", "liquida", "cooler", "enfriamiento"],
+  "refrigeracion-liquida": ["refrigeracion", "refrigeracion liquida", "liquida", "cooler", "enfriamiento"],
 };
 
 /**
@@ -138,30 +185,54 @@ const matchesCategory = (
     return true;
   }
 
-  const terms = CATEGORY_TERMS[categoryId];
-  if (!terms) return false;
+  const normCatId = normalize(categoryId);
+  const terms = CATEGORY_TERMS[categoryId] || CATEGORY_TERMS[normCatId.replace(/\s+/g, "-")] || [normCatId];
 
-  const catField = normalize(
-    String(pickField(data, ["categoria", "Categoria", "categoría", "Categoría"]) ?? "")
+  // 1. Obtener campo categoría en Firestore (con todas sus variaciones posibles)
+  const catRaw = String(
+    pickField(data, ["categoria", "Categoria", "categoría", "Categoría", "category", "Category", "categorias"]) ?? ""
+  );
+  const catField = normalize(catRaw);
+
+  // 2. Obtener título por si no tiene categoría explícita o para verificar tipo
+  const titleField = normalize(
+    String(pickField(data, ["titulo", "Titulo", "título", "Título", "nombre", "Nombre", "title", "name"]) ?? "")
   );
 
-  if (!catField) return false;
+  // Exclusiones especiales:
+  const isPcOrComputer =
+    catField.includes("pc") ||
+    catField.includes("computadora") ||
+    catField.includes("combo") ||
+    titleField.startsWith("pc ") ||
+    titleField.startsWith("computadora ");
 
-  // Si la categoría buscada es monitores, excluir estrictamente cualquier PC o computadora
-  if (categoryId === "monitores") {
-    if (
-      catField.includes("pc") ||
-      catField.includes("computadora") ||
-      catField.includes("combo") ||
-      catField.includes("gamer") ||
-      catField.includes("oficina") ||
-      catField.includes("ingenieria")
-    ) {
-      return false;
+  // Si se buscan componentes individuales, excluir PC completas que puedan mencionar "ram", "ssd", etc.
+  const isComponentSearch = !categoryId.includes("pc");
+
+  if (isComponentSearch && isPcOrComputer) {
+    return false;
+  }
+
+  // 3. Comparar primero contra el campo categoría de Firestore
+  if (catField && terms.some((t) => catField.includes(t))) {
+    return true;
+  }
+
+  // 4. Si el producto no tiene categoría o es genérica, fallback inteligente por título
+  if (!catField || catField === "general" || catField === "producto" || catField === "sin categoria") {
+    if (terms.some((t) => titleField.includes(t))) {
+      return true;
     }
   }
 
-  return terms.some((t) => catField.includes(t));
+  // 5. Comparar también contra resolveProductCategory(data)
+  const canonicalCategory = normalize(resolveProductCategory(data));
+  if (canonicalCategory && terms.some((t) => canonicalCategory.includes(t))) {
+    return true;
+  }
+
+  return false;
 };
 
 /**
@@ -204,15 +275,25 @@ const LABEL_MAP: Record<string, string> = {
   "case":              "Case",
   "pc-completa":       "PC Completa",
   "disco-ssd":         "Disco SSD",
+  "memoria-ssd":       "Memoria SSD",
+  "discos-ssd":        "Disco SSD",
+  "memorias-ssd":      "Memoria SSD",
   "estabilizador":     "Estabilizador",
+  "estabilizadores":   "Estabilizadores de Voltaje",
   "fuente-de-poder":   "Fuente de Poder",
+  "fuente-poder":      "Fuente de Poder",
   "memoria-ram":       "Memoria RAM",
+  "memoria-rams":      "Memoria RAM",
+  "memorias-ram":      "Memoria RAM",
   "perifericos":       "Periféricos",
   "placa-madre":       "Placa Madre",
   "tarjetas-de-video": "Tarjetas de Video",
+  "tarjeta-grafica":   "Tarjetas de Video",
+  "tarjetas-graficas": "Tarjetas de Video",
   "procesadores":      "Procesadores",
   "laptops":           "Laptops",
   "refrigeracion":     "Refrigeración Líquida",
+  "refrigeracion-liquida": "Refrigeración Líquida",
   "monitores-24":      "Monitores 24\" (FHD)",
   "monitores-27":      "Monitores 27\" (2K / 200Hz)",
   "monitores-34":      "Monitores 34\" Curvos",
@@ -260,7 +341,6 @@ const LABEL_MAP: Record<string, string> = {
   "webcam":            "Cámaras & Webcams",
   "combos":            "Kits Teclado + Mouse",
   "kit-teclado-mouse": "Kit Teclado y Mouse",
-  "estabilizadores":   "Estabilizadores de Voltaje",
   "ups":               "Sistemas UPS",
   "todas":             "Todas las Computadoras",
   "todos":             "Todos los Productos",

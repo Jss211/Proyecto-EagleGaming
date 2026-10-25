@@ -1075,9 +1075,9 @@ body {
   transform: translateX(2px);
 }
 
-/* ─── Columna Derecha: Panel de Subcategorías (Compacto y Ordenado) ─── */
+/* ─── Columna Derecha: Panel de Subcategorías (Limpio y Profesional) ─── */
 .navbar-category-sidebar__preview {
-  width: 300px;
+  width: 290px;
   min-height: 100%;
   box-sizing: border-box;
   background: #ffffff;
@@ -1115,9 +1115,9 @@ body {
 }
 
 .navbar-category-sidebar__preview-icon-badge {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   background: #fff1f2;
   display: flex;
   align-items: center;
@@ -1127,8 +1127,8 @@ body {
 }
 
 .navbar-category-sidebar__preview-title {
-  font-size: 0.9rem;
-  font-weight: 800;
+  font-size: 0.88rem;
+  font-weight: 700;
   color: #0f172a;
   letter-spacing: -0.01em;
   margin: 0;
@@ -1139,11 +1139,11 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.73rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: #e81950;
   text-decoration: none;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   background: #fff1f2;
   transition: all 0.15s ease;
@@ -1155,103 +1155,69 @@ body {
   color: #ffffff;
 }
 
-/* Lista Vertical Limpia de Subcategorías */
+/* Lista Limpia de Subcategorías */
 .navbar-category-sidebar__preview-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 2px;
+  padding: 8px 10px 12px;
   flex: 1;
 }
 
-.navbar-category-sidebar__card {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 9px 12px;
-  background: #f8fafc;
-  border: 1px solid #f1f5f9;
-  border-radius: 8px;
-  text-decoration: none;
-  transition: all 0.15s ease;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.navbar-category-sidebar__card:hover {
-  background: #fff1f2;
-  border-color: #fecdd3;
-  transform: translateX(2px);
-}
-
-.navbar-category-sidebar__card-left {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  min-width: 0;
-  width: 100%;
-}
-
-.navbar-category-sidebar__card-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.navbar-category-sidebar__card:hover .navbar-category-sidebar__card-icon {
-  background: #ffffff;
-  border-color: #fecdd3;
-}
-
-.navbar-category-sidebar__card:hover .navbar-category-sidebar__card-icon svg {
-  color: #e81950 !important;
-}
-
-.navbar-category-sidebar__card-title {
-  font-size: 0.81rem;
-  font-weight: 600;
-  color: #1e293b;
-  line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition: color 0.15s ease;
-}
-
-.navbar-category-sidebar__card:hover .navbar-category-sidebar__card-title {
-  color: #e81950;
-}
-
-/* Footer Sutil */
-.navbar-category-sidebar__preview-footer {
+.navbar-category-sidebar__item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background: #f8fafc;
-  border-top: 1px solid #f1f5f9;
-  font-size: 0.72rem;
-  color: #64748b;
-}
-
-.navbar-category-sidebar__preview-footer-link {
-  color: #e81950;
-  font-weight: 700;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 500;
   text-decoration: none;
-  font-size: 0.72rem;
-  transition: color 0.14s ease;
+  transition: background 0.14s ease, color 0.14s ease, padding-left 0.14s ease;
+  user-select: none;
 }
 
-.navbar-category-sidebar__preview-footer-link:hover {
-  text-decoration: underline;
-  color: #be123c;
+.navbar-category-sidebar__item:hover {
+  background: #fff1f2;
+  color: #e81950;
+  font-weight: 600;
+  padding-left: 13px;
+}
+
+.navbar-category-sidebar__item-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar-category-sidebar__item-arrow {
+  width: 13px;
+  height: 13px;
+  color: #94a3b8;
+  opacity: 0.45;
+  transition: all 0.14s ease;
+  flex-shrink: 0;
+}
+
+.navbar-category-sidebar__item:hover .navbar-category-sidebar__item-arrow {
+  color: #e81950;
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.navbar-category-sidebar__item--all {
+  margin-top: 4px;
+  border-top: 1px dashed #f1f5f9;
+  padding-top: 9px;
+  color: #e81950;
+  font-weight: 600;
+}
+
+.navbar-category-sidebar__item--all .navbar-category-sidebar__item-arrow {
+  color: #e81950;
+  opacity: 0.85;
 }
 
 /* Responsive: móviles / tablets */
@@ -2482,51 +2448,6 @@ body {
   width: 100%;
   height: auto;
   object-fit: contain;
-}
-
-/* ── Franja Inferior ── */
-.eg-footer__bottom-bar {
-  background: #E61D51;
-  padding: 0.8rem 1.5rem;
-  width: 100%;
-}
-
-.eg-footer__bottom-inner {
-  max-width: 1340px;
-  margin: 0 auto;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem 1.5rem;
-}
-
-.eg-footer__bottom-slogan {
-  color: #ffffff;
-  font-weight: 800;
-  font-size: 0.78rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.eg-footer__bottom-address,
-.eg-footer__bottom-hours {
-  color: #ffffff;
-  font-size: 0.76rem;
-  font-weight: 500;
-}
-
-.eg-footer__bottom-phone {
-  color: #ffffff;
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-decoration: none;
-  transition: opacity 0.15s ease;
-}
-
-.eg-footer__bottom-phone:hover {
-  opacity: 0.85;
-  text-decoration: underline;
 }
 
 
@@ -3798,29 +3719,6 @@ img, video, svg, canvas {
   .eg-footer__card-item {
     max-width: 140px !important;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-  }
-
-  .eg-footer__bottom-bar {
-    padding: 0.6rem 1rem !important;
-  }
-
-  .eg-footer__bottom-inner {
-    flex-direction: column !important;
-    text-align: center !important;
-    gap: 0.25rem !important;
-  }
-
-  .eg-footer__bottom-slogan {
-    font-size: 0.72rem !important;
-  }
-
-  .eg-footer__bottom-address {
-    font-size: 0.68rem !important;
-  }
-
-  .eg-footer__bottom-hours,
-  .eg-footer__bottom-phone {
-    font-size: 0.72rem !important;
   }
 
   /* Flechas de detalle producto contenidas dentro del viewport */

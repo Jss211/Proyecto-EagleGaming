@@ -21,18 +21,8 @@ import {
   Gamepad2,
   Laptop,
   Droplets,
-  Snowflake,
-  ShieldCheck,
-  Keyboard,
-  Mouse,
-  Video,
-  Tv,
-  Sparkles,
   Box,
-  Briefcase,
-  Flame,
   ArrowRight,
-  Cable,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -48,7 +38,6 @@ import {
 export type Subcategory = {
   id: string;
   label: string;
-  icon?: LucideIcon;
 };
 
 export type Category = {
@@ -64,11 +53,11 @@ const CATEGORY_LINKS: Category[] = [
     label: "Monitores",
     icon: Monitor,
     subcategories: [
-      { id: "monitores-24", label: 'Monitores 24" (FHD)', icon: Monitor },
-      { id: "monitores-27", label: 'Monitores 27" (2K / 200Hz)', icon: Monitor },
-      { id: "monitores-34", label: 'Monitores 34" Curvos', icon: Tv },
-      { id: "gaming", label: "Monitores Gaming", icon: Gamepad2 },
-      { id: "todos", label: "Ver todos los monitores", icon: Sparkles },
+      { id: "monitores-24", label: 'Monitores 24" (FHD)' },
+      { id: "monitores-27", label: 'Monitores 27" (2K / 200Hz)' },
+      { id: "monitores-34", label: 'Monitores 34" Curvos' },
+      { id: "gaming", label: "Monitores Gaming" },
+      { id: "todos", label: "Ver todos los monitores" },
     ],
   },
   {
@@ -76,10 +65,10 @@ const CATEGORY_LINKS: Category[] = [
     label: "Case",
     icon: HardDrive,
     subcategories: [
-      { id: "gaming", label: "Case Gamer", icon: Sparkles },
-      { id: "con-fuente", label: "Case con fuente", icon: Power },
-      { id: "sin-fuente", label: "Case sin fuente", icon: HardDrive },
-      { id: "todos", label: "Ver todos los productos", icon: Box },
+      { id: "gaming", label: "Case Gamer" },
+      { id: "con-fuente", label: "Case con fuente" },
+      { id: "sin-fuente", label: "Case sin fuente" },
+      { id: "todos", label: "Ver todos los cases" },
     ],
   },
   {
@@ -87,10 +76,10 @@ const CATEGORY_LINKS: Category[] = [
     label: "PC Completa",
     icon: Cpu,
     subcategories: [
-      { id: "pc-gamer", label: "PC Gamer", icon: Gamepad2 },
-      { id: "pc-oficina", label: "PC de Oficina", icon: Briefcase },
-      { id: "pc-combos", label: "PC con Monitor y Kit", icon: Monitor },
-      { id: "todas", label: "Ver todas las PC Armadas", icon: Sparkles },
+      { id: "pc-gamer", label: "PC Gamer" },
+      { id: "pc-oficina", label: "PC de Oficina" },
+      { id: "pc-combos", label: "PC con Monitor y Kit" },
+      { id: "todas", label: "Ver todas las PC Armadas" },
     ],
   },
   {
@@ -98,9 +87,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Disco SSD",
     icon: Disc,
     subcategories: [
-      { id: "sd-m2", label: "SD M.2 PCIe", icon: Zap },
-      { id: "ssd-sata", label: "SSD SATA 2.5\"", icon: HardDrive },
-      { id: "todos", label: "Ver todos los SSD", icon: Sparkles },
+      { id: "sd-m2", label: "SSD M.2 NVMe PCIe" },
+      { id: "ssd-sata", label: 'SSD SATA 2.5"' },
+      { id: "todos", label: "Ver todos los SSD" },
     ],
   },
   {
@@ -108,9 +97,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Estabilizador",
     icon: Zap,
     subcategories: [
-      { id: "estabilizadores", label: "Estabilizadores de Voltaje", icon: Zap },
-      { id: "ups", label: "Sistemas UPS", icon: ShieldCheck },
-      { id: "todos", label: "Ver todos los estabilizadores", icon: Sparkles },
+      { id: "estabilizadores", label: "Estabilizadores de Voltaje" },
+      { id: "ups", label: "Sistemas UPS" },
+      { id: "todos", label: "Ver todos los estabilizadores" },
     ],
   },
   {
@@ -118,9 +107,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Fuente de poder",
     icon: Power,
     subcategories: [
-      { id: "certificadas", label: "Fuentes 80 Plus", icon: ShieldCheck },
-      { id: "modulares", label: "Fuentes Modulares", icon: Zap },
-      { id: "todas", label: "Ver todas las fuentes", icon: Sparkles },
+      { id: "certificadas", label: "Fuentes 80 Plus" },
+      { id: "modulares", label: "Fuentes Modulares" },
+      { id: "todas", label: "Ver todas las fuentes" },
     ],
   },
   {
@@ -128,9 +117,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Memoria RAM",
     icon: MemoryStick,
     subcategories: [
-      { id: "ddr4", label: "Memoria RAM DDR4", icon: MemoryStick },
-      { id: "ddr5", label: "Memoria RAM DDR5", icon: Zap },
-      { id: "todas", label: "Ver todas las memorias", icon: Sparkles },
+      { id: "ddr4", label: "Memoria RAM DDR4" },
+      { id: "ddr5", label: "Memoria RAM DDR5" },
+      { id: "todas", label: "Ver todas las memorias" },
     ],
   },
   {
@@ -138,14 +127,13 @@ const CATEGORY_LINKS: Category[] = [
     label: "Perifericos",
     icon: Headphones,
     subcategories: [
-      { id: "teclados", label: "Teclados Mecánicos", icon: Keyboard },
-      { id: "mouse", label: "Mouse Gamer", icon: Mouse },
-      { id: "audifonos", label: "Headsets & Audífonos", icon: Headphones },
-      { id: "webcam", label: "Cámaras & Webcams", icon: Video },
-      { id: "combos", label: "Kits Teclado + Mouse", icon: Sparkles },
-      { id: "cables", label: "Cables", icon: Cable },
-      { id: "adaptadores", label: "Adaptadores", icon: Cable },
-      { id: "todos", label: "Ver todos los periféricos", icon: Sparkles },
+      { id: "teclados", label: "Teclados Mecánicos" },
+      { id: "mouse", label: "Mouse Gamer" },
+      { id: "audifonos", label: "Headsets & Audífonos" },
+      { id: "webcam", label: "Cámaras & Webcams" },
+      { id: "combos", label: "Kits Teclado + Mouse" },
+      { id: "cables", label: "Cables y Adaptadores" },
+      { id: "todos", label: "Ver todos los periféricos" },
     ],
   },
   {
@@ -153,9 +141,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Placa madre",
     icon: CircuitBoard,
     subcategories: [
-      { id: "intel", label: "Placas para Intel", icon: CircuitBoard },
-      { id: "amd", label: "Placas para AMD", icon: Zap },
-      { id: "todas", label: "Ver todas las placas madre", icon: Sparkles },
+      { id: "intel", label: "Placas para Intel" },
+      { id: "amd", label: "Placas para AMD" },
+      { id: "todas", label: "Ver todas las placas madre" },
     ],
   },
   {
@@ -163,9 +151,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Tarjetas de video",
     icon: Gamepad2,
     subcategories: [
-      { id: "nvidia-rtx", label: "NVIDIA GeForce RTX", icon: Flame },
-      { id: "amd-radeon", label: "AMD Radeon RX", icon: Zap },
-      { id: "todas", label: "Ver todas las tarjetas", icon: Sparkles },
+      { id: "nvidia-rtx", label: "NVIDIA GeForce RTX" },
+      { id: "amd-radeon", label: "AMD Radeon RX" },
+      { id: "todas", label: "Ver todas las tarjetas" },
     ],
   },
   {
@@ -173,9 +161,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Procesadores",
     icon: Cpu,
     subcategories: [
-      { id: "intel", label: "Procesadores Intel Core", icon: Cpu },
-      { id: "amd-ryzen", label: "Procesadores AMD Ryzen", icon: Zap },
-      { id: "todos", label: "Ver todos los procesadores", icon: Sparkles },
+      { id: "intel", label: "Procesadores Intel Core" },
+      { id: "amd-ryzen", label: "Procesadores AMD Ryzen" },
+      { id: "todos", label: "Ver todos los procesadores" },
     ],
   },
   {
@@ -183,8 +171,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Laptops",
     icon: Laptop,
     subcategories: [
-      { id: "oficina", label: "Laptops de Oficina / Estudio", icon: Laptop },
-      { id: "todas", label: "Ver todas las laptops", icon: Sparkles },
+      { id: "oficina", label: "Laptops de Oficina / Estudio" },
+      { id: "gaming", label: "Laptops Gamer" },
+      { id: "todas", label: "Ver todas las laptops" },
     ],
   },
   {
@@ -192,9 +181,9 @@ const CATEGORY_LINKS: Category[] = [
     label: "Refrigeración líquida",
     icon: Droplets,
     subcategories: [
-      { id: "240mm", label: "Refrigeración líquida 240mm", icon: Droplets },
-      { id: "360mm", label: "Refrigeración líquida 360mm", icon: Snowflake },
-      { id: "todas", label: "Ver sistemas líquidos", icon: Sparkles },
+      { id: "240mm", label: "Refrigeración líquida 240mm" },
+      { id: "360mm", label: "Refrigeración líquida 360mm" },
+      { id: "todas", label: "Ver sistemas de refrigeración" },
     ],
   },
   {
@@ -327,7 +316,7 @@ export function Navbar() {
                 </nav>
               </div>
 
-              {/* Columna derecha: Panel de subcategorías compacto y ordenado */}
+              {/* Columna derecha: Panel de subcategorías profesional */}
               {hoveredCategoryData?.subcategories && (
                 <div className="navbar-category-sidebar__preview">
                   {/* Cabecera del panel */}
@@ -351,41 +340,34 @@ export function Navbar() {
                     </Link>
                   </div>
 
-                  {/* Lista vertical limpia de subcategorías */}
+                  {/* Lista limpia de subcategorías */}
                   <nav
                     className="navbar-category-sidebar__preview-list"
                     aria-label={`Subcategorías de ${hoveredCategoryData.label}`}
                   >
                     {hoveredCategoryData.subcategories.map((sub) => {
-                      const SubIcon = sub.icon || hoveredCategoryData.icon;
-                      const subPath =
-                        sub.id === "todas" || sub.id === "todos"
-                          ? `/categoria/${hoveredCategoryData.id}`
-                          : `/categoria/${hoveredCategoryData.id}/${sub.id}`;
+                      const isAll = sub.id === "todas" || sub.id === "todos";
+                      const subPath = isAll
+                        ? `/categoria/${hoveredCategoryData.id}`
+                        : `/categoria/${hoveredCategoryData.id}/${sub.id}`;
                       return (
                         <Link
                           key={sub.id}
                           to={subPath}
-                          className="navbar-category-sidebar__card"
+                          className={`navbar-category-sidebar__item ${isAll ? "navbar-category-sidebar__item--all" : ""}`}
                           onClick={() => setCategoriesOpen(false)}
                         >
-                          <div className="navbar-category-sidebar__card-left">
-                            <div className="navbar-category-sidebar__card-icon">
-                              <SubIcon className="w-3.5 h-3.5 text-gray-500" />
-                            </div>
-                            <span className="navbar-category-sidebar__card-title">
-                              {sub.label}
-                            </span>
-                          </div>
+                          <span className="navbar-category-sidebar__item-label">
+                            {sub.label}
+                          </span>
+                          <ChevronRight
+                            className="navbar-category-sidebar__item-arrow"
+                            aria-hidden="true"
+                          />
                         </Link>
                       );
                     })}
                   </nav>
-
-                  {/* Banner / Pie de panel */}
-                  <div className="navbar-category-sidebar__preview-footer">
-                    <span>Garantía y envíos a todo el Perú</span>
-                  </div>
                 </div>
               )}
             </aside>

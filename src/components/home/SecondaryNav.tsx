@@ -1,4 +1,3 @@
-import { useState, useRef, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 
 function InstagramIcon({ size = 16 }: { size?: number }) {
@@ -39,19 +38,6 @@ function ClockIcon({ size = 14 }: { size?: number }) {
 }
 
 export function SecondaryNav() {
-  const [combosOpen, setCombosOpen] = useState(false);
-  const combosRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (combosRef.current && !combosRef.current.contains(e.target as Node)) {
-        setCombosOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
     <nav className="secondary-nav" aria-label="Navegación secundaria">
       {/* ── Izquierda: slogan ── */}
@@ -59,7 +45,7 @@ export function SecondaryNav() {
         EL siguiente nivel de experiencia gaming
       </span>
 
-      {/* ── Centro: enlaces con estilo exacto Figma ── */}
+      {/* ── Centro: enlace directo a Arma tu PC ── */}
       <div className="secondary-nav__center">
         <NavLink
           to="/arma-tu-pc"
@@ -69,52 +55,12 @@ export function SecondaryNav() {
         >
           ARMA TU PC
         </NavLink>
-
-        <div className="secondary-nav__combos-wrap" ref={combosRef}>
-          <button
-            type="button"
-            className="secondary-nav__link secondary-nav__link--btn"
-            onClick={() => setCombosOpen((prev) => !prev)}
-            aria-expanded={combosOpen}
-          >
-            COMBOS PC
-          </button>
-
-          {combosOpen && (
-            <div className="secondary-nav__dropdown" role="menu">
-              <a
-                href="#combo-basico"
-                className="secondary-nav__dropdown-item"
-                role="menuitem"
-                onClick={() => setCombosOpen(false)}
-              >
-                Combo Básico
-              </a>
-              <a
-                href="#combo-gamer"
-                className="secondary-nav__dropdown-item"
-                role="menuitem"
-                onClick={() => setCombosOpen(false)}
-              >
-                Combo Gamer
-              </a>
-              <a
-                href="#combo-pro"
-                className="secondary-nav__dropdown-item"
-                role="menuitem"
-                onClick={() => setCombosOpen(false)}
-              >
-                Combo Profesional
-              </a>
-            </div>
-          )}
-        </div>
       </div>
 
       {/* ── Derecha: iconos enmarcados y horario ── */}
       <div className="secondary-nav__right">
         <a
-          href="https://www.instagram.com/eagle_gaming_peru"
+          href="https://www.instagram.com/eaglegaming_peru/"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram"
