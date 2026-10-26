@@ -8,6 +8,7 @@ import type { Product } from "../components/home/ProductCard";
 import { useCart } from "../context/CartContext";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
+import { SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
 import { buildNormalizedProduct, normalizeDocumentData, resolveProductCategory, resolveProductSubcategory } from "../utils/productUtils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -619,6 +620,7 @@ export function CategoryPage() {
   const ITEMS_PER_PAGE = 12;
 
   const { addItem } = useCart();
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   // Scroll al inicio al cambiar de categoría
   useEffect(() => {
@@ -739,7 +741,7 @@ export function CategoryPage() {
         <div className="category-page-container" style={{ maxWidth: "1400px", margin: "0 auto" }}>
           
           {/* Breadcrumb */}
-          <nav style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "#6b7280", marginBottom: "1.5rem" }}>
+          <nav className="category-breadcrumb" style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", color: "#6b7280", marginBottom: "1.25rem", flexWrap: "wrap" }}>
             <Link to="/" style={{ color: "#e81950", textDecoration: "none", fontWeight: 500 }}>Inicio</Link>
             <span>/</span>
             <Link to={`/categoria/${id}`} style={{ color: subcategoria ? "#6b7280" : "#111827", textDecoration: "none", fontWeight: subcategoria ? 400 : 500 }}>
@@ -753,10 +755,33 @@ export function CategoryPage() {
             )}
           </nav>
 
+          {/* Botón Filtros Móvil */}
+          <div className="category-mobile-filter-bar">
+            <button
+              type="button"
+              onClick={() => setShowMobileFilters((prev) => !prev)}
+              className="category-mobile-filter-btn"
+              aria-expanded={showMobileFilters}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <SlidersHorizontal size={18} color="#e81950" />
+                <span style={{ fontWeight: 700, color: "#111827", fontSize: "0.9rem" }}>
+                  Filtrar por Precio
+                </span>
+                {appliedMinPrice !== null || appliedMaxPrice !== null ? (
+                  <span style={{ fontSize: "0.75rem", background: "#fef2f2", color: "#e81950", padding: "2px 8px", borderRadius: "10px", fontWeight: 700 }}>
+                    Activo
+                  </span>
+                ) : null}
+              </div>
+              {showMobileFilters ? <ChevronUp size={18} color="#6b7280" /> : <ChevronDown size={18} color="#6b7280" />}
+            </button>
+          </div>
+
           <div className="category-layout">
             
             {/* SIDEBAR (Filtros) */}
-            <aside className="category-sidebar">
+            <aside className={`category-sidebar ${showMobileFilters ? "category-sidebar--mobile-open" : ""}`}>
               <div style={{ background: "#fff", padding: "1.5rem", borderRadius: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.05)" }}>
                 <h3 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", marginBottom: "1.25rem" }}>
                   Filter By Price
@@ -798,9 +823,12 @@ export function CategoryPage() {
                 </div>
 
                 <button 
-                  onClick={handleApplyPriceFilter}
+                  onClick={() => {
+                    handleApplyPriceFilter();
+                    setShowMobileFilters(false);
+                  }}
                   style={{
-                    width: "100%", padding: "0.5rem", background: "#eff6ff", color: "#1d4ed8",
+                    width: "100%", padding: "0.6rem", background: "#eff6ff", color: "#1d4ed8",
                     border: "none", borderRadius: "6px", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", transition: "background 0.2s"
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = "#dbeafe")}
@@ -815,13 +843,13 @@ export function CategoryPage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               
               {/* Header Resultados */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
-                <h1 style={{ fontSize: "1.75rem", fontWeight: 700, color: "#111827", margin: 0, textTransform: "capitalize" }}>
+              <div className="category-results-header">
+                <h1 className="category-results-title">
                   {subcategoryLabel ?? categoryLabel}
                 </h1>
                 
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                  <span style={{ fontSize: "0.9rem", color: "#6b7280" }}>
+                <div className="category-results-controls">
+                  <span className="category-results-count">
                     {displayedProducts.length > 0
                       ? `Mostrando: ${startIndex + 1}-${Math.min(startIndex + ITEMS_PER_PAGE, displayedProducts.length)} de ${displayedProducts.length}`
                       : `0 resultados`}
@@ -830,7 +858,7 @@ export function CategoryPage() {
                   <select 
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    style={{ padding: "0.4rem 2rem 0.4rem 0.8rem", border: "1px solid #d1d5db", borderRadius: "6px", fontSize: "0.9rem", background: "#fff", cursor: "pointer", outline: "none" }}
+                    className="category-sort-select"
                   >
                     <option value="default">Ordenar por defecto</option>
                     <option value="price-asc">Precio: menor a mayor</option>

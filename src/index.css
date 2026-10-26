@@ -29,6 +29,11 @@
   --pattern-color2: rgba(255,255,255,0.01);
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 .audiowide-regular {
   font-family: "Audiowide", sans-serif;
   font-weight: 400;
@@ -3398,6 +3403,76 @@ img, video, svg, canvas {
   gap: 1.5rem;
 }
 
+.category-mobile-filter-bar {
+  display: none;
+  margin-bottom: 1.25rem;
+}
+
+.category-mobile-filter-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.1rem;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.category-mobile-filter-btn:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
+}
+
+.category-results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.category-results-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.category-results-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.category-results-count {
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.category-sort-select {
+  padding: 0.45rem 2rem 0.45rem 0.85rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  color: #111827;
+}
+
+.product-detail-zoom-text-desktop {
+  display: inline;
+}
+
+.product-detail-zoom-text-mobile {
+  display: none;
+}
+
 /* ─── Tablets y Móviles (< 1024px) ─── */
 @media (max-width: 1023px) {
   .hero-carousel__content {
@@ -3729,6 +3804,257 @@ img, video, svg, canvas {
   .product-detail-arrow-right {
     right: 8px !important;
   }
+
+  /* ─── Catálogo / CategoryPage móvil ─── */
+  .category-mobile-filter-bar {
+    display: block !important;
+  }
+
+  .category-sidebar {
+    display: none !important;
+    width: 100% !important;
+  }
+
+  .category-sidebar--mobile-open {
+    display: flex !important;
+    animation: fadeIn 0.25s ease;
+  }
+
+  .category-results-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .category-results-controls {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .category-results-title {
+    font-size: 1.35rem !important;
+  }
+
+  /* ─── Detalle de Producto móvil ─── */
+  .product-detail-main {
+    padding: 1.25rem 0.85rem 2.5rem !important;
+  }
+
+  .product-detail-image-box {
+    min-height: 280px !important;
+    padding: 1rem !important;
+  }
+
+  .product-detail-zoom-text-desktop {
+    display: none !important;
+  }
+
+  .product-detail-zoom-text-mobile {
+    display: inline !important;
+  }
+
+  .product-detail-btn-wrap .eg-cart-button-wrapper,
+  .product-detail-btn-wrap .eg-cart-button {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .product-review-form-card {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .product-title {
+    word-break: break-word !important;
+  }
+
+  /* ─── Arma tu PC móvil ─── */
+  .atp-page {
+    padding-bottom: 3rem !important;
+  }
+
+  .atp-breadcrumb {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .atp-hero {
+    padding: 1.25rem 1rem !important;
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+    text-align: center !important;
+  }
+
+  .atp-hero__title {
+    font-size: clamp(1.2rem, 5vw, 1.6rem) !important;
+    text-align: center !important;
+  }
+
+  .atp-hero__review-btn {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
+
+  .atp-stepper {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+    padding: 1rem 0.75rem !important;
+    gap: 0.85rem !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .atp-stepper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .atp-stepper__item {
+    min-width: 64px !important;
+    gap: 0.35rem !important;
+    flex-shrink: 0 !important;
+  }
+
+  .atp-stepper__icon-wrap {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .atp-stepper__img {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .atp-stepper__label {
+    font-size: 0.6rem !important;
+  }
+
+  .atp-content-full {
+    padding: 0 0.85rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .atp-step-header {
+    margin-bottom: 1rem !important;
+  }
+
+  .atp-step-header__name {
+    font-size: 1.3rem !important;
+  }
+
+  .atp-step-header__hint {
+    font-size: 0.85rem !important;
+  }
+
+  .atp-controls {
+    flex-wrap: wrap !important;
+    gap: 0.6rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .atp-controls__search-wrap {
+    order: 1 !important;
+    width: 100% !important;
+    flex: none !important;
+  }
+
+  .atp-controls__prev {
+    order: 2 !important;
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.82rem !important;
+    height: 40px !important;
+  }
+
+  .atp-controls__skip {
+    order: 3 !important;
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.82rem !important;
+    height: 40px !important;
+  }
+
+  .atp-sections-wrap {
+    gap: 1.5rem !important;
+  }
+
+  .atp-sections-row-2col,
+  .atp-sections-row-aside {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1.5rem !important;
+  }
+
+  .atp-products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .atp-card {
+    padding: 0.65rem 0.5rem !important;
+  }
+
+  .atp-card__img-wrap {
+    height: 120px !important;
+  }
+
+  .atp-card__name {
+    font-size: 0.78rem !important;
+    line-height: 1.25 !important;
+    min-height: 3.1em !important;
+  }
+
+  .atp-card__price {
+    font-size: 0.95rem !important;
+  }
+
+  .atp-modal {
+    width: 95vw !important;
+    max-height: 94vh !important;
+    border-radius: 12px !important;
+  }
+
+  .atp-modal__header {
+    padding: 1.25rem 1rem 0.85rem !important;
+  }
+
+  .atp-modal__header h2 {
+    font-size: 1.2rem !important;
+  }
+
+  .atp-modal__row {
+    padding: 0.65rem 1rem !important;
+    gap: 0.65rem !important;
+  }
+
+  .atp-modal__row-product {
+    font-size: 0.82rem !important;
+  }
+
+  .atp-modal__row-price {
+    font-size: 0.85rem !important;
+  }
+
+  .atp-modal__total {
+    padding: 1rem !important;
+    font-size: 0.95rem !important;
+  }
+
+  .atp-modal__total strong {
+    font-size: 1.2rem !important;
+  }
+
+  .atp-modal__actions {
+    padding: 1rem !important;
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+  }
+
+  .atp-modal__back-btn,
+  .atp-modal__whatsapp-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
 }
 
 /* ─── Pantallas compactas (< 420px: iPhone SE, 320px-390px) ─── */
@@ -3753,5 +4079,25 @@ img, video, svg, canvas {
 
   .product-grid {
     gap: 0.5rem !important;
+  }
+
+  .atp-products-grid {
+    gap: 0.45rem !important;
+  }
+
+  .atp-card {
+    padding: 0.5rem 0.35rem !important;
+  }
+
+  .atp-card__img-wrap {
+    height: 100px !important;
+  }
+
+  .atp-card__name {
+    font-size: 0.74rem !important;
+  }
+
+  .atp-card__price {
+    font-size: 0.88rem !important;
   }
 }

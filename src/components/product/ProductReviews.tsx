@@ -103,7 +103,7 @@ export function ProductReviewForm({ productId }: { productId: string }) {
         Reseñas de clientes
       </h3>
 
-      <div style={{ background: "#f9fafb", padding: "2rem", borderRadius: "8px", border: "1px solid #f3f4f6" }}>
+      <div className="product-review-form-card" style={{ background: "#f9fafb", padding: "2rem", borderRadius: "8px", border: "1px solid #f3f4f6" }}>
         <h4 style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "1.5rem", color: "#333" }}>Escribe una reseña</h4>
 
         {authChecked && !currentUser ? (
@@ -141,9 +141,9 @@ export function ProductReviewForm({ productId }: { productId: string }) {
             <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", marginBottom: "0.5rem" }}>
               
               {/* Tu puntuación */}
-              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-                <label style={{ fontSize: "0.95rem", color: "#333" }}>Tu puntuación <span style={{ color: "red" }}>*</span> :</label>
-                <div style={{ display: "flex", gap: "2px" }}>
+              <div className="product-review-rating-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333", minWidth: "140px" }}>Tu puntuación <span style={{ color: "red" }}>*</span> :</label>
+                <div style={{ display: "flex", gap: "4px" }}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button key={star} type="button" onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                       <Star fill={(hoverRating || rating) >= star ? "#fbbf24" : "transparent"} color={(hoverRating || rating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
@@ -153,9 +153,9 @@ export function ProductReviewForm({ productId }: { productId: string }) {
               </div>
 
               {/* Value for money */}
-              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-                <label style={{ fontSize: "0.95rem", color: "#333" }}>Calidad-Precio :</label>
-                <div style={{ display: "flex", gap: "2px" }}>
+              <div className="product-review-rating-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333", minWidth: "140px" }}>Calidad-Precio :</label>
+                <div style={{ display: "flex", gap: "4px" }}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button key={star} type="button" onClick={() => setValueRating(star)} onMouseEnter={() => setHoverValueRating(star)} onMouseLeave={() => setHoverValueRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                       <Star fill={(hoverValueRating || valueRating) >= star ? "#fbbf24" : "transparent"} color={(hoverValueRating || valueRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
@@ -165,9 +165,9 @@ export function ProductReviewForm({ productId }: { productId: string }) {
               </div>
 
               {/* Durability */}
-              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-                <label style={{ fontSize: "0.95rem", color: "#333" }}>Durabilidad :</label>
-                <div style={{ display: "flex", gap: "2px" }}>
+              <div className="product-review-rating-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333", minWidth: "140px" }}>Durabilidad :</label>
+                <div style={{ display: "flex", gap: "4px" }}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button key={star} type="button" onClick={() => setDurabilityRating(star)} onMouseEnter={() => setHoverDurabilityRating(star)} onMouseLeave={() => setHoverDurabilityRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                       <Star fill={(hoverDurabilityRating || durabilityRating) >= star ? "#fbbf24" : "transparent"} color={(hoverDurabilityRating || durabilityRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
@@ -177,9 +177,9 @@ export function ProductReviewForm({ productId }: { productId: string }) {
               </div>
 
               {/* Delivery speed */}
-              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-                <label style={{ fontSize: "0.95rem", color: "#333" }}>Velocidad envío :</label>
-                <div style={{ display: "flex", gap: "2px" }}>
+              <div className="product-review-rating-row" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.5rem" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333", minWidth: "140px" }}>Velocidad envío :</label>
+                <div style={{ display: "flex", gap: "4px" }}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button key={star} type="button" onClick={() => setDeliveryRating(star)} onMouseEnter={() => setHoverDeliveryRating(star)} onMouseLeave={() => setHoverDeliveryRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                       <Star fill={(hoverDeliveryRating || deliveryRating) >= star ? "#fbbf24" : "transparent"} color={(hoverDeliveryRating || deliveryRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />

@@ -117,7 +117,7 @@ export function TestimonialsSection({
   return (
     <section
       ref={sectionRef}
-      className={cn("relative flex items-center justify-between gap-6 pt-6 w-full", className)}
+      className={cn("relative flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 pt-6 w-full", className)}
     >
       <motion.div
         initial="hidden"
@@ -141,13 +141,13 @@ export function TestimonialsSection({
                 <Quote className="h-10 w-10 text-slate-200 opacity-60" fill="currentColor" />
               </div>
 
-              <CardContent className="p-7 relative z-10">
+              <CardContent className="p-4 sm:p-7 relative z-10">
                 <div className="flex flex-col h-full">
                   
                   {/* Top section with Avatar and Stars */}
-                  <div className="flex justify-between items-center mb-5">
-                    <div className="flex items-center gap-3.5">
-                      <Avatar className="h-12 w-12 border-2 border-slate-100 shadow-sm bg-slate-50">
+                  <div className="flex flex-wrap justify-between items-center gap-2 mb-4 sm:mb-5">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10 sm:h-12 sm:w-12 border-2 border-slate-100 shadow-sm bg-slate-50">
                         {testimonial.avatar ? (
                           <AvatarImage src={testimonial.avatar} alt={testimonial.name} className="object-cover" />
                         ) : (
@@ -156,7 +156,7 @@ export function TestimonialsSection({
                         <AvatarFallback className="bg-gradient-to-tr from-[#e81950] to-rose-500 text-white font-bold">{testimonial.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="text-left">
-                        <h4 className="font-bold text-[1.05rem] text-slate-900 leading-snug">{testimonial.name}</h4>
+                        <h4 className="font-bold text-[0.95rem] sm:text-[1.05rem] text-slate-900 leading-snug">{testimonial.name}</h4>
                         {testimonial.role && (
                           <p className="text-xs text-slate-500 mt-0.5">
                             {testimonial.role}
@@ -169,23 +169,23 @@ export function TestimonialsSection({
                       {[...Array(5)].map((_, i) => (
                         <Star 
                           key={i} 
-                          className={`h-4 w-4 ${i < testimonial.rating ? "fill-amber-400 text-amber-400" : "fill-transparent text-slate-200"}`} 
+                          className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${i < testimonial.rating ? "fill-amber-400 text-amber-400" : "fill-transparent text-slate-200"}`} 
                         />
                       ))}
                     </div>
                   </div>
 
-                  <Separator className="bg-slate-100 mb-5" />
+                  <Separator className="bg-slate-100 mb-4 sm:mb-5" />
 
-                  <div className="flex-1 min-h-[70px]">
-                    <p className="italic text-[1.02rem] text-slate-700 leading-relaxed font-normal">"{testimonial.content}"</p>
+                  <div className="flex-1 min-h-[60px]">
+                    <p className="italic text-[0.92rem] sm:text-[1.02rem] text-slate-700 leading-relaxed font-normal">"{testimonial.content}"</p>
                   </div>
 
-                  <div className="flex justify-between items-center mt-5 pt-2">
-                    <span className="text-[0.78rem] text-slate-400 font-medium">
+                  <div className="flex flex-wrap justify-between items-center gap-2 mt-4 sm:mt-5 pt-2">
+                    <span className="text-[0.75rem] sm:text-[0.78rem] text-slate-400 font-medium">
                       {testimonial.createdAt && formatTimeAgo(testimonial.createdAt)}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-[0.72rem] uppercase tracking-wider font-bold">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-[0.7rem] sm:text-[0.72rem] uppercase tracking-wider font-bold">
                       <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                       Cliente Verificado
                     </span>
@@ -198,23 +198,23 @@ export function TestimonialsSection({
       </motion.div>
 
       {testimonials.length > 1 && (
-        <motion.div variants={itemVariants} className="flex flex-col gap-3 justify-center items-center z-10 shrink-0 ml-2">
+        <motion.div variants={itemVariants} className="flex flex-row sm:flex-col gap-3 justify-center items-center z-10 shrink-0 mt-2 sm:mt-0 sm:ml-2">
           <Button
             variant="outline"
             size="icon"
             onClick={handlePrev}
-            className="rounded-full h-10 w-10 border-slate-200 bg-white hover:bg-slate-50 hover:border-[#e81950] text-slate-600 hover:text-[#e81950] shadow-sm transition-all hover:scale-105"
+            className="rounded-full h-9 w-9 sm:h-10 sm:w-10 border-slate-200 bg-white hover:bg-slate-50 hover:border-[#e81950] text-slate-600 hover:text-[#e81950] shadow-sm transition-all hover:scale-105"
             aria-label="Previous testimonial"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
 
-          <div className="flex flex-col gap-2 items-center justify-center py-2">
+          <div className="flex flex-row sm:flex-col gap-2 items-center justify-center py-1 sm:py-2">
             {testimonials.map((_, index) => (
               <div
                 key={index}
                 className={cn(
-                  "w-2.5 h-2.5 rounded-full transition-all cursor-pointer",
+                  "w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all cursor-pointer",
                   index === activeIndex ? "bg-[#e81950] scale-110" : "bg-slate-200 hover:bg-slate-300",
                 )}
                 onClick={() => setActiveIndex(index)}

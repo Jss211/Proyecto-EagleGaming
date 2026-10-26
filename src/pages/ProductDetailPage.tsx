@@ -137,6 +137,7 @@ export function ProductDetailPage() {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px" }}>
             {/* Imagen Principal con Zoom Interactivo al pasar el mouse */}
             <div 
+              className="product-detail-image-box"
               ref={imageContainerRef}
               onMouseEnter={handleMouseEnter}
               onMouseMove={handleMouseMove}
@@ -180,6 +181,7 @@ export function ProductDetailPage() {
 
               {/* Badge indicador de zoom */}
               <div
+                className="product-detail-zoom-badge"
                 style={{
                   position: "absolute",
                   bottom: "12px",
@@ -201,7 +203,8 @@ export function ProductDetailPage() {
                 }}
               >
                 <ZoomIn size={14} />
-                <span>Pasa el cursor para ampliar</span>
+                <span className="product-detail-zoom-text-desktop">Pasa el cursor para ampliar</span>
+                <span className="product-detail-zoom-text-mobile">Toca para ampliar</span>
               </div>
 
               {/* Flechas (solo si hay más de 1 imagen) */}
@@ -307,7 +310,7 @@ export function ProductDetailPage() {
           </div>
 
           {/* Columna Derecha: Detalles del Producto */}
-          <div style={{ flex: "1 1 500px" }}>
+          <div className="product-detail-info-col" style={{ flex: "1 1 500px", minWidth: 0, width: "100%" }}>
             <h1 className="product-title" style={{ fontSize: "1.8rem", fontWeight: "bold", color: "#222", marginBottom: "1rem", lineHeight: "1.3" }}>
               {title}
             </h1>
@@ -344,7 +347,7 @@ export function ProductDetailPage() {
               </div>
             )}
 
-            <div className="flex justify-center w-full mt-4">
+            <div className="product-detail-btn-wrap flex justify-center w-full mt-4">
               <LiquidMetalButton 
                 label="AÑADIR AL CARRITO"
                 onClick={() => addItem({ id: id!, name: title, category: product.categoria || "", price: Number(price), imageUrl: images[0] })}
