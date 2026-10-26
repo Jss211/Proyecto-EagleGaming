@@ -8,7 +8,7 @@ import type { Product } from "../components/home/ProductCard";
 import { useCart } from "../context/CartContext";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
-import { buildNormalizedProduct, normalizeDocumentData, resolveProductCategory } from "../utils/productUtils";
+import { buildNormalizedProduct, normalizeDocumentData, resolveProductCategory, resolveProductSubcategory } from "../utils/productUtils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -238,34 +238,283 @@ const matchesCategory = (
 /**
  * Comprueba si un producto coincide con una subcategoría.
  * Si es 'todas' o 'todos', muestra todo el catálogo de esa categoría.
- * Revisa el campo subcategoría de Firestore, y si no está definido,
- * inspecciona de forma inteligente categoría, título y descripción.
+ * Utiliza resolveProductSubcategory(data), el campo subcategoría y el título del producto.
+ * NUNCA busca en la descripción para evitar que productos con textos de compatibilidad
+ * (ej. adaptadores bluetooth que dicen 'sirve para audífonos, teclado y mouse')
+ * se mezclen erróneamente en otras subcategorías.
  */
 const matchesSubcategory = (
   data: Record<string, unknown>,
-  subcategoryId: string
+  subcategoryId: string,
+  categoryId?: string
 ): boolean => {
-  if (subcategoryId === "todas" || subcategoryId === "todos") {
+  if (!subcategoryId || subcategoryId === "todas" || subcategoryId === "todos") {
     return true;
   }
 
+  const normSubId = normalize(subcategoryId);
+
+  // 1. Extraer campos clave normalizados (SIN descripcion para evitar contaminacion cruzada)
   const subField = normalize(
-    String(pickField(data, ["subcategoria", "Subcategoria", "subcategoría"]) ?? "")
+    String(pickField(data, ["subcategoria", "Subcategoria", "subcategoría", "subcategory"]) ?? "")
   );
   const catField = normalize(
     String(pickField(data, ["categoria", "Categoria", "categoría", "Categoría"]) ?? "")
   );
   const titleField = normalize(
-    String(pickField(data, ["titulo", "Titulo", "título", "Título", "nombre", "Nombre"]) ?? "")
-  );
-  const descField = normalize(
-    String(pickField(data, ["descripcion", "Descripcion", "descripción", "Descripción"]) ?? "")
+    String(pickField(data, ["titulo", "Titulo", "título", "Título", "nombre", "Nombre", "title", "name"]) ?? "")
   );
 
-  const fullText = `${subField} ${catField} ${titleField} ${descField}`.trim();
+  const canonicalSub = normalize(resolveProductSubcategory(data));
 
-  const terms = SUBCATEGORY_TERMS[subcategoryId] || [normalize(subcategoryId)];
-  return terms.some((t) => fullText.includes(t));
+  // Periféricos: Aislamiento estricto de subcategorías
+  const isAdapterOrCable =
+    canonicalSub === "adaptador" ||
+    canonicalSub === "cable" ||
+    titleField.includes("adaptador") ||
+    titleField.includes("dongle") ||
+    titleField.includes("converter") ||
+    titleField.includes("conversor") ||
+    titleField.includes("cable") ||
+    subField.includes("adaptador") ||
+    subField.includes("cable");
+
+  const isComboOrKit =
+    canonicalSub === "kit teclado y mouse" ||
+    titleField.includes("kit") ||
+    titleField.includes("combo") ||
+    titleField.includes("4 en 1") ||
+    (titleField.includes("teclado") && titleField.includes("mouse")) ||
+    subField.includes("kit") ||
+    subField.includes("combo");
+
+  // Subcategoría: AUDIFONOS
+  if (normSubId === "audifonos" || normSubId === "audifono" || normSubId === "headset" || normSubId.includes("audifono")) {
+    if (isAdapterOrCable || isComboOrKit) return false;
+    if (titleField.includes("teclado") || titleField.includes("mouse")) return false;
+    return (
+      canonicalSub === "audifonos" ||
+      subField.includes("audifono") ||
+      subField.includes("auricular") ||
+      subField.includes("headset") ||
+      titleField.includes("audifono") ||
+      titleField.includes("auricular") ||
+      titleField.includes("headset")
+    );
+  }
+
+  // Subcategoría: TECLADOS (Teclados Mecánicos)
+  if (normSubId === "teclados" || normSubId === "teclado" || normSubId === "keyboard" || normSubId.includes("teclado")) {
+    // Excluir adaptadores y cables
+    if (isAdapterOrCable) return false;
+    // Excluir productos que sean exclusivamente mouse
+    if (titleField.includes("mouse") && !titleField.includes("teclado") && !isComboOrKit) return false;
+    // Excluir productos que sean exclusivamente audífonos
+    if ((titleField.includes("audifono") || titleField.includes("headset") || titleField.includes("auricular")) && !titleField.includes("teclado") && !isComboOrKit) return false;
+
+    return (
+      canonicalSub === "teclado" ||
+      subField.includes("teclado") ||
+      subField.includes("keyboard") ||
+      titleField.includes("teclado") ||
+      titleField.includes("keyboard") ||
+      // Incluir kits y combos con teclado presentes en el catálogo
+      (isComboOrKit && (
+        titleField.includes("teclado") ||
+        titleField.includes("antryx") ||
+        titleField.includes("micronics") ||
+        titleField.includes("logitech") ||
+        subField.includes("teclado")
+      ))
+    );
+  }
+
+  // Subcategoría: MOUSE (Mouse Gamer)
+  if (normSubId === "mouse" || normSubId === "raton" || normSubId.includes("mouse")) {
+    // Excluir adaptadores y cables
+    if (isAdapterOrCable) return false;
+    // Excluir combos y teclados para que no contaminen la sección de mouse
+    if (isComboOrKit || titleField.includes("teclado") || titleField.includes("keyboard") || subField.includes("teclado")) return false;
+    if (titleField.includes("audifono") || titleField.includes("headset")) return false;
+
+    return (
+      canonicalSub === "mouse" ||
+      subField.includes("mouse") ||
+      subField.includes("raton") ||
+      titleField.includes("mouse") ||
+      titleField.includes("raton") ||
+      titleField.includes("pad")
+    );
+  }
+
+  // Subcategoría: COMBOS / KITS TECLADO + MOUSE
+  if (normSubId === "combos" || normSubId === "combo" || normSubId === "kit" || normSubId === "kit teclado mouse" || normSubId === "kit teclado y mouse") {
+    if (isAdapterOrCable) return false;
+    return (
+      canonicalSub === "kit teclado y mouse" ||
+      isComboOrKit ||
+      subField.includes("kit") ||
+      subField.includes("combo")
+    );
+  }
+
+  // Subcategoría: CABLES Y ADAPTADORES
+  if (normSubId === "cables" || normSubId === "cable" || normSubId === "adaptador" || normSubId === "adaptadores") {
+    return isAdapterOrCable;
+  }
+
+  // Subcategoría: WEBCAM
+  if (normSubId === "webcam" || normSubId === "camara" || normSubId === "camweb") {
+    return (
+      canonicalSub.includes("webcam") ||
+      subField.includes("webcam") ||
+      subField.includes("camara") ||
+      titleField.includes("webcam") ||
+      titleField.includes("camara")
+    );
+  }
+
+  // Subcategoría: COOLER (Periférico)
+  if (normSubId === "cooler") {
+    return (
+      canonicalSub === "cooler" ||
+      subField.includes("cooler") ||
+      titleField.includes("cooler") ||
+      titleField.includes("ventilador") ||
+      titleField.includes("fan")
+    );
+  }
+
+  // Subcategoría: PARLANTES
+  if (normSubId === "parlantes" || normSubId === "parlante") {
+    return (
+      canonicalSub === "parlantes" ||
+      subField.includes("parlante") ||
+      titleField.includes("parlante") ||
+      titleField.includes("speaker")
+    );
+  }
+
+  // ── Otras Categorías (SSD, RAM, Procesadores, Placas, Tarjetas de Video, Monitores, PC, etc.) ──
+
+  // SSD / Almacenamiento
+  if (normSubId === "sd m2" || normSubId === "ssd m2") {
+    return titleField.includes("m.2") || titleField.includes("m2") || titleField.includes("nvme") || titleField.includes("pcie") ||
+           subField.includes("m.2") || subField.includes("m2") || subField.includes("nvme") || subField.includes("pcie");
+  }
+  if (normSubId === "ssd sata" || normSubId === "sata") {
+    return titleField.includes("sata") || titleField.includes("25") || subField.includes("sata");
+  }
+
+  // Memoria RAM
+  if (normSubId === "ddr4") {
+    return titleField.includes("ddr4") || subField.includes("ddr4");
+  }
+  if (normSubId === "ddr5") {
+    return titleField.includes("ddr5") || subField.includes("ddr5");
+  }
+  if (normSubId === "ddr3") {
+    return titleField.includes("ddr3") || subField.includes("ddr3");
+  }
+
+  // Tarjetas de Video
+  if (normSubId === "nvidia rtx") {
+    return titleField.includes("rtx") || titleField.includes("gtx") || titleField.includes("geforce") || titleField.includes("nvidia") ||
+           subField.includes("rtx") || subField.includes("nvidia");
+  }
+  if (normSubId === "amd radeon") {
+    return titleField.includes("radeon") || titleField.includes("rx ") || titleField.includes("rx5") || titleField.includes("rx6") || titleField.includes("rx7") ||
+           subField.includes("radeon") || subField.includes("rx");
+  }
+
+  // Procesadores
+  if (normSubId === "intel" && (categoryId?.includes("procesador") || catField.includes("procesador"))) {
+    return (titleField.includes("intel") || titleField.includes("core") || titleField.includes("i3") || titleField.includes("i5") || titleField.includes("i7") || titleField.includes("i9")) &&
+           !titleField.includes("ryzen") && !titleField.includes("amd");
+  }
+  if (normSubId === "amd ryzen" || (normSubId === "amd" && (categoryId?.includes("procesador") || catField.includes("procesador")))) {
+    return (titleField.includes("amd") || titleField.includes("ryzen")) && !titleField.includes("intel");
+  }
+
+  // Placas Madre
+  if (normSubId === "intel" && (categoryId?.includes("placa") || catField.includes("placa"))) {
+    return titleField.includes("intel") || titleField.includes("b760") || titleField.includes("b660") || titleField.includes("h610") || titleField.includes("z790") || titleField.includes("z690") || titleField.includes("h510") || subField.includes("intel");
+  }
+  if (normSubId === "amd" && (categoryId?.includes("placa") || catField.includes("placa"))) {
+    return titleField.includes("amd") || titleField.includes("am4") || titleField.includes("am5") || titleField.includes("b550") || titleField.includes("b650") || titleField.includes("a520") || titleField.includes("x670") || subField.includes("amd");
+  }
+
+  // PC Completa
+  if (normSubId === "pc gamer") {
+    return canonicalSub === "pc completa gamer" || (!titleField.includes("oficina") && !titleField.includes("ingenier"));
+  }
+  if (normSubId === "pc oficina") {
+    return canonicalSub === "pc completa oficina" || titleField.includes("oficina") || subField.includes("oficina");
+  }
+  if (normSubId === "pc ingenieria" || normSubId === "pc ingenierias") {
+    return canonicalSub === "pc completa ingenierias" || titleField.includes("ingenier") || titleField.includes("workstation") || subField.includes("ingenier");
+  }
+  if (normSubId === "pc combos") {
+    return titleField.includes("combo") || titleField.includes("kit") || titleField.includes("monitor") || titleField.includes("completa");
+  }
+
+  // Monitores
+  if (normSubId === "monitores 24") {
+    return titleField.includes("24") || titleField.includes("238") || subField.includes("24");
+  }
+  if (normSubId === "monitores 27") {
+    return titleField.includes("27") || subField.includes("27");
+  }
+  if (normSubId === "monitores 34") {
+    return titleField.includes("34") || titleField.includes("curvo") || subField.includes("34");
+  }
+  if (normSubId === "gaming" && (categoryId?.includes("monitor") || catField.includes("monitor"))) {
+    return titleField.includes("gaming") || titleField.includes("gamer") || titleField.includes("hz") || subField.includes("gaming");
+  }
+
+  // Cases
+  if (normSubId === "con fuente") {
+    return titleField.includes("con fuente") || subField.includes("con fuente");
+  }
+  if (normSubId === "sin fuente") {
+    return titleField.includes("sin fuente") || (!titleField.includes("con fuente") && !subField.includes("con fuente"));
+  }
+
+  // Fuentes de poder
+  if (normSubId === "certificadas") {
+    return titleField.includes("80 plus") || titleField.includes("80+") || titleField.includes("certificad") || titleField.includes("bronze") || titleField.includes("gold") || titleField.includes("white") || subField.includes("certificad");
+  }
+  if (normSubId === "modulares") {
+    return titleField.includes("modular") || subField.includes("modular");
+  }
+
+  // Laptops
+  if (normSubId === "oficina" && (categoryId?.includes("laptop") || catField.includes("laptop"))) {
+    return titleField.includes("oficina") || titleField.includes("estudio") || titleField.includes("portatil") || titleField.includes("v15") || subField.includes("oficina");
+  }
+  if (normSubId === "gaming" && (categoryId?.includes("laptop") || catField.includes("laptop"))) {
+    return titleField.includes("gaming") || titleField.includes("gamer") || titleField.includes("rtx") || titleField.includes("tuf") || titleField.includes("loq") || subField.includes("gaming");
+  }
+
+  // Refrigeración líquida
+  if (normSubId === "240mm") {
+    return titleField.includes("240") || subField.includes("240");
+  }
+  if (normSubId === "360mm") {
+    return titleField.includes("360") || subField.includes("360");
+  }
+
+  // Estabilizadores
+  if (normSubId === "estabilizadores") {
+    return titleField.includes("estabilizador") || subField.includes("estabilizador") || !titleField.includes("ups");
+  }
+  if (normSubId === "ups") {
+    return titleField.includes("ups") || titleField.includes("bateria") || subField.includes("ups");
+  }
+
+  // Fallback general por términos (SOLO en subField, titleField y canonicalSub, NUNCA descField)
+  const terms = SUBCATEGORY_TERMS[subcategoryId] || [normSubId];
+  return terms.some((t) => subField.includes(t) || titleField.includes(t) || canonicalSub.includes(t));
 };
 
 // ─── Componente ──────────────────────────────────────────────────────────────
@@ -409,7 +658,7 @@ export function CategoryPage() {
           const matchesCat = matchesCategory(data, id);
           if (!matchesCat) return;
 
-          if (subcategoria && !matchesSubcategory(data, subcategoria)) return;
+          if (subcategoria && !matchesSubcategory(data, subcategoria, id)) return;
 
           // Check dynamic brand filter
           if (filterMarca) {

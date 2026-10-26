@@ -5,7 +5,7 @@ import { Button } from "./button"
 import { Card, CardContent } from "./card"
 import { Separator } from "./separator"
 import { cn } from "../../lib/utils"
-import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Quote, Star, ShieldCheck } from 'lucide-react'
 import { motion, useAnimation, useInView } from "framer-motion"
 import { useEffect, useRef, useState } from "react"
 
@@ -130,35 +130,35 @@ export function TestimonialsSection({
             <Card
               key={testimonial.id}
               className={cn(
-                "transition-all duration-500 border border-gray-800 bg-[#0c0c0c] text-white rounded-xl",
+                "transition-all duration-500 border border-slate-200/90 bg-white text-slate-800 rounded-2xl shadow-sm hover:shadow-md",
                 index === activeIndex
-                  ? "opacity-100 translate-x-0 shadow-2xl z-10 relative"
+                  ? "opacity-100 translate-x-0 shadow-lg z-10 relative"
                   : "opacity-0 translate-x-[50px] pointer-events-none -z-10 absolute inset-0",
               )}
             >
-              {/* Huge quote icon behind everything, positioned top-left overlapping border */}
-              <div className="absolute -top-5 -left-5 z-0">
-                <Quote className="h-10 w-10 text-gray-700 opacity-40" fill="currentColor" />
+              {/* Subtle quote icon behind top-left */}
+              <div className="absolute -top-4 -left-3 z-0 pointer-events-none">
+                <Quote className="h-10 w-10 text-slate-200 opacity-60" fill="currentColor" />
               </div>
 
-              <CardContent className="p-8 relative z-10">
+              <CardContent className="p-7 relative z-10">
                 <div className="flex flex-col h-full">
                   
                   {/* Top section with Avatar and Stars */}
-                  <div className="flex justify-between items-center mb-6">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-12 w-12 border border-gray-700 bg-gray-800">
+                  <div className="flex justify-between items-center mb-5">
+                    <div className="flex items-center gap-3.5">
+                      <Avatar className="h-12 w-12 border-2 border-slate-100 shadow-sm bg-slate-50">
                         {testimonial.avatar ? (
                           <AvatarImage src={testimonial.avatar} alt={testimonial.name} className="object-cover" />
                         ) : (
                           <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${testimonial.name}`} alt={testimonial.name} />
                         )}
-                        <AvatarFallback className="bg-gray-800 text-white">{testimonial.name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-tr from-[#e81950] to-rose-500 text-white font-bold">{testimonial.name.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div className="text-left">
-                        <h4 className="font-bold text-[1.1rem] text-gray-100">{testimonial.name}</h4>
+                        <h4 className="font-bold text-[1.05rem] text-slate-900 leading-snug">{testimonial.name}</h4>
                         {testimonial.role && (
-                          <p className="text-sm text-gray-400 mt-0.5">
+                          <p className="text-xs text-slate-500 mt-0.5">
                             {testimonial.role}
                           </p>
                         )}
@@ -169,23 +169,24 @@ export function TestimonialsSection({
                       {[...Array(5)].map((_, i) => (
                         <Star 
                           key={i} 
-                          className={`h-4 w-4 ${i < testimonial.rating ? "fill-yellow-400 text-yellow-400" : "fill-transparent text-gray-600"}`} 
+                          className={`h-4 w-4 ${i < testimonial.rating ? "fill-amber-400 text-amber-400" : "fill-transparent text-slate-200"}`} 
                         />
                       ))}
                     </div>
                   </div>
 
-                  <Separator className="bg-gray-800 mb-6" />
+                  <Separator className="bg-slate-100 mb-5" />
 
-                  <div className="flex-1 min-h-[80px]">
-                    <p className="italic text-[1.05rem] text-gray-300 leading-relaxed">"{testimonial.content}"</p>
+                  <div className="flex-1 min-h-[70px]">
+                    <p className="italic text-[1.02rem] text-slate-700 leading-relaxed font-normal">"{testimonial.content}"</p>
                   </div>
 
-                  <div className="flex justify-between items-center mt-6">
-                    <span className="text-[0.75rem] text-gray-500">
+                  <div className="flex justify-between items-center mt-5 pt-2">
+                    <span className="text-[0.78rem] text-slate-400 font-medium">
                       {testimonial.createdAt && formatTimeAgo(testimonial.createdAt)}
                     </span>
-                    <span className="text-[0.75rem] uppercase tracking-wider font-semibold text-gray-500">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-[0.72rem] uppercase tracking-wider font-bold">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
                       Cliente Verificado
                     </span>
                   </div>
@@ -202,7 +203,7 @@ export function TestimonialsSection({
             variant="outline"
             size="icon"
             onClick={handlePrev}
-            className="rounded-full h-10 w-10 border-gray-800 bg-[#111] hover:bg-[#222] text-gray-400 shadow-sm transition-all hover:scale-105"
+            className="rounded-full h-10 w-10 border-slate-200 bg-white hover:bg-slate-50 hover:border-[#e81950] text-slate-600 hover:text-[#e81950] shadow-sm transition-all hover:scale-105"
             aria-label="Previous testimonial"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -214,7 +215,7 @@ export function TestimonialsSection({
                 key={index}
                 className={cn(
                   "w-2.5 h-2.5 rounded-full transition-all cursor-pointer",
-                  index === activeIndex ? "bg-[#e81950] scale-110" : "bg-gray-700 hover:bg-gray-600",
+                  index === activeIndex ? "bg-[#e81950] scale-110" : "bg-slate-200 hover:bg-slate-300",
                 )}
                 onClick={() => setActiveIndex(index)}
               />
@@ -225,7 +226,7 @@ export function TestimonialsSection({
             variant="outline"
             size="icon"
             onClick={handleNext}
-            className="rounded-full h-10 w-10 border-gray-800 bg-[#111] hover:bg-[#222] text-gray-400 shadow-sm transition-all hover:scale-105"
+            className="rounded-full h-10 w-10 border-slate-200 bg-white hover:bg-slate-50 hover:border-[#e81950] text-slate-600 hover:text-[#e81950] shadow-sm transition-all hover:scale-105"
             aria-label="Next testimonial"
           >
             <ChevronRight className="h-5 w-5" />

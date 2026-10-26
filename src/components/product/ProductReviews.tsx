@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { db, auth } from "../../firebase";
 import { collection, query, where, addDoc, serverTimestamp } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { Star } from "lucide-react";
+import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { Star, ShieldCheck, Lock } from "lucide-react";
 import { AnimatedButton } from "../ui/AnimatedButton";
 import { TestimonialsSection } from "../ui/simple-animated-testimonials";
+import { getUserDisplayName } from "../../utils/userProfile";
 
 interface Review {
   id: string;
@@ -20,6 +22,8 @@ interface Review {
 }
 
 export function ProductReviewForm({ productId }: { productId: string }) {
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   
@@ -39,18 +43,30 @@ export function ProductReviewForm({ productId }: { productId: string }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
       if (user) {
-        if (user.displayName) setUserName(user.displayName);
+        const resolvedName = getUserDisplayName(user);
+        setUserName(resolvedName);
         if (user.photoURL) setUserAvatar(user.photoURL);
+      } else {
+        setUserName("");
+        setUserAvatar(null);
       }
+      setAuthChecked(true);
     });
     return () => unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userName.trim() || !comment.trim() || rating === 0) {
-      alert("Por favor, completa tu nombre, tu reseña y al menos la puntuación general.");
+    if (!currentUser) {
+      alert("Debes iniciar sesión con tu cuenta para publicar una reseña.");
+      return;
+    }
+
+    const finalName = getUserDisplayName(currentUser) || userName.trim();
+    if (!finalName || !comment.trim() || rating === 0) {
+      alert("Por favor, completa tu reseña y al menos la puntuación general.");
       return;
     }
 
@@ -58,7 +74,9 @@ export function ProductReviewForm({ productId }: { productId: string }) {
     try {
       await addDoc(collection(db, "reviews"), {
         productId,
-        userName,
+        userName: finalName,
+        userId: currentUser.uid,
+        userEmail: currentUser.email || "",
         rating,
         valueRating,
         durabilityRating,
@@ -68,7 +86,6 @@ export function ProductReviewForm({ productId }: { productId: string }) {
         createdAt: serverTimestamp()
       });
       setComment("");
-      setUserName("");
       setRating(0);
       setValueRating(0);
       setDurabilityRating(0);
@@ -88,88 +105,145 @@ export function ProductReviewForm({ productId }: { productId: string }) {
 
       <div style={{ background: "#f9fafb", padding: "2rem", borderRadius: "8px", border: "1px solid #f3f4f6" }}>
         <h4 style={{ fontSize: "1.2rem", fontWeight: "600", marginBottom: "1.5rem", color: "#333" }}>Escribe una reseña</h4>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", marginBottom: "0.5rem" }}>
-            
-            {/* Tu puntuación */}
-            <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-              <label style={{ fontSize: "0.95rem", color: "#333" }}>Tu puntuación <span style={{ color: "red" }}>*</span> :</label>
-              <div style={{ display: "flex", gap: "2px" }}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} type="button" onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                    <Star fill={(hoverRating || rating) >= star ? "#fbbf24" : "transparent"} color={(hoverRating || rating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
-                  </button>
-                ))}
+
+        {authChecked && !currentUser ? (
+          <div style={{ background: "#fff", border: "1px dashed #cbd5e1", borderRadius: "8px", padding: "1.5rem", textAlign: "center" }}>
+            <ShieldCheck size={36} color="#059669" style={{ margin: "0 auto 0.75rem" }} />
+            <p style={{ fontSize: "0.95rem", fontWeight: "600", color: "#1e293b", marginBottom: "0.4rem" }}>
+              Reseñas de Clientes Verificados
+            </p>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1.25rem", maxWidth: "420px", marginLeft: "auto", marginRight: "auto" }}>
+              Para asegurar la autenticidad y que las opiniones muestren el nombre real de quien se registró, inicia sesión con tu cuenta.
+            </p>
+            <Link
+              to="/login"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                background: "#111",
+                color: "#fff",
+                padding: "0.6rem 1.4rem",
+                borderRadius: "8px",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                textDecoration: "none",
+                transition: "background 0.2s",
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.background = "#e81950")}
+              onMouseOut={(e) => (e.currentTarget.style.background = "#111")}
+            >
+              Iniciar sesión para opinar
+            </Link>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem", marginBottom: "0.5rem" }}>
+              
+              {/* Tu puntuación */}
+              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333" }}>Tu puntuación <span style={{ color: "red" }}>*</span> :</label>
+                <div style={{ display: "flex", gap: "2px" }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} type="button" onClick={() => setRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                      <Star fill={(hoverRating || rating) >= star ? "#fbbf24" : "transparent"} color={(hoverRating || rating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Value for money */}
+              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333" }}>Calidad-Precio :</label>
+                <div style={{ display: "flex", gap: "2px" }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} type="button" onClick={() => setValueRating(star)} onMouseEnter={() => setHoverValueRating(star)} onMouseLeave={() => setHoverValueRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                      <Star fill={(hoverValueRating || valueRating) >= star ? "#fbbf24" : "transparent"} color={(hoverValueRating || valueRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Durability */}
+              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333" }}>Durabilidad :</label>
+                <div style={{ display: "flex", gap: "2px" }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} type="button" onClick={() => setDurabilityRating(star)} onMouseEnter={() => setHoverDurabilityRating(star)} onMouseLeave={() => setHoverDurabilityRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                      <Star fill={(hoverDurabilityRating || durabilityRating) >= star ? "#fbbf24" : "transparent"} color={(hoverDurabilityRating || durabilityRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Delivery speed */}
+              <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
+                <label style={{ fontSize: "0.95rem", color: "#333" }}>Velocidad envío :</label>
+                <div style={{ display: "flex", gap: "2px" }}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button key={star} type="button" onClick={() => setDeliveryRating(star)} onMouseEnter={() => setHoverDeliveryRating(star)} onMouseLeave={() => setHoverDeliveryRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                      <Star fill={(hoverDeliveryRating || deliveryRating) >= star ? "#fbbf24" : "transparent"} color={(hoverDeliveryRating || deliveryRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Value for money */}
-            <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-              <label style={{ fontSize: "0.95rem", color: "#333" }}>Calidad-Precio :</label>
-              <div style={{ display: "flex", gap: "2px" }}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} type="button" onClick={() => setValueRating(star)} onMouseEnter={() => setHoverValueRating(star)} onMouseLeave={() => setHoverValueRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                    <Star fill={(hoverValueRating || valueRating) >= star ? "#fbbf24" : "transparent"} color={(hoverValueRating || valueRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
-                  </button>
-                ))}
+            {/* Nombre del usuario bloqueado a la cuenta registrada */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <label style={{ fontSize: "0.9rem", color: "#333", fontWeight: "600" }}>Publicando como:</label>
+                <span style={{ fontSize: "0.78rem", color: "#059669", fontWeight: 700, display: "flex", alignItems: "center", gap: "4px" }}>
+                  <ShieldCheck size={15} /> Cliente verificado
+                </span>
               </div>
+              <div style={{ position: "relative" }}>
+                <input 
+                  type="text" 
+                  readOnly
+                  disabled
+                  value={userName}
+                  style={{ 
+                    width: "100%", 
+                    padding: "0.8rem", 
+                    paddingLeft: "2.4rem",
+                    border: "1px solid #cbd5e1", 
+                    borderRadius: "6px", 
+                    outline: "none", 
+                    fontSize: "0.95rem",
+                    backgroundColor: "#f1f5f9",
+                    color: "#0f172a",
+                    fontWeight: 600,
+                    cursor: "not-allowed",
+                    boxSizing: "border-box"
+                  }} 
+                />
+                <Lock size={15} color="#64748b" style={{ position: "absolute", left: "0.85rem", top: "50%", transform: "translateY(-50%)" }} />
+              </div>
+              <p style={{ fontSize: "0.75rem", color: "#64748b", marginTop: "0.4rem" }}>
+                Tu reseña se publicará con el nombre de tu cuenta registrada{currentUser?.email ? ` (${currentUser.email})` : ""}. No se puede alterar para garantizar opiniones auténticas.
+              </p>
             </div>
 
-            {/* Durability */}
-            <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-              <label style={{ fontSize: "0.95rem", color: "#333" }}>Durabilidad :</label>
-              <div style={{ display: "flex", gap: "2px" }}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} type="button" onClick={() => setDurabilityRating(star)} onMouseEnter={() => setHoverDurabilityRating(star)} onMouseLeave={() => setHoverDurabilityRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                    <Star fill={(hoverDurabilityRating || durabilityRating) >= star ? "#fbbf24" : "transparent"} color={(hoverDurabilityRating || durabilityRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
-                  </button>
-                ))}
-              </div>
+            <div>
+              <label style={{ display: "block", fontSize: "0.9rem", color: "#555", marginBottom: "0.5rem", fontWeight: "500" }}>Tu reseña</label>
+              <textarea 
+                required 
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                rows={4} 
+                style={{ width: "100%", padding: "0.8rem", border: "1px solid #ddd", borderRadius: "4px", outline: "none", fontSize: "0.95rem", resize: "vertical", boxSizing: "border-box" }} 
+                placeholder="Escribe tu opinión sobre el producto..."
+              />
             </div>
 
-            {/* Delivery speed */}
-            <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", alignItems: "center" }}>
-              <label style={{ fontSize: "0.95rem", color: "#333" }}>Velocidad envío :</label>
-              <div style={{ display: "flex", gap: "2px" }}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button key={star} type="button" onClick={() => setDeliveryRating(star)} onMouseEnter={() => setHoverDeliveryRating(star)} onMouseLeave={() => setHoverDeliveryRating(0)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                    <Star fill={(hoverDeliveryRating || deliveryRating) >= star ? "#fbbf24" : "transparent"} color={(hoverDeliveryRating || deliveryRating) >= star ? "#fbbf24" : "#cbd5e1"} size={22} />
-                  </button>
-                ))}
-              </div>
+            <div style={{ marginTop: "0.5rem" }}>
+              <AnimatedButton type="submit" disabled={submitting} className={submitting ? "opacity-50 cursor-not-allowed" : ""}>
+                {submitting ? "ENVIANDO..." : "PUBLICAR RESEÑA"}
+              </AnimatedButton>
             </div>
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "0.9rem", color: "#555", marginBottom: "0.5rem", fontWeight: "500" }}>Tu nombre</label>
-            <input 
-              type="text" 
-              required 
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              style={{ width: "100%", padding: "0.8rem", border: "1px solid #ddd", borderRadius: "4px", outline: "none", fontSize: "0.95rem" }} 
-              placeholder="Ej. Juan Pérez"
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", fontSize: "0.9rem", color: "#555", marginBottom: "0.5rem", fontWeight: "500" }}>Tu reseña</label>
-            <textarea 
-              required 
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={4} 
-              style={{ width: "100%", padding: "0.8rem", border: "1px solid #ddd", borderRadius: "4px", outline: "none", fontSize: "0.95rem", resize: "vertical" }} 
-              placeholder="Me gustó el producto y tal tal..."
-            />
-          </div>
-
-          <div style={{ marginTop: "0.5rem" }}>
-            <AnimatedButton type="submit" disabled={submitting} className={submitting ? "opacity-50 cursor-not-allowed" : ""}>
-              {submitting ? "ENVIANDO..." : "PUBLICAR RESEÑA"}
-            </AnimatedButton>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
     </div>
   );

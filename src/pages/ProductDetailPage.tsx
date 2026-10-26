@@ -1,12 +1,12 @@
 import { useCart } from "../context/CartContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 import { Footer } from "../components/home/Footer";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
 import { LiquidMetalButton } from "../components/ui/liquid-metal-button";
 import { ProductReviewForm, ProductReviewList } from "../components/product/ProductReviews";
 import {
@@ -23,6 +23,46 @@ export function ProductDetailPage() {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageContainerRef.current) return;
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    setZoomPos({ x, y });
+  };
+
+  const handleMouseEnter = () => {
+    setIsZoomed(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsZoomed(false);
+    setZoomPos({ x: 50, y: 50 });
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsLightboxOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (isLightboxOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isLightboxOpen]);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -95,28 +135,140 @@ export function ProductDetailPage() {
         <div className="product-detail-grid">
           {/* Columna Izquierda: Imagen y Carrusel */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%", maxWidth: "600px" }}>
-            {/* Imagen Principal */}
-            <div style={{ border: "1px solid #eaeaea", borderRadius: "12px", padding: "1.5rem", display: "flex", justifyContent: "center", alignItems: "center", backgroundColor: "white", marginBottom: "2rem", position: "relative", minHeight: "400px", width: "100%" }}>
+            {/* Imagen Principal con Zoom Interactivo al pasar el mouse */}
+            <div 
+              ref={imageContainerRef}
+              onMouseEnter={handleMouseEnter}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => setIsLightboxOpen(true)}
+              title="Haz clic para ver en pantalla completa"
+              style={{ 
+                border: "1px solid #eaeaea", 
+                borderRadius: "12px", 
+                padding: "1.5rem", 
+                display: "flex", 
+                justifyContent: "center", 
+                alignItems: "center", 
+                backgroundColor: "white", 
+                marginBottom: "2rem", 
+                position: "relative", 
+                minHeight: "400px", 
+                width: "100%",
+                overflow: "hidden",
+                cursor: isZoomed ? "zoom-in" : "pointer",
+                boxShadow: isZoomed ? "0 10px 25px rgba(0,0,0,0.06)" : "0 2px 6px rgba(0,0,0,0.02)",
+                transition: "box-shadow 0.25s ease",
+                userSelect: "none",
+              }}
+            >
               <img 
                 src={images[currentImageIndex]} 
                 alt={`${title} - Vista ${currentImageIndex + 1}`} 
-                style={{ width: "100%", height: "auto", objectFit: "contain", maxHeight: "450px" }} 
+                style={{ 
+                  width: "100%", 
+                  height: "auto", 
+                  objectFit: "contain", 
+                  maxHeight: "450px",
+                  transform: isZoomed ? "scale(2.3)" : "scale(1)",
+                  transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                  transition: isZoomed ? "transform 0.08s ease-out" : "transform 0.3s ease-out, transform-origin 0.3s ease-out",
+                  pointerEvents: "none",
+                  willChange: "transform, transform-origin",
+                }} 
               />
+
+              {/* Badge indicador de zoom */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "12px",
+                  right: "12px",
+                  backgroundColor: "rgba(17, 24, 39, 0.72)",
+                  backdropFilter: "blur(4px)",
+                  color: "#fff",
+                  padding: "5px 11px",
+                  borderRadius: "20px",
+                  fontSize: "0.75rem",
+                  fontWeight: 500,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  pointerEvents: "none",
+                  opacity: isZoomed ? 0 : 0.88,
+                  transition: "opacity 0.25s ease",
+                  zIndex: 5,
+                }}
+              >
+                <ZoomIn size={14} />
+                <span>Pasa el cursor para ampliar</span>
+              </div>
+
               {/* Flechas (solo si hay más de 1 imagen) */}
               {images.length > 1 && (
                 <>
                   <button 
-                    onClick={() => setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1)}
-                    className="product-detail-arrow-left" style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", background: "white", border: "1px solid #eaeaea", borderRadius: "50%", width: "45px", height: "45px", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", color: "#333", transition: "all 0.2s", zIndex: 10 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1);
+                    }}
+                    className="product-detail-arrow-left" 
+                    style={{ 
+                      position: "absolute", 
+                      top: "50%", 
+                      transform: "translateY(-50%)", 
+                      background: "white", 
+                      border: "1px solid #eaeaea", 
+                      borderRadius: "50%", 
+                      width: "45px", 
+                      height: "45px", 
+                      display: "flex", 
+                      justifyContent: "center", 
+                      alignItems: "center", 
+                      cursor: "pointer", 
+                      boxShadow: "0 4px 15px rgba(0,0,0,0.1)", 
+                      color: "#333", 
+                      transition: "opacity 0.2s ease, border-color 0.2s", 
+                      zIndex: 10,
+                      opacity: isZoomed ? 0 : 1,
+                      pointerEvents: isZoomed ? "none" : "auto",
+                    }}
                     onMouseOver={(e) => e.currentTarget.style.borderColor = "#ccc"} 
-                    onMouseOut={(e) => e.currentTarget.style.borderColor = "#eaeaea"}>
+                    onMouseOut={(e) => e.currentTarget.style.borderColor = "#eaeaea"}
+                    aria-label="Imagen anterior"
+                  >
                     <ChevronLeft size={24} />
                   </button>
                   <button 
-                    onClick={() => setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1)}
-                    className="product-detail-arrow-right" style={{ position: "absolute", top: "50%", transform: "translateY(-50%)", background: "white", border: "1px solid #eaeaea", borderRadius: "50%", width: "45px", height: "45px", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", boxShadow: "0 4px 15px rgba(0,0,0,0.1)", color: "#333", transition: "all 0.2s", zIndex: 10 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1);
+                    }}
+                    className="product-detail-arrow-right" 
+                    style={{ 
+                      position: "absolute", 
+                      top: "50%", 
+                      transform: "translateY(-50%)", 
+                      background: "white", 
+                      border: "1px solid #eaeaea", 
+                      borderRadius: "50%", 
+                      width: "45px", 
+                      height: "45px", 
+                      display: "flex", 
+                      justifyContent: "center", 
+                      alignItems: "center", 
+                      cursor: "pointer", 
+                      boxShadow: "0 4px 15px rgba(0,0,0,0.1)", 
+                      color: "#333", 
+                      transition: "opacity 0.2s ease, border-color 0.2s", 
+                      zIndex: 10,
+                      opacity: isZoomed ? 0 : 1,
+                      pointerEvents: isZoomed ? "none" : "auto",
+                    }}
                     onMouseOver={(e) => e.currentTarget.style.borderColor = "#ccc"} 
-                    onMouseOut={(e) => e.currentTarget.style.borderColor = "#eaeaea"}>
+                    onMouseOut={(e) => e.currentTarget.style.borderColor = "#eaeaea"}
+                    aria-label="Siguiente imagen"
+                  >
                     <ChevronRight size={24} />
                   </button>
                 </>
@@ -206,6 +358,151 @@ export function ProductDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Modal / Lightbox Pantalla Completa al hacer clic */}
+      {isLightboxOpen && (
+        <div
+          onClick={() => setIsLightboxOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.9)",
+            backdropFilter: "blur(8px)",
+            zIndex: 99999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1.5rem",
+            cursor: "zoom-out",
+          }}
+        >
+          {/* Botón cerrar */}
+          <button
+            onClick={() => setIsLightboxOpen(false)}
+            aria-label="Cerrar vista ampliada"
+            style={{
+              position: "absolute",
+              top: "20px",
+              right: "20px",
+              background: "rgba(255, 255, 255, 0.15)",
+              border: "none",
+              borderRadius: "50%",
+              width: "46px",
+              height: "46px",
+              color: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background 0.2s",
+              zIndex: 100000,
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.3)")}
+            onMouseOut={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)")}
+          >
+            <X size={26} />
+          </button>
+
+          {/* Imagen ampliada */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              maxWidth: "92vw",
+              maxHeight: "90vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "default",
+            }}
+          >
+            <img
+              src={images[currentImageIndex]}
+              alt={`${title} - Vista completa`}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "85vh",
+                objectFit: "contain",
+                borderRadius: "12px",
+                boxShadow: "0 25px 60px rgba(0,0,0,0.6)",
+                backgroundColor: "white",
+                padding: "1rem",
+              }}
+            />
+
+            {/* Controles de navegación en el modal (si hay más de 1 imagen) */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex(prev => prev === 0 ? images.length - 1 : prev - 1);
+                  }}
+                  style={{
+                    position: "absolute",
+                    left: "-25px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "rgba(255, 255, 255, 0.95)",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: "48px",
+                    height: "48px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                    color: "#111",
+                  }}
+                  aria-label="Imagen anterior"
+                >
+                  <ChevronLeft size={28} />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setCurrentImageIndex(prev => prev === images.length - 1 ? 0 : prev + 1);
+                  }}
+                  style={{
+                    position: "absolute",
+                    right: "-25px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "rgba(255, 255, 255, 0.95)",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: "48px",
+                    height: "48px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.3)",
+                    color: "#111",
+                  }}
+                  aria-label="Siguiente imagen"
+                >
+                  <ChevronRight size={28} />
+                </button>
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "-32px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    color: "rgba(255, 255, 255, 0.85)",
+                    fontSize: "0.85rem",
+                    fontWeight: 600,
+                  }}
+                >
+                  {currentImageIndex + 1} / {images.length}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

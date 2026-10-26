@@ -348,6 +348,47 @@ export function resolveProductCategory(data: Record<string, any>): string {
  */
 export function resolveProductSubcategory(data: Record<string, any>): string {
   if (!data) return "";
+
+  const title = resolveProductTitle(data)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  const rawCat = String(data.categoria || data.Categoria || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  // Priority 1: High confidence title heuristics for Peripherals
+  if (title.includes("adaptador") || rawCat.includes("adaptador") || title.includes("converter") || title.includes("conversor") || title.includes("dongle")) {
+    return "ADAPTADOR";
+  }
+  if (title.includes("kit") || title.includes("combo") || title.includes("4 en 1") || (title.includes("teclado") && title.includes("mouse"))) {
+    return "KIT TECLADO Y MOUSE";
+  }
+  if (title.includes("audifono") || title.includes("auricular") || title.includes("headset")) {
+    return "AUDIFONOS";
+  }
+  if (title.includes("mouse") || title.includes("raton")) {
+    return "MOUSE";
+  }
+  if (title.includes("teclado") || title.includes("keyboard")) {
+    return "TECLADO";
+  }
+  if (title.includes("cable") || rawCat.includes("cable")) {
+    return "CABLE";
+  }
+  if (title.includes("cooler") || title.includes("ventilador") || title.includes("fan")) {
+    return "COOLER";
+  }
+  if (title.includes("parlante") || title.includes("speaker") || title.includes("bocina")) {
+    return "PARLANTES";
+  }
+  if (title.includes("webcam") || title.includes("camara") || title.includes("camweb")) {
+    return "WEBCAM (CAMARA)";
+  }
+
+  // Explicit subcategory field from Firestore
   const candidates = [
     data.subcategoria,
     data.Subcategoria,
@@ -359,16 +400,6 @@ export function resolveProductSubcategory(data: Record<string, any>): string {
   for (const c of candidates) {
     if (typeof c === "string" && c.trim()) return c.trim().toUpperCase();
   }
-
-  const rawCat = String(data.categoria || data.Categoria || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
-  const title = resolveProductTitle(data)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
 
   // Si es PC Completa: inferir Gamer, Oficina o Ingenierías
   if (
@@ -384,35 +415,6 @@ export function resolveProductSubcategory(data: Record<string, any>): string {
       return "PC COMPLETA OFICINA";
     }
     return "PC COMPLETA GAMER";
-  }
-
-  // Si es Periférico: inferir adaptador, audífonos, cable, cooler, teclado, etc.
-  if (title.includes("adaptador") || rawCat.includes("adaptador") || title.includes("converter") || title.includes("conversor") || title.includes("dongle")) {
-    return "ADAPTADOR";
-  }
-  if (title.includes("audifono") || title.includes("auricular") || title.includes("headset")) {
-    return "AUDIFONOS";
-  }
-  if (title.includes("cable") || rawCat.includes("cable")) {
-    return "CABLE";
-  }
-  if (title.includes("cooler") || title.includes("ventilador") || title.includes("fan")) {
-    return "COOLER";
-  }
-  if (title.includes("kit") || title.includes("combo teclado") || title.includes("4 en 1")) {
-    return "KIT TECLADO Y MOUSE";
-  }
-  if (title.includes("mouse") || title.includes("raton")) {
-    return "MOUSE";
-  }
-  if (title.includes("parlante") || title.includes("speaker") || title.includes("bocina")) {
-    return "PARLANTES";
-  }
-  if (title.includes("teclado") || title.includes("keyboard")) {
-    return "TECLADO";
-  }
-  if (title.includes("webcam") || title.includes("camara") || title.includes("camweb")) {
-    return "WEBCAM (CAMARA)";
   }
 
   return "";

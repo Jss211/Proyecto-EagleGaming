@@ -13,6 +13,8 @@ export const ADMIN_EMAILS: ReadonlySet<string> = new Set([
   "admin@eaglegaming.com",
   "eaglegamingperu@gmail.com",
   "administrador@eaglegaming.com",
+  "elizabethpumafarfaneg@gmail.com",
+  "tebotec10@gmail.com"
 ]);
 
 /**
