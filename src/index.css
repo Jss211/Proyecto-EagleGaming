@@ -3375,6 +3375,20 @@ img, video, svg, canvas {
   align-items: start;
 }
 
+.product-detail-reviews-section {
+  margin-top: 3.5rem;
+  padding-top: 2.5rem;
+  border-top: 1px solid #eaeaea;
+  width: 100%;
+}
+
+.product-reviews-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 3rem;
+  align-items: start;
+}
+
 .product-detail-arrow-left {
   left: -22px;
 }
@@ -3494,6 +3508,50 @@ img, video, svg, canvas {
   .product-detail-grid {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  .product-detail-reviews-section {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+  }
+
+  .product-reviews-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .atp-hero {
+    padding: 1.25rem 1.5rem;
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .atp-hero__title {
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
+    text-align: center;
+  }
+
+  .atp-hero__review-btn {
+    position: static;
+    transform: none;
+    top: auto;
+    right: auto;
+    width: auto;
+    max-width: 280px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    border-radius: 9999px;
+    padding: 0.45rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 auto;
+    cursor: pointer;
+    text-decoration: none;
   }
 
   .category-page-container {
@@ -3889,8 +3947,30 @@ img, video, svg, canvas {
   }
 
   .atp-hero__review-btn {
-    width: 100% !important;
+    position: static !important;
+    transform: none !important;
+    top: auto !important;
+    right: auto !important;
+    width: auto !important;
     max-width: 280px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.45) !important;
+    border-radius: 9999px !important;
+    padding: 0.45rem 1.25rem !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    margin: 0 auto !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+  }
+
+  .atp-hero__review-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+    text-decoration: none !important;
   }
 
   .atp-stepper {

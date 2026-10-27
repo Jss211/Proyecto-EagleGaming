@@ -304,9 +304,6 @@ export function ProductDetailPage() {
                 ))}
               </div>
             )}
-            
-            {/* Formulario de Reseñas */}
-            <ProductReviewForm productId={product.id} />
           </div>
 
           {/* Columna Derecha: Detalles del Producto */}
@@ -355,11 +352,16 @@ export function ProductDetailPage() {
                 width={380} 
               />
             </div>
-
-            {/* Lista de Reseñas */}
-            <ProductReviewList productId={product.id} />
           </div>
         </div>
+
+        {/* Sección de Reseñas: siempre debajo de la imagen, descripción y botón de carrito */}
+        <section className="product-detail-reviews-section">
+          <div className="product-reviews-grid">
+            <ProductReviewForm productId={product.id} />
+            <ProductReviewList productId={product.id} />
+          </div>
+        </section>
       </main>
 
       {/* Modal / Lightbox Pantalla Completa al hacer clic */}

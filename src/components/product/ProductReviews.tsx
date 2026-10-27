@@ -98,7 +98,7 @@ export function ProductReviewForm({ productId }: { productId: string }) {
   };
 
   return (
-    <div style={{ marginTop: "3rem", borderTop: "1px solid #eaeaea", paddingTop: "2rem", width: "100%" }}>
+    <div className="product-review-form-wrapper" style={{ width: "100%" }}>
       <h3 style={{ fontSize: "1.3rem", fontWeight: "700", marginBottom: "1.5rem", fontFamily: "var(--font-display)", color: "#111", textTransform: "uppercase" }}>
         Reseñas de clientes
       </h3>
@@ -292,7 +292,7 @@ export function ProductReviewList({ productId }: { productId: string }) {
     : 0;
 
   return (
-    <div style={{ width: "100%", marginTop: "3rem", borderTop: "1px solid transparent", paddingTop: "2rem" }}>
+    <div className="product-review-list-wrapper" style={{ width: "100%" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "2rem" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
           {[1, 2, 3, 4, 5].map((star) => (

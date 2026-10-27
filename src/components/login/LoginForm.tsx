@@ -122,7 +122,7 @@ export function LoginForm({ initialMode = 'login' }: LoginFormProps) {
   }
 
   return (
-    <div className="w-full max-w-md p-8">
+    <div className="w-full max-w-md mx-auto p-4 sm:p-6 md:p-8">
       {mode === 'login' ? (
         <>
           {/* Botón Volver a la tienda */}
@@ -140,11 +140,11 @@ export function LoginForm({ initialMode = 'login' }: LoginFormProps) {
             <img
               src="/logo-Eagle.png"
               alt="Eagle Gaming"
-              className="h-20 w-auto mb-4"
+              className="h-16 sm:h-20 w-auto mb-4"
             />
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2 leading-tight">
               Bienvenido a{' '}
-              <GradientText className="text-4xl font-bold">
+              <GradientText className="text-2xl sm:text-3xl md:text-4xl font-bold">
                 Eagle Gaming
               </GradientText>
             </h1>
@@ -283,9 +283,9 @@ export function LoginForm({ initialMode = 'login' }: LoginFormProps) {
             <img
               src="/logo-Eagle.png"
               alt="Eagle Gaming"
-              className="h-20 w-auto mb-4"
+              className="h-16 sm:h-20 w-auto mb-4"
             />
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 leading-tight">
               Recupera tu contraseña
             </h2>
             <p className="text-gray-600 text-sm leading-relaxed">
