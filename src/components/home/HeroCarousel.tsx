@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { HERO_SLIDES } from "../../data/mockData";
 
-const AUTO_PLAY_MS = 5000;
+const SLIDE_DURATION_MS = 6000;
 
 export function HeroCarousel() {
   const [current, setCurrent] = useState(0);
@@ -16,32 +16,35 @@ export function HeroCarousel() {
   }, []);
 
   useEffect(() => {
-    // Pause inactive videos
+    // 1. Pausar y reiniciar los videos que no están en el slide activo
     HERO_SLIDES.forEach((s, i) => {
       if (s.video) {
-        const video = document.getElementById(`video-${i}`) as HTMLVideoElement;
+        const video = document.getElementById(`video-${i}`) as HTMLVideoElement | null;
         if (video && i !== current) {
           video.pause();
         }
       }
     });
 
-    // If current slide has a video, play it and let its onEnded event trigger 'next'
+    // 2. Reproducir el video del slide activo
     if (HERO_SLIDES[current].video) {
-      const video = document.getElementById(`video-${current}`) as HTMLVideoElement;
-      if (video) {
-        video.currentTime = 0;
-        video.play().catch(() => {}); // catch to prevent uncaught promise errors if play is interrupted
+      const activeVideo = document.getElementById(`video-${current}`) as HTMLVideoElement | null;
+      if (activeVideo) {
+        activeVideo.muted = true; // Refuerzo para navegadores móviles / Safari
+        activeVideo.currentTime = 0;
+        const playPromise = activeVideo.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            // Manejo silencioso si las políticas de ahorro de energía o datos del navegador restringen el autoplay
+          });
+        }
       }
-      return;
     }
 
-    // Otherwise, use the standard timer
-    const timer = setInterval(next, AUTO_PLAY_MS);
+    // 3. Temporizador de avance automático constante para que nunca se congele
+    const timer = setInterval(next, SLIDE_DURATION_MS);
     return () => clearInterval(timer);
   }, [current, next]);
-
-
 
   return (
     <section className="hero-carousel" aria-label="Carrusel de promociones">
@@ -55,12 +58,18 @@ export function HeroCarousel() {
           {s.video && (
             <video
               id={`video-${i}`}
+              ref={(el) => {
+                if (el) el.muted = true;
+              }}
               className="hero-carousel__video"
+              autoPlay
               muted
+              loop
               playsInline
-              onEnded={next}
-              src={s.video}
-            />
+              preload="auto"
+            >
+              <source src={s.video} type="video/mp4" />
+            </video>
           )}
           {s.video && (
             <div 

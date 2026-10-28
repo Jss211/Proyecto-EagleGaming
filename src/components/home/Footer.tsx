@@ -121,7 +121,7 @@ export function Footer() {
                 <div className="eg-footer__cat-row">
                   <Link to="/categoria/memoria-ram" className="eg-footer__cat-link">Memoria RAM</Link>
                   <Link to="/categoria/perifericos" className="eg-footer__cat-link">Periféricos</Link>
-                  <Link to="/categoria/pc-completa" className="eg-footer__cat-link">PC completa</Link>
+                  <Link to="/categoria/pc-completa" className="eg-footer__cat-link">PC Completas</Link>
                   <Link to="/categoria/laptops" className="eg-footer__cat-link">Laptops</Link>
                 </div>
 

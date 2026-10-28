@@ -12,7 +12,7 @@ const CATEGORIES: Category[] = [
   { id: "laptops", label: "LAPTOPS", image: "/categorias/laptops.png" },
   { id: "refrigeracion", label: "REFRIGERACIÓN LÍQUIDA", image: "/categorias/refrigeración líquida.png" },
   { id: "monitores", label: "MONITORES", image: "/categorias/monitores.png" },
-  { id: "pc-completa", label: "PC COMPLETA", image: "/categorias/pc completa.png" },
+  { id: "pc-completa", label: "PC COMPLETAS", image: "/categorias/pc completa.png" },
   { id: "procesadores", label: "PROCESADORES", image: "/categorias/procesadores.png" },
   { id: "tarjetas-de-video", label: "TARJETA GRÁFICA", image: "/categorias/TARJETA gráfica.png" },
   { id: "case", label: "CASES", image: "/categorias/case_4.png" },

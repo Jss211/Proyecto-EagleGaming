@@ -1,23 +1,41 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
+const BASE_NAME = "EAGLE GAMING PERÚ";
+
 const ROUTE_TITLES: Record<string, string> = {
-  "/": "Eagle Gaming | Tienda de Computadoras y Componentes PC en Perú",
-  "/carrito": "Tu Carrito de Compras | Eagle Gaming",
-  "/admin": "Panel de Administración | Eagle Gaming",
-  "/admin-login": "Acceso Administrador | Eagle Gaming",
-  "/nosotros": "Sobre Nosotros | Eagle Gaming",
-  "/contactenos": "Contáctanos | Eagle Gaming",
-  "/buscar": "Resultados de Búsqueda | Eagle Gaming",
-  "/arma-tu-pc": "Arma tu PC Gamer a Medida | Eagle Gaming",
-  "/libro-de-reclamaciones": "Libro de Reclamaciones | Eagle Gaming",
-  "/reclamaciones": "Libro de Reclamaciones | Eagle Gaming",
-  "/login": "Iniciar Sesión | Eagle Gaming",
-  "/register": "Crear Cuenta | Eagle Gaming",
-  "/cuenta": "Mi Cuenta | Eagle Gaming",
-  "/forgot-password": "Recuperar Contraseña | Eagle Gaming",
-  "/terminos": "Términos y Condiciones | Eagle Gaming",
-  "/privacidad": "Política de Privacidad | Eagle Gaming",
+  "/": "EAGLE GAMING PERÚ: Tienda de componentes para pc",
+  "/carrito": `Tu Carrito de Compras | ${BASE_NAME}`,
+  "/admin": `Panel de Administración | ${BASE_NAME}`,
+  "/admin-login": `Acceso Administrador | ${BASE_NAME}`,
+  "/nosotros": `Sobre Nosotros | ${BASE_NAME}`,
+  "/contactenos": `Contáctanos | ${BASE_NAME}`,
+  "/buscar": `Resultados de Búsqueda | ${BASE_NAME}`,
+  "/arma-tu-pc": `Arma tu PC Gamer a Medida | ${BASE_NAME}`,
+  "/libro-de-reclamaciones": `Libro de Reclamaciones | ${BASE_NAME}`,
+  "/reclamaciones": `Libro de Reclamaciones | ${BASE_NAME}`,
+  "/login": `Iniciar Sesión | ${BASE_NAME}`,
+  "/register": `Crear Cuenta | ${BASE_NAME}`,
+  "/cuenta": `Mi Cuenta | ${BASE_NAME}`,
+  "/forgot-password": `Recuperar Contraseña | ${BASE_NAME}`,
+  "/terminos": `Términos y Condiciones | ${BASE_NAME}`,
+  "/privacidad": `Política de Privacidad | ${BASE_NAME}`,
+};
+
+const CATEGORY_TITLES: Record<string, string> = {
+  "pc-completa": "PC Completas",
+  "procesadores": "Procesadores",
+  "tarjetas-de-video": "Tarjetas de Video",
+  "monitores": "Monitores",
+  "laptops": "Laptops",
+  "perifericos": "Periféricos",
+  "memoria-ram": "Memorias RAM",
+  "disco-ssd": "Discos SSD",
+  "placa-madre": "Placas Madre",
+  "fuente-de-poder": "Fuentes de Poder",
+  "case": "Cases / Gabinetes",
+  "refrigeracion": "Refrigeración Líquida",
+  "estabilizador": "Estabilizadores",
 };
 
 // Frases estilo Platanitos / E-commerce cuando el usuario cambia de pestaña
@@ -37,27 +55,28 @@ export function useDynamicTitle(customTitle?: string) {
   const currentTitleRef = useRef<string>("");
 
   useEffect(() => {
-    let resolvedTitle = "Eagle Gaming | Tienda Gamer";
+    let resolvedTitle = "EAGLE GAMING PERÚ: Tienda de componentes para pc";
 
     if (customTitle) {
-      resolvedTitle = `${customTitle} | Eagle Gaming`;
+      resolvedTitle = `${customTitle} | ${BASE_NAME}`;
     } else if (ROUTE_TITLES[pathname]) {
       resolvedTitle = ROUTE_TITLES[pathname];
     } else if (pathname.startsWith("/categoria/")) {
-      const slug = pathname.replace("/categoria/", "").split("/")[0].replace(/-/g, " ");
-      const capitalized = slug.charAt(0).toUpperCase() + slug.slice(1);
-      resolvedTitle = `${capitalized} | Eagle Gaming`;
+      const catSlug = pathname.replace("/categoria/", "").split("/")[0].toLowerCase();
+      const prettyName = CATEGORY_TITLES[catSlug] || (
+        catSlug.replace(/-/g, " ").charAt(0).toUpperCase() + catSlug.replace(/-/g, " ").slice(1)
+      );
+      resolvedTitle = `${prettyName} | ${BASE_NAME}`;
     } else if (pathname.startsWith("/producto/")) {
-      resolvedTitle = "Detalle del Producto | Eagle Gaming";
+      resolvedTitle = `Detalle del Producto | ${BASE_NAME}`;
     }
 
     currentTitleRef.current = resolvedTitle;
     document.title = resolvedTitle;
 
-    // Manejar visibilidad de la pestaña (Efecto estilo Platanitos)
+    // Manejar visibilidad de la pestaña (Efecto persuasivo al cambiar de pestaña)
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Selecciona una frase aleatoria
         const randomAway = AWAY_TITLES[Math.floor(Math.random() * AWAY_TITLES.length)];
         document.title = randomAway;
       } else {

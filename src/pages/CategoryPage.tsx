@@ -523,7 +523,7 @@ const matchesSubcategory = (
 const LABEL_MAP: Record<string, string> = {
   "monitores":         "Monitores",
   "case":              "Case",
-  "pc-completa":       "PC Completa",
+  "pc-completa":       "PC Completas",
   "disco-ssd":         "Disco SSD",
   "memoria-ssd":       "Memoria SSD",
   "discos-ssd":        "Disco SSD",

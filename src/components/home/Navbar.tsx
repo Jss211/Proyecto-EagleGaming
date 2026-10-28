@@ -73,7 +73,7 @@ const CATEGORY_LINKS: Category[] = [
   },
   {
     id: "pc-completa",
-    label: "PC Completa",
+    label: "PC Completas",
     icon: Cpu,
     subcategories: [
       { id: "pc-gamer", label: "PC Gamer" },

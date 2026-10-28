@@ -1,5 +1,5 @@
 # ==============================================================================
-# .htaccess para Hostinger (Apache) - Eagle Gaming (React Vite SPA)
+# .htaccess de Producción - Eagle Gaming (React Vite SPA / Apache)
 # ==============================================================================
 
 <IfModule mod_rewrite.c>
@@ -7,32 +7,56 @@
   RewriteBase /
 
   # ----------------------------------------------------------------------------
-  # 1. FORZAR HTTPS Y VERSIÓN CANÓNICA
+  # 1. FORZAR HTTPS Y PROTOCOLO SEGURO
+  # Soporta servidores estándar y terminación SSL / proxies (Hostinger, Cloudflare)
   # ----------------------------------------------------------------------------
-  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTPS} off [OR]
+  RewriteCond %{HTTP:X-Forwarded-Proto} =http
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # ----------------------------------------------------------------------------
-  # 2. REDIRECCIONES 301 DESDE WORDPRESS ANTIGUO
+  # 2. REDIRECCIONES 301 DESDE URLs ANTIGUAS DE WORDPRESS / WOOCOMMERCE
+  # Preserva el posicionamiento SEO y enlaces externos previos
   # ----------------------------------------------------------------------------
+  # Tienda principal, catálogo y compras
   RewriteRule ^shop/?$ / [R=301,L]
   RewriteRule ^tienda/?$ / [R=301,L]
   RewriteRule ^cart/?$ /carrito [R=301,L]
   RewriteRule ^checkout/?$ /carrito [R=301,L]
   RewriteRule ^finalizar-compra/?$ /carrito [R=301,L]
+
+  # Mi Cuenta y autenticación antigua
   RewriteRule ^my-account/?$ /cuenta [R=301,L]
   RewriteRule ^mi-cuenta/?$ /cuenta [R=301,L]
+
+  # Contacto y Sobre Nosotros
   RewriteRule ^contact/?$ /contactenos [R=301,L]
   RewriteRule ^contacto/?$ /contactenos [R=301,L]
   RewriteRule ^about/?$ /nosotros [R=301,L]
   RewriteRule ^sobre-nosotros/?$ /nosotros [R=301,L]
+  RewriteRule ^quienes-somos/?$ /nosotros [R=301,L]
+
+  # Categorías de productos y blogs
   RewriteRule ^product-category/(.*)$ /categoria/$1 [R=301,L]
   RewriteRule ^categoria-producto/(.*)$ /categoria/$1 [R=301,L]
+  RewriteRule ^category/(.*)$ /categoria/$1 [R=301,L]
+
+  # Productos individuales de WooCommerce (/product/slug -> /producto/slug)
+  RewriteRule ^product/(.*)$ /producto/$1 [R=301,L]
+
+  # Tags, autores y feeds antiguos de WordPress
+  RewriteRule ^tag/(.*)$ / [R=301,L]
+  RewriteRule ^author/(.*)$ / [R=301,L]
+  RewriteRule ^feed/?$ / [R=301,L]
+
+  # Intentos de acceso a administración de WordPress
   RewriteRule ^wp-admin/?$ /admin-login [R=301,L]
   RewriteRule ^wp-login\.php$ /admin-login [R=301,L]
 
   # ----------------------------------------------------------------------------
-  # 3. SPA ROUTING: SERVIR index.html SI NO ES ARCHIVO O DIRECTORIO REAL
+  # 3. FALLBACK DE REACT (SPA ROUTING)
+  # Si la petición NO corresponde a un archivo físico ni a una carpeta física,
+  # redirige internamente a index.html para que React Router maneje la ruta.
   # ----------------------------------------------------------------------------
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
