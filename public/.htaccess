@@ -7,56 +7,49 @@
   RewriteBase /
 
   # ----------------------------------------------------------------------------
-  # 1. FORZAR HTTPS Y PROTOCOLO SEGURO
-  # Soporta servidores estándar y terminación SSL / proxies (Hostinger, Cloudflare)
+  # 1. FORZAR HTTPS (versión segura contra bucles de redirección en proxies)
   # ----------------------------------------------------------------------------
-  RewriteCond %{HTTPS} off [OR]
-  RewriteCond %{HTTP:X-Forwarded-Proto} =http
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # (Opcional) Forzar www -> sin www. Descomenta solo si www ya apunta al sitio.
+  # RewriteCond %{HTTP_HOST} ^www\.eaglegamingperu\.com$ [NC]
+  # RewriteRule ^(.*)$ https://eaglegamingperu.com/$1 [L,R=301]
 
   # ----------------------------------------------------------------------------
   # 2. REDIRECCIONES 301 DESDE URLs ANTIGUAS DE WORDPRESS / WOOCOMMERCE
-  # Preserva el posicionamiento SEO y enlaces externos previos
   # ----------------------------------------------------------------------------
-  # Tienda principal, catálogo y compras
   RewriteRule ^shop/?$ / [R=301,L]
   RewriteRule ^tienda/?$ / [R=301,L]
   RewriteRule ^cart/?$ /carrito [R=301,L]
   RewriteRule ^checkout/?$ /carrito [R=301,L]
   RewriteRule ^finalizar-compra/?$ /carrito [R=301,L]
 
-  # Mi Cuenta y autenticación antigua
   RewriteRule ^my-account/?$ /cuenta [R=301,L]
   RewriteRule ^mi-cuenta/?$ /cuenta [R=301,L]
 
-  # Contacto y Sobre Nosotros
   RewriteRule ^contact/?$ /contactenos [R=301,L]
   RewriteRule ^contacto/?$ /contactenos [R=301,L]
   RewriteRule ^about/?$ /nosotros [R=301,L]
   RewriteRule ^sobre-nosotros/?$ /nosotros [R=301,L]
   RewriteRule ^quienes-somos/?$ /nosotros [R=301,L]
 
-  # Categorías de productos y blogs
   RewriteRule ^product-category/(.*)$ /categoria/$1 [R=301,L]
   RewriteRule ^categoria-producto/(.*)$ /categoria/$1 [R=301,L]
   RewriteRule ^category/(.*)$ /categoria/$1 [R=301,L]
 
-  # Productos individuales de WooCommerce (/product/slug -> /producto/slug)
   RewriteRule ^product/(.*)$ /producto/$1 [R=301,L]
 
-  # Tags, autores y feeds antiguos de WordPress
   RewriteRule ^tag/(.*)$ / [R=301,L]
   RewriteRule ^author/(.*)$ / [R=301,L]
   RewriteRule ^feed/?$ / [R=301,L]
 
-  # Intentos de acceso a administración de WordPress
   RewriteRule ^wp-admin/?$ /admin-login [R=301,L]
   RewriteRule ^wp-login\.php$ /admin-login [R=301,L]
 
   # ----------------------------------------------------------------------------
   # 3. FALLBACK DE REACT (SPA ROUTING)
-  # Si la petición NO corresponde a un archivo físico ni a una carpeta física,
-  # redirige internamente a index.html para que React Router maneje la ruta.
   # ----------------------------------------------------------------------------
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
@@ -67,27 +60,18 @@
 # 4. SEGURIDAD: CABECERAS HTTP
 # ------------------------------------------------------------------------------
 <IfModule mod_headers.c>
-  # Prevenir clickjacking
   Header always set X-Frame-Options "SAMEORIGIN"
-
-  # Prevenir MIME-type sniffing
   Header always set X-Content-Type-Options "nosniff"
-
-  # Referrer Policy estricto
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
-
-  # HSTS (Forzar HTTPS en navegadores por 1 año)
   Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
-
-  # Permissions-Policy
   Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 
-  # Content-Security-Policy (Permite Firebase, Google Fonts, ImgBB, Formspree, YouTube/Maps)
-  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.google.com https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; frame-src 'self' https://www.google.com https://maps.google.com https://catbox.moe https://proyecto-eagle-gaming.firebaseapp.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://formspree.io https://formsubmit.co https://api.imgbb.com https://catbox.moe; object-src 'none';"
+  # CSP: Firebase, App Check (reCAPTCHA Enterprise), Google Analytics, Fonts, ImgBB, Formspree, Maps
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://apis.google.com https://www.google.com https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; frame-src 'self' https://www.google.com https://recaptcha.google.com https://maps.google.com https://catbox.moe https://proyecto-eagle-gaming.firebaseapp.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebasestorage.googleapis.com https://formspree.io https://formsubmit.co https://api.imgbb.com https://catbox.moe https://www.google.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com; object-src 'none'; base-uri 'self';"
 </IfModule>
 
 # ------------------------------------------------------------------------------
-# 5. BLOQUEO DE ARCHIVOS SENSIBLES (.env, .git, etc.)
+# 5. BLOQUEO DE ARCHIVOS SENSIBLES
 # ------------------------------------------------------------------------------
 <FilesMatch "^\.(env|git|htaccess|htpasswd|ini|log|sh)">
   Order allow,deny
@@ -95,7 +79,7 @@
 </FilesMatch>
 
 # ------------------------------------------------------------------------------
-# 6. COMPRESIÓN GZIP / DEFLATE
+# 6. COMPRESIÓN
 # ------------------------------------------------------------------------------
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript
@@ -104,17 +88,14 @@
 </IfModule>
 
 # ------------------------------------------------------------------------------
-# 7. CONTROL DE CACHÉ DE NAVEGADOR
+# 7. CACHÉ DE NAVEGADOR
 # ------------------------------------------------------------------------------
 <IfModule mod_expires.c>
   ExpiresActive On
-
-  # index.html NUNCA debe guardarse en caché para recibir despliegues al instante
   ExpiresByType text/html "access plus 0 seconds"
-
-  # Assets versionados con hash de Vite (CSS, JS, fuentes): caché por 1 año
   ExpiresByType text/css "access plus 1 year"
   ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType text/javascript "access plus 1 year"
   ExpiresByType font/woff2 "access plus 1 year"
   ExpiresByType font/woff "access plus 1 year"
   ExpiresByType image/webp "access plus 1 month"
@@ -122,3 +103,15 @@
   ExpiresByType image/jpeg "access plus 1 month"
   ExpiresByType image/svg+xml "access plus 1 month"
 </IfModule>
+
+# Evitar que se listen carpetas si falta un index
+Options -Indexes
+
+# Ocultar la versión del servidor
+ServerSignature Off
+
+# No exponer source maps ni archivos de respaldo
+<FilesMatch "\.(map|bak|sql|zip|log)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
