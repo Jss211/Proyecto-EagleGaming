@@ -2514,19 +2514,89 @@ body {
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
-  padding: 4rem 2rem;
+  gap: 2.5rem;
+  padding: 2.5rem 1.25rem 4rem;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .contact-section {
+    padding: 3rem 1.75rem 4rem;
+    gap: 3.5rem;
+  }
 }
 
 @media (min-width: 900px) {
   .contact-section {
     grid-template-columns: repeat(2, 1fr);
-    gap: 5rem;
+    gap: 4.5rem;
+    padding: 4rem 2rem;
   }
 }
 
 .faq-accordion {
   margin-top: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.contact-info-card {
+  border: 1px solid #eaeaea;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 2rem;
+  box-sizing: border-box;
+  background: #fafafb;
+}
+
+.contact-info-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.contact-info-row:last-child {
+  margin-bottom: 0;
+}
+
+@media (min-width: 480px) {
+  .contact-info-row {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+}
+
+.contact-info-label {
+  font-size: 0.82rem;
+  color: #666;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.contact-info-value {
+  font-size: 0.9rem;
+  color: #333;
+  flex: 1;
+  word-break: break-word;
+}
+
+.contact-col {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.contact-col form {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.contact-col input,
+.contact-col textarea {
+  box-sizing: border-box;
+  max-width: 100%;
 }
 
 

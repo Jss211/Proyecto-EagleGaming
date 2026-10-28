@@ -147,9 +147,9 @@ export function ContactPage() {
       <Navbar />
       <SecondaryNav />
 
-      <main style={{ background: "#fff", paddingBottom: "4rem" }}>
+      <main style={{ background: "#fff", paddingBottom: "4rem", overflowX: "hidden" }}>
         {/* Mapa */}
-        <section style={{ width: "100%", height: "420px" }}>
+        <section style={{ width: "100%", height: "clamp(280px, 40vh, 420px)" }}>
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3901.761763784013!2d-77.03923052409055!3d-12.05988588817743!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105c8c6f2a632bd%3A0xc6cfbe3d65b16956!2sAv.%20Garcilaso%20de%20la%20Vega%201348%2C%20Lima%2015001!5e0!3m2!1ses!2spe!4v1714151234567!5m2!1ses!2spe"
             width="100%"
@@ -164,7 +164,7 @@ export function ContactPage() {
 
         <section className="contact-section">
           {/* Columna Izquierda: Info y FAQs */}
-          <div className="contact-col">
+          <div className="contact-col" style={{ width: "100%", boxSizing: "border-box" }}>
             <h2
               className="product-title"
               style={{
@@ -177,24 +177,24 @@ export function ContactPage() {
               Preguntas frecuentes
             </h2>
 
-            <div style={{ border: "1px solid #eaeaea", padding: "1.5rem", marginBottom: "2rem" }}>
-              <div style={{ display: "flex", marginBottom: "1rem" }}>
-                <strong style={{ width: "120px", fontSize: "0.85rem", color: "#555" }}>
+            <div className="contact-info-card">
+              <div className="contact-info-row">
+                <strong className="contact-info-label">
                   UBICACIÓN:
                 </strong>
-                <span style={{ fontSize: "0.9rem", color: "#333", flex: 1 }}>
+                <span className="contact-info-value">
                   AV GARCILASO DE LA VEGA 1345 C.C. CYBERPLAZA TDA 1B-139, Lima, Perú
                 </span>
               </div>
-              <div style={{ display: "flex", marginBottom: "1rem" }}>
-                <strong style={{ width: "120px", fontSize: "0.85rem", color: "#555" }}>
+              <div className="contact-info-row">
+                <strong className="contact-info-label">
                   COMUNÍCATE:
                 </strong>
-                <span style={{ fontSize: "0.9rem", color: "#333", flex: 1 }}>
+                <span className="contact-info-value">
                   Teléfono:{" "}
                   <a
                     href="tel:986638034"
-                    style={{ color: "#364563", textDecoration: "none", fontWeight: "500" }}
+                    style={{ color: "#e81950", textDecoration: "none", fontWeight: "600" }}
                   >
                     986 638 034
                   </a>
@@ -204,20 +204,20 @@ export function ContactPage() {
                     href={`https://wa.me/${whatsappNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ color: "#364563", textDecoration: "none", fontWeight: "500" }}
+                    style={{ color: "#e81950", textDecoration: "none", fontWeight: "600" }}
                   >
                     +51 986 638 034
                   </a>
                 </span>
               </div>
-              <div style={{ display: "flex" }}>
-                <strong style={{ width: "120px", fontSize: "0.85rem", color: "#555" }}>
+              <div className="contact-info-row">
+                <strong className="contact-info-label">
                   ESCRÍBENOS:
                 </strong>
-                <span style={{ fontSize: "0.9rem", color: "#333", flex: 1 }}>
+                <span className="contact-info-value">
                   <a
                     href="mailto:eaglegamingperu@gmail.com"
-                    style={{ color: "#364563", textDecoration: "none", fontWeight: "500" }}
+                    style={{ color: "#e81950", textDecoration: "none", fontWeight: "600" }}
                   >
                     eaglegamingperu@gmail.com
                   </a>
@@ -231,7 +231,7 @@ export function ContactPage() {
 
             <div className="faq-accordion">
               {faqs.map((faq, index) => (
-                <div key={index} style={{ borderBottom: "1px solid #eaeaea", padding: "1rem 0" }}>
+                <div key={index} style={{ borderBottom: "1px solid #eaeaea", padding: "1rem 0", boxSizing: "border-box" }}>
                   <button
                     onClick={() => toggleFaq(index)}
                     style={{
@@ -244,16 +244,18 @@ export function ContactPage() {
                       textAlign: "left",
                       cursor: "pointer",
                       fontSize: "0.95rem",
-                      color: openFaq === index ? "#e81950" : "#555",
-                      fontWeight: openFaq === index ? "600" : "400",
-                      padding: 0,
+                      color: openFaq === index ? "#e81950" : "#333",
+                      fontWeight: openFaq === index ? "600" : "500",
+                      padding: "0.25rem 0",
+                      gap: "0.75rem",
+                      boxSizing: "border-box",
                     }}
                   >
-                    <span style={{ paddingRight: "1rem" }}>{faq.q}</span>
+                    <span style={{ flex: 1, paddingRight: "0.5rem" }}>{faq.q}</span>
                     {openFaq === index ? (
-                      <ChevronUp size={18} style={{ flexShrink: 0 }} />
+                      <ChevronUp size={18} style={{ flexShrink: 0, color: "#e81950" }} />
                     ) : (
-                      <ChevronDown size={18} style={{ flexShrink: 0 }} />
+                      <ChevronDown size={18} style={{ flexShrink: 0, color: "#888" }} />
                     )}
                   </button>
                   {openFaq === index && (
@@ -263,6 +265,7 @@ export function ContactPage() {
                         fontSize: "0.9rem",
                         color: "#555",
                         lineHeight: "1.6",
+                        wordBreak: "break-word",
                       }}
                     >
                       {faq.a.split("\n").map((line, i) => (
