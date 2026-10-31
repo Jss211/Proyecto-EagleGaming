@@ -1,0 +1,15 @@
+# Instalar SOLO en public_html/api/. Preservar el .htaccess raíz existente.
+Options -Indexes
+
+<FilesMatch "\.php$">
+    SetHandler application/x-lsphp84
+</FilesMatch>
+
+# Conserva el Bearer al pasar a PHP/FastCGI; no es una autorización por sí sola.
+<IfModule mod_setenvif.c>
+    SetEnvIfNoCase Authorization "^(Bearer [^[:space:]]+)$" HTTP_AUTHORIZATION=$1
+</IfModule>
+
+<FilesMatch "^(?!email-verification\.php$).+">
+    Require all denied
+</FilesMatch>

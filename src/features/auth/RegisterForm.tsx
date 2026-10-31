@@ -4,6 +4,7 @@ import { registerSchema, type RegisterFormValues } from "./auth.types";
 import { useRegister } from "./useRegister";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { EmailVerificationPanel } from './EmailVerificationPanel';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -17,11 +18,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     formState: { errors },
   } = useForm<RegisterFormValues>({ resolver: zodResolver(registerSchema) });
 
-  const { register, registerWithGoogle, isSubmitting, errorMessage } = useRegister();
+  const { register, registerWithGoogle, isSubmitting, errorMessage, createdUser, verificationCode, profileWarning } = useRegister();
 
   async function onSubmit(values: RegisterFormValues) {
-    const ok = await register(values);
-    if (ok) onSuccess?.();
+    await register(values);
   }
 
   async function handleGoogleClick() {
@@ -36,6 +36,16 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
       navigate("/");
     }
   };
+
+  if (createdUser) {
+    return <div className="auth-card">
+      <h1 className="auth-card__title">Tu cuenta está creada</h1>
+      {profileWarning && <p role="status" className="mt-3 text-sm leading-6 text-gray-700">{profileWarning}</p>}
+      <EmailVerificationPanel user={createdUser} initialCode={verificationCode} initialSending={isSubmitting} />
+      <Link to="/cuenta" className="register-form__submit inline-block text-center">Ir a Mi cuenta</Link>
+      <Link to="/" className="back-link mt-4 inline-block">Continuar en la tienda</Link>
+    </div>;
+  }
 
   return (
     <div className="auth-card">

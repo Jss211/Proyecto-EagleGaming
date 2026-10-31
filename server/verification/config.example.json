@@ -1,0 +1,6 @@
+{
+  "enabled": false,
+  "allowedOrigin": "https://store.example.test",
+  "continueUrl": "https://store.example.test/cuenta",
+  "actionOrigin": "https://auth.example.test"
+}

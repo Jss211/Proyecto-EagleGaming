@@ -1,0 +1,26 @@
+{
+  "name": "eagle-gaming/private-rest-verification",
+  "description": "Preparacion privada Firebase REST sin Kreait ni Sodium",
+  "type": "project",
+  "license": "proprietary",
+  "require": {
+    "php": "~8.4.0",
+    "ext-ctype": "*",
+    "ext-curl": "*",
+    "ext-filter": "*",
+    "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-openssl": "*",
+    "ext-pdo": "*",
+    "ext-pdo_sqlite": "*",
+    "firebase/php-jwt": "^7.2",
+    "google/auth": "^1.55",
+    "phpmailer/phpmailer": "^7.1"
+  },
+  "autoload": {
+    "psr-4": { "Eagle\\RestVerification\\": "src/" },
+    "files": ["src/Contracts.php"]
+  },
+  "config": { "allow-plugins": false, "sort-packages": true },
+  "scripts": { "test": "@php tests/run.php" }
+}

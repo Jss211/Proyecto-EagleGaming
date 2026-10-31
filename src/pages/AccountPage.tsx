@@ -27,6 +27,7 @@ import { isAdminUser } from "../utils/admin";
 import { getTimeGreeting, getUserDisplayName, getUserFirstName } from "../utils/userProfile";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
+import { EmailVerificationPanel } from '../features/auth/EmailVerificationPanel';
 
 export function AccountPage() {
   const navigate = useNavigate();
@@ -287,6 +288,7 @@ export function AccountPage() {
 
               {/* Main Details */}
             <section className="flex flex-col pb-8">
+              <EmailVerificationPanel key={currentUser.uid} user={currentUser} />
               <h2 className="mb-8 text-xl font-bold">Información Personal</h2>
               <div className="flex flex-col gap-6">
                 <InfoRow 

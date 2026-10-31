@@ -1,0 +1,9 @@
+{
+  "title": "Eagle Verification Mailer",
+  "description": "Consultar identidad y generar enlaces de verificacion para el servicio privado",
+  "stage": "GA",
+  "includedPermissions": [
+    "firebaseauth.users.get",
+    "firebaseauth.users.sendEmail"
+  ]
+}

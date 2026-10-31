@@ -1,0 +1,14 @@
+{
+  "enabled": false,
+  "project_id": "",
+  "allowed_origin": "https://store.example.test",
+  "continue_url": "https://store.example.test/cuenta",
+  "action_origin": "https://auth.example.test",
+  "service_account_file": "",
+  "state_directory": "",
+  "limiter_hmac_key": "",
+  "test_recipient_allowlist": ["test-user@example.test"],
+  "additional_public_roots": [],
+  "trusted_proxy_ips": [],
+  "smtp": { "enabled": false, "host": "", "port": 465, "security": "smtps", "username": "", "password": "", "from": "" }
+}

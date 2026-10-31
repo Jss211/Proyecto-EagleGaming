@@ -1,0 +1,14 @@
+¡Bienvenido a Eagle Gaming!
+
+Hola, {{CUSTOMER_NAME}}:
+
+Gracias por registrarte. Para completar tu cuenta y disfrutar de nuestros productos y servicios, confirma tu correo electrónico
+
+Verificar mi correo electrónico:
+{{VERIFICATION_URL}}
+
+Si no realizaste este registro, puedes ignorar este mensaje.
+
+Atentamente,
+
+Equipo Eagle Gaming Perú

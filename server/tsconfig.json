@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "types": ["node", "vite/client"],
+    "skipLibCheck": true,
+    "erasableSyntaxOnly": true
+  },
+  "include": ["verification/**/*.ts", "../src/features/auth/emailVerification.ts", "../src/features/auth/registrationFlow.ts"]
+}

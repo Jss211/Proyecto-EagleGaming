@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "typecheck:verification": "tsc -p server/tsconfig.json",
+    "test:verification": "node --test server/verification/verification.test.ts server/verification/registrationFlow.test.ts server/verification/verificationPanel.test.mjs",
+    "package:verification": "npm run build && node scripts/package-verification.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

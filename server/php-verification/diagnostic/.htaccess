@@ -1,0 +1,22 @@
+# Solo para una carpeta temporal NUEVA. Nunca copiar a public_html/.htaccess.
+Options -Indexes
+
+<FilesMatch "\.php$">
+    SetHandler application/x-lsphp84
+</FilesMatch>
+
+# BEGIN EAGLE SAFETY LOCK
+# Retirar SOLO este bloque tras configurar la proteccion de hPanel.
+# Antes de subir PHP, probar la proteccion con access-check.txt sin datos.
+<RequireAll>
+    Require all denied
+</RequireAll>
+# END EAGLE SAFETY LOCK
+
+# La carpeta de prueba solo necesita estos dos nombres.
+<FilesMatch "^(?!runtime-check\.php$|access-check\.txt$).+">
+    Require all denied
+</FilesMatch>
+
+# Conservar aqui las directivas de autenticacion creadas por hPanel.
+# No guardar usuarios, contrasenas ni rutas privadas en el repositorio.
