@@ -9,6 +9,8 @@ export interface Product {
   price: number;
   imageUrl?: string;
   inStock?: boolean;
+  sku?: string;
+  enMantenimiento?: boolean;
 }
 
 interface ProductCardProps {

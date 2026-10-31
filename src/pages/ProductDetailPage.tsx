@@ -4,9 +4,9 @@ import { useParams, Link } from "react-router-dom";
 import { Navbar } from "../components/home/Navbar";
 import { SecondaryNav } from "../components/home/SecondaryNav";
 import { Footer } from "../components/home/Footer";
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, ZoomIn, X, Wrench } from "lucide-react";
 import { LiquidMetalButton } from "../components/ui/liquid-metal-button";
 import { ProductReviewForm, ProductReviewList } from "../components/product/ProductReviews";
 import {
@@ -15,7 +15,10 @@ import {
   parsePrice,
   resolveAllProductImages,
   extractProductSpecifications,
+  resolveProductSku,
+  isProductInMaintenance,
 } from "../utils/productUtils";
+import { isAdminUser } from "../utils/admin";
 
 export function ProductDetailPage() {
   const { id } = useParams();
@@ -113,6 +116,39 @@ export function ProductDetailPage() {
   const title = resolveProductTitle(product);
   const price = parsePrice(product.precio ?? product.Precio);
   const images = resolveAllProductImages(product);
+  const skuCode = resolveProductSku(product.id, product);
+  const isMaintenance = isProductInMaintenance(product);
+  const userIsAdmin = isAdminUser(auth.currentUser?.email);
+
+  if (isMaintenance && !userIsAdmin) {
+    return (
+      <div className="home-page">
+        <Navbar />
+        <SecondaryNav />
+        <main style={{ maxWidth: "680px", margin: "4rem auto", padding: "2rem", textAlign: "center" }}>
+          <div style={{ width: "64px", height: "64px", backgroundColor: "#fef3c7", color: "#d97706", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1.5rem", border: "1px solid #fde68a" }}>
+            <Wrench size={32} />
+          </div>
+          <span style={{ fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", color: "#d97706", backgroundColor: "#fffbeb", padding: "4px 12px", borderRadius: "999px", border: "1px solid #fde68a" }}>
+            Publicación en Mantenimiento
+          </span>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 900, color: "#111827", marginTop: "1rem", marginBottom: "0.75rem" }}>
+            Producto en Mantenimiento Temporal
+          </h1>
+          <p style={{ fontSize: "0.95rem", color: "#4b5563", lineHeight: "1.6", marginBottom: "2rem" }}>
+            La publicación de <strong>"{title}"</strong> está siendo actualizada por nuestro equipo técnico y volverá a estar disponible muy pronto.
+          </p>
+          <Link
+            to="/"
+            style={{ display: "inline-flex", alignItems: "center", gap: "8px", backgroundColor: "#e81950", color: "#fff", padding: "0.75rem 1.75rem", borderRadius: "12px", fontWeight: 700, textDecoration: "none", fontSize: "0.9rem", boxShadow: "0 4px 12px rgba(232,25,80,0.25)" }}
+          >
+            Explorar otros productos en la tienda
+          </Link>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   // Imagen por defecto si no hay ninguna
   if (images.length === 0) {
@@ -123,6 +159,18 @@ export function ProductDetailPage() {
     <div className="home-page">
       <Navbar />
       <SecondaryNav />
+
+      {isMaintenance && userIsAdmin && (
+        <div style={{ backgroundColor: "#f59e0b", color: "#fff", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", fontWeight: "bold", fontSize: "0.85rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Wrench size={18} />
+            <span>MODO ADMINISTRADOR: Esta publicación está EN MANTENIMIENTO (Oculta para los clientes en la tienda).</span>
+          </div>
+          <Link to="/admin" style={{ backgroundColor: "#111827", color: "#fff", padding: "4px 12px", borderRadius: "6px", textDecoration: "none", fontSize: "0.75rem" }}>
+            Gestionar en Panel
+          </Link>
+        </div>
+      )}
 
       <main className="product-detail-main">
         {/* Breadcrumbs */}
@@ -308,9 +356,25 @@ export function ProductDetailPage() {
 
           {/* Columna Derecha: Detalles del Producto */}
           <div className="product-detail-info-col" style={{ flex: "1 1 500px", minWidth: 0, width: "100%" }}>
-            <h1 className="product-title" style={{ fontSize: "1.8rem", fontWeight: "bold", color: "#222", marginBottom: "1rem", lineHeight: "1.3" }}>
+            <h1 className="product-title" style={{ fontSize: "1.8rem", fontWeight: "bold", color: "#222", marginBottom: "0.5rem", lineHeight: "1.3" }}>
               {title}
             </h1>
+
+            {/* Fila de SKU, Disponibilidad y Estado */}
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "1rem", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.82rem", color: "#6b7280", fontWeight: "600" }}>
+                SKU: <strong style={{ color: "#111827", fontFamily: "monospace", letterSpacing: "0.05em", fontSize: "0.88rem" }}>{skuCode}</strong>
+              </span>
+              <span style={{ color: "#d1d5db" }}>|</span>
+              <span style={{ fontSize: "0.82rem", color: (product.stock ?? 10) <= 0 ? "#dc2626" : "#059669", fontWeight: "700" }}>
+                {(product.stock ?? 10) <= 0 ? "Agotado" : "En Stock"}
+              </span>
+              {isMaintenance && (
+                <span style={{ fontSize: "0.75rem", backgroundColor: "#fef3c7", color: "#b45309", padding: "2px 8px", borderRadius: "6px", fontWeight: "700", border: "1px solid #fde68a" }}>
+                  En Mantenimiento
+                </span>
+              )}
+            </div>
             
             <p className="product-title" style={{ fontSize: "2rem", fontWeight: "bold", color: "#e81950", marginBottom: "1rem" }}>
               S/ {price.toLocaleString("es-PE", { minimumFractionDigits: 2 })}

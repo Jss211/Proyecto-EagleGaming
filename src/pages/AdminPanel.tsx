@@ -5,6 +5,7 @@ import {
   onSnapshot, 
   addDoc, 
   setDoc, 
+  updateDoc,
   deleteDoc, 
   doc, 
   serverTimestamp 
@@ -31,7 +32,8 @@ import {
   UploadCloud, 
   ImagePlus, 
   Loader2,
-  FileText
+  FileText,
+  Barcode
 } from "lucide-react";
 import { AdminReclamaciones } from "../components/admin/AdminReclamaciones";
 import {
@@ -41,6 +43,10 @@ import {
   resolveProductImage,
   resolveProductTitle,
   resolveProductSubcategory,
+  resolveProductSku,
+  matchesSmartSearch,
+  isProductInMaintenance,
+  generateCanonicalSku,
   normalizeDocumentData,
 } from "../utils/productUtils";
 
@@ -292,6 +298,9 @@ interface ProductItem {
   categoria?: string;
   subcategoria?: string;
   stock?: number;
+  sku?: string;
+  hasExplicitSku?: boolean;
+  enMantenimiento?: boolean;
   imagenes?: string[];
   url?: string;
   url1?: string;
@@ -316,9 +325,12 @@ export function AdminPanel() {
   const [activeTab, setActiveTab] = useState<"productos" | "reclamaciones">("productos");
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedCat, setSelectedCat] = useState("Todas");
   const [selectedSubcatPerifericos, setSelectedSubcatPerifericos] = useState("Todas");
   const [selectedSubcatPc, setSelectedSubcatPc] = useState("Todas");
+  const [mantenimientoFilter, setMantenimientoFilter] = useState<"todos" | "mantenimiento">("todos");
+  const [batchUpdatingSku, setBatchUpdatingSku] = useState(false);
   
   // Modal & Form State
   const [showModal, setShowModal] = useState(false);
@@ -336,6 +348,8 @@ export function AdminPanel() {
   const [subcategoriaPc, setSubcategoriaPc] = useState<string>("PC COMPLETA GAMER");
   const [subcategoriaPerifericos, setSubcategoriaPerifericos] = useState<string>("AUDIFONOS");
   const [stock, setStock] = useState("10");
+  const [sku, setSku] = useState("");
+  const [enMantenimiento, setEnMantenimiento] = useState(false);
   const [imagenesText, setImagenesText] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [specsList, setSpecsList] = useState<SpecRow[]>([]);
@@ -426,13 +440,19 @@ export function AdminPanel() {
           const data = normalizeDocumentData(rawData);
           const canonical = resolveProductCategory(data);
           const subcat = resolveProductSubcategory(data);
+          const resolvedSku = resolveProductSku(d.id, data);
+          const hasExplicitSku = Boolean(data.sku || data.SKU || data.codigo || data.Codigo || data.cod || data.Cod);
+          const inMaint = isProductInMaintenance(data);
           list.push({ 
             id: d.id, 
             ...data,
             categoria: canonical,
             subcategoria: subcat,
             rawCategoria: data.categoria || data.Categoria || canonical,
-            precio: parsePrice(data.precio) 
+            precio: parsePrice(data.precio),
+            sku: resolvedSku,
+            hasExplicitSku,
+            enMantenimiento: inMaint
           });
         });
         setProducts(list);
@@ -467,6 +487,8 @@ export function AdminPanel() {
     setSubcategoriaPc(selectedSubcatPc !== "Todas" ? selectedSubcatPc : "PC COMPLETA GAMER");
     setSubcategoriaPerifericos(selectedSubcatPerifericos !== "Todas" ? selectedSubcatPerifericos : "AUDIFONOS");
     setStock("10");
+    setSku(generateCanonicalSku(defaultCat, ""));
+    setEnMantenimiento(false);
     setImagenesText("");
     setDescripcion("");
     setSpecsList([
@@ -499,6 +521,8 @@ export function AdminPanel() {
     }
 
     setStock(product.stock !== undefined ? String(product.stock) : "10");
+    setSku(product.sku || resolveProductSku(product.id, product));
+    setEnMantenimiento(Boolean(product.enMantenimiento));
     setDescripcion(product.descripcion || product.Descripcion || "");
 
     // 1. Recolectar TODAS las URLs de imágenes (url, url1, url2... e imagenes[])
@@ -655,6 +679,11 @@ export function AdminPanel() {
         dataToSave.subcategoria = subcategoriaPerifericos;
       }
 
+      // Guardar SKU y Estado de Publicación (Mantenimiento)
+      const cleanSku = (sku.trim() || resolveProductSku(editingId || "", { categoria })).toUpperCase();
+      dataToSave.sku = cleanSku;
+      dataToSave.enMantenimiento = Boolean(enMantenimiento);
+
       // Guardar primera imagen en 'url' y adicionales en 'url1', 'url2', 'url3'...
       dataToSave.url = finalUrls[0];
       for (let i = 1; i < finalUrls.length; i++) {
@@ -735,13 +764,68 @@ export function AdminPanel() {
     }
   };
 
-  // Filtrado por buscador, categoría Y subcategoría (para PC Completa y Periféricos)
-  const filteredProducts = products.filter((p) => {
-    const q = search.toLowerCase().trim();
-    const name = (p.titulo || p.nombre || "").toLowerCase();
-    const cat = (p.categoria || "").toLowerCase();
+  // Alternar rápidamente estado de Mantenimiento / Publicado con 1 clic
+  const handleToggleMantenimiento = async (p: ProductItem, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const nuevoEstado = !p.enMantenimiento;
+    const nombre = p.titulo || p.nombre || "Producto";
 
-    const matchesSearch = !q || name.includes(q) || cat.includes(q);
+    try {
+      await updateDoc(doc(db, "productos", p.id), {
+        enMantenimiento: nuevoEstado,
+        actualizadoEn: serverTimestamp(),
+      });
+      showToast(
+        "success",
+        nuevoEstado
+          ? `"${nombre}" puesto en Mantenimiento (oculto en tienda)`
+          : `"${nombre}" publicado y visible en la tienda`
+      );
+    } catch (err: any) {
+      console.error("Error al cambiar estado de mantenimiento:", err);
+      showToast("error", err?.message || "No se pudo actualizar el estado de publicación.");
+    }
+  };
+
+  // Asignar códigos SKU oficiales a todos los productos que no lo tengan guardado explícitamente en Firestore
+  const handleBatchAssignSkus = async () => {
+    const missing = products.filter((p) => !p.hasExplicitSku);
+    if (missing.length === 0) {
+      showToast("success", "¡Excelente! Todos los productos ya tienen un SKU oficial registrado en la base de datos.");
+      return;
+    }
+
+    if (
+      !window.confirm(
+        `Se asignarán y guardarán códigos SKU en la base de datos para los ${missing.length} productos que aún no lo tienen registrado en Firestore.\n\n¿Deseas continuar?`
+      )
+    ) {
+      return;
+    }
+
+    setBatchUpdatingSku(true);
+    let updated = 0;
+    try {
+      for (const p of missing) {
+        const canonicalSku = p.sku || resolveProductSku(p.id, p);
+        await updateDoc(doc(db, "productos", p.id), {
+          sku: canonicalSku,
+          actualizadoEn: serverTimestamp(),
+        });
+        updated++;
+      }
+      showToast("success", `¡Se guardaron ${updated} códigos SKU en la base de datos de Firebase exitosamente!`);
+    } catch (err: any) {
+      console.error("Error en asignación masiva de SKUs:", err);
+      showToast("error", err?.message || "Ocurrió un error al asignar SKUs en Firestore.");
+    } finally {
+      setBatchUpdatingSku(false);
+    }
+  };
+
+  // Filtrado por buscador, categoría, subcategoría y estado de mantenimiento
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = !search.trim() || matchesSmartSearch([p.titulo, p.nombre, p.categoria, p.subcategoria, p.sku], search);
     const matchesCat = matchesCategory(p, selectedCat);
 
     let matchesSubcat = true;
@@ -751,7 +835,12 @@ export function AdminPanel() {
       matchesSubcat = matchesPeripheralSubcat(p, selectedSubcatPerifericos);
     }
 
-    return matchesSearch && matchesCat && matchesSubcat;
+    let matchesMantenimiento = true;
+    if (mantenimientoFilter === "mantenimiento") {
+      matchesMantenimiento = Boolean(p.enMantenimiento);
+    }
+
+    return matchesSearch && matchesCat && matchesSubcat && matchesMantenimiento;
   });
 
   return (
@@ -882,19 +971,79 @@ export function AdminPanel() {
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Gestión de Productos</h2>
             <p className="text-xs text-slate-500 mt-1">
-              {products.length} productos en la base de datos ({filteredProducts.length} filtrados)
+              {products.length} productos en la base de datos ({filteredProducts.length} mostrados)
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Botón de Asignación Masiva de SKU si hay productos pendientes */}
+            {products.some((p) => !p.hasExplicitSku) && (
+              <button
+                type="button"
+                onClick={handleBatchAssignSkus}
+                disabled={batchUpdatingSku}
+                className="inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow-sm hover:shadow cursor-pointer disabled:opacity-60"
+                title="Escribe códigos SKU canónicos oficiales en Firestore para todos los productos existentes que aún no tienen SKU guardado"
+              >
+                {batchUpdatingSku ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Guardando SKUs...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    <span>Asignar SKUs a la BD ({products.filter((p) => !p.hasExplicitSku).length})</span>
+                  </>
+                )}
+              </button>
+            )}
+
             <button
               onClick={handleOpenCreate}
-              className="inline-flex items-center justify-center gap-2 bg-[#e81950] hover:bg-[#c01119] text-white font-bold text-sm px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 bg-[#e81950] hover:bg-[#c01119] text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition shadow-md hover:shadow-lg cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Publicar Nuevo Producto</span>
             </button>
           </div>
+        </div>
+
+        {/* Apartado de Filtros de Publicación / Mantenimiento */}
+        <div className="flex items-center gap-2 mb-4 p-1.5 bg-slate-200/80 rounded-2xl w-fit max-w-full overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setMantenimientoFilter("todos")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              mantenimientoFilter === "todos"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>Todos los Productos</span>
+            <span className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-md font-extrabold">
+              {products.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMantenimientoFilter("mantenimiento")}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+              mantenimientoFilter === "mantenimiento"
+                ? "bg-amber-500 text-white shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            <span>Apartado Mantenimiento</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-md font-extrabold ${
+                mantenimientoFilter === "mantenimiento" ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+              }`}
+            >
+              {products.filter((p) => p.enMantenimiento).length}
+            </span>
+          </button>
         </div>
 
         {/* Barra de Filtros por Categoría */}
@@ -1055,24 +1204,68 @@ export function AdminPanel() {
           )}
         </div>
 
-        {/* Buscador */}
-        <div className="bg-white rounded-xl p-3 shadow-sm border border-slate-200 mb-6 flex items-center gap-3">
-          <Search className="w-5 h-5 text-slate-400 ml-2" />
-          <input
-            type="text"
-            placeholder={`Buscar en ${selectedCat}... (por título, modelo o componente)`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1"
-            >
-              Limpiar
-            </button>
-          )}
+        {/* Buscador con sugerencias */}
+        <div className="relative mb-6">
+          <div className="bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-200 flex items-center gap-3">
+            <Search className="w-4 h-4 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Buscar producto, SKU o categoría..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setShowSuggestions(true); }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+              className="w-full bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none"
+            />
+            {search && (
+              <button
+                onMouseDown={() => { setSearch(""); setShowSuggestions(false); }}
+                className="text-slate-400 hover:text-slate-600 shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          {/* Dropdown de sugerencias — fuera del input div para posicionarse correctamente */}
+          {showSuggestions && search.trim().length >= 1 && (() => {
+            const q = search.toLowerCase().trim();
+            const suggestions = products
+              .filter((p) => {
+                const t = (p.titulo || p.nombre || "").toLowerCase();
+                const s = (p.sku || "").toLowerCase();
+                const c = (p.categoria || "").toLowerCase();
+                return t.includes(q) || s.includes(q) || c.includes(q);
+              })
+              .slice(0, 7);
+            if (suggestions.length === 0) return null;
+            return (
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden">
+                {suggestions.map((p) => {
+                  const title = resolveProductTitle(p);
+                  const imgUrl = resolveProductImage(p, "https://placehold.co/40x40?text=IMG");
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onMouseDown={() => { setSearch(title); setShowSuggestions(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-left transition border-b border-slate-100 last:border-0"
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={title}
+                        className="w-9 h-9 object-contain rounded-md border border-slate-100 bg-white shrink-0"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/40x40?text=IMG"; }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 truncate">{title}</p>
+                        <p className="text-[11px] text-slate-400">{p.categoria} · {p.sku}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Tabla de Productos */}
@@ -1086,7 +1279,7 @@ export function AdminPanel() {
             <div className="p-16 text-center text-slate-400 flex flex-col items-center gap-3">
               <Package className="w-12 h-12 stroke-[1.5]" />
               <p className="text-base font-bold text-slate-600">No se encontraron productos</p>
-              <p className="text-xs text-slate-400">Prueba cambiando la categoría o término de búsqueda.</p>
+              <p className="text-xs text-slate-400">Prueba cambiando la categoría, estado o término de búsqueda.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -1095,9 +1288,11 @@ export function AdminPanel() {
                   <tr>
                     <th className="py-3.5 px-4 w-16">Imagen</th>
                     <th className="py-3.5 px-4">Producto</th>
+                    <th className="py-3.5 px-4">SKU</th>
                     <th className="py-3.5 px-4">Categoría</th>
                     <th className="py-3.5 px-4">Precio</th>
                     <th className="py-3.5 px-4">Stock</th>
+                    <th className="py-3.5 px-4 text-center">Estado</th>
                     <th className="py-3.5 px-4 text-right">Acciones</th>
                   </tr>
                 </thead>
@@ -1119,7 +1314,14 @@ export function AdminPanel() {
                           />
                         </td>
                         <td className="py-3 px-4 font-semibold text-slate-900 max-w-xs truncate" title={title}>
-                          {title}
+                          <div className="flex flex-col">
+                            <span className="truncate">{title}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="font-mono text-xs text-slate-500">
+                            {p.sku}
+                          </span>
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex flex-col gap-1 items-start">
@@ -1143,6 +1345,20 @@ export function AdminPanel() {
                         </td>
                         <td className="py-3 px-4 font-medium text-slate-600">
                           {p.stock ?? 10}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleMantenimiento(p, e)}
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition cursor-pointer ${
+                              p.enMantenimiento
+                                ? "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                            }`}
+                            title={p.enMantenimiento ? "Clic para publicar" : "Clic para ocultar"}
+                          >
+                            {p.enMantenimiento ? "Oculto" : "Activo"}
+                          </button>
                         </td>
                         <td className="py-3 px-4 text-right">
                           <div className="inline-flex items-center gap-1.5">
@@ -1278,6 +1494,60 @@ export function AdminPanel() {
                       onChange={(e) => setStock(e.target.value)}
                       className="w-full px-3.5 py-2.5 border border-slate-300 rounded-xl text-sm focus:border-[#e81950] outline-none"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* SKU / Código del Producto */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-bold uppercase text-slate-700">
+                        Código SKU *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setSku(generateCanonicalSku(categoria, editingId || ""))}
+                        className="text-[11px] text-slate-400 hover:text-slate-700 font-medium flex items-center gap-1 cursor-pointer"
+                        title="Generar código automático"
+                      >
+                        <span>Generar</span>
+                      </button>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Ej: EG-PC-48A1"
+                        value={sku}
+                        onChange={(e) => setSku(e.target.value.toUpperCase())}
+                        className="w-full px-3.5 py-2.5 pl-9 border border-slate-300 rounded-xl text-sm font-mono font-bold text-slate-900 focus:border-[#e81950] outline-none"
+                        required
+                      />
+                      <Barcode className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Identificador único del producto para inventario y pedidos.
+                    </p>
+                  </div>
+
+                  {/* Apartado de Mantenimiento de Publicación */}
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-between">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-bold uppercase tracking-wider text-slate-700 ">
+                        Mantenimiento
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={enMantenimiento}
+                          onChange={(e) => setEnMantenimiento(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      </label>
+                    </div>
+                    <p className={`text-[11px] ${enMantenimiento ? "text-amber-600" : "text-slate-400"}`}>
+                      {enMantenimiento ? "Oculto en la tienda" : "Visible en la tienda"}
+                    </p>
                   </div>
                 </div>
 

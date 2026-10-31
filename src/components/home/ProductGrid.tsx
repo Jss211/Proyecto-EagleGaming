@@ -108,15 +108,7 @@ export function ProductGrid({
         </div>
       ) : mode === "grid" ? (
         /* ── Modo grid responsive ── */
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 220px), 1fr))",
-            gap: "1rem",
-            width: "100%",
-          }}
-          role="list"
-        >
+        <div className="product-grid" role="list">
           {visibleProducts.map((product) => (
             <div key={product.id} role="listitem">
               <ProductCard product={product} onAddToCart={handleAddToCart} />

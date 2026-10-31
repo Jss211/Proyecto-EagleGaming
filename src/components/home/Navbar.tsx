@@ -27,7 +27,18 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut, type User as FirebaseUser } from "firebase/auth";
-import { auth } from "../../firebase";
+import { auth, db } from "../../firebase";
+import { collection, getDocs } from "firebase/firestore";
+import {
+  normalizeDocumentData,
+  parsePrice,
+  resolveProductImage,
+  resolveProductTitle,
+  resolveProductCategory,
+  resolveProductSku,
+  isProductInMaintenance,
+  matchesSmartSearch,
+} from "../../utils/productUtils";
 import {
   getTimeGreeting,
   getUserDisplayName,
@@ -204,6 +215,86 @@ export function Navbar() {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Estados para sugerencias de búsqueda
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchProducts, setSearchProducts] = useState<
+    Array<{
+      id: string;
+      title: string;
+      price: number;
+      image: string;
+      category: string;
+      sku: string;
+    }>
+  >([]);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Cargar productos en memoria para sugerencias en tiempo real
+  useEffect(() => {
+    let active = true;
+    const fetchSearchProducts = async () => {
+      try {
+        const snap = await getDocs(collection(db, "productos"));
+        if (!active) return;
+        const list: Array<{
+          id: string;
+          title: string;
+          price: number;
+          image: string;
+          category: string;
+          sku: string;
+        }> = [];
+        snap.forEach((d) => {
+          const raw = d.data();
+          if (isProductInMaintenance(raw)) return;
+          const data = normalizeDocumentData(raw);
+          const title = resolveProductTitle(data);
+          const price = parsePrice(data.precio);
+          const image = resolveProductImage(data, "https://placehold.co/50x50?text=IMG");
+          const category = resolveProductCategory(data);
+          const sku = resolveProductSku(d.id, data);
+          list.push({ id: d.id, title, price, image, category, sku });
+        });
+        setSearchProducts(list);
+      } catch (err) {
+        console.error("Error cargando productos para buscador:", err);
+      }
+    };
+    fetchSearchProducts();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Cerrar sugerencias al hacer click fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+    if (showSuggestions) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showSuggestions]);
+
+  const suggestions = searchQuery.trim().length >= 1
+    ? searchProducts
+        .filter((p) => matchesSmartSearch([p.title, p.category, p.sku], searchQuery))
+        .slice(0, 6)
+    : [];
+
+  function handleSelectSuggestion(productId: string) {
+    setShowSuggestions(false);
+    navigate(`/producto/${productId}`);
+  }
+
   useEffect(() => onAuthStateChanged(auth, setCurrentUser), []);
 
   // Cierra el dropdown al hacer click afuera
@@ -236,6 +327,7 @@ export function Navbar() {
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (searchQuery.trim()) {
+      setShowSuggestions(false);
       navigate(`/buscar?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   }
@@ -374,17 +466,75 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Buscador */}
-        <form className="navbar__search" onSubmit={handleSearch} role="search">
-          <input
-            type="search"
-            className="navbar__search-input"
-            placeholder="Buscar productos..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Buscar productos"
-          />
-        </form>
+        {/* Buscador con Sugerencias en Vivo */}
+        <div className="navbar__search-wrapper" ref={searchContainerRef}>
+          <form className="navbar__search" onSubmit={handleSearch} role="search">
+            <input
+              type="search"
+              className="navbar__search-input"
+              placeholder="Buscar productos..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowSuggestions(true);
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              aria-label="Buscar productos"
+            />
+          </form>
+
+          {showSuggestions && searchQuery.trim().length >= 1 && (
+            <div className="navbar__suggestions-dropdown">
+              {suggestions.length > 0 ? (
+                <>
+                  <div className="navbar__suggestions-list">
+                    {suggestions.map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => handleSelectSuggestion(p.id)}
+                        className="navbar__suggestion-item"
+                      >
+                        <img
+                          src={p.image}
+                          alt={p.title}
+                          className="navbar__suggestion-img"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://placehold.co/48x48?text=IMG";
+                          }}
+                        />
+                        <div className="navbar__suggestion-info">
+                          <p className="navbar__suggestion-title">
+                            {p.title}
+                          </p>
+                          <div className="navbar__suggestion-meta">
+                            <span className="navbar__suggestion-cat">{p.category}</span>
+                            <span className="navbar__suggestion-sku">{p.sku}</span>
+                          </div>
+                        </div>
+                        <div className="navbar__suggestion-price">
+                          S/ {p.price.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => handleSearch(e)}
+                    className="navbar__suggestions-footer"
+                  >
+                    <span>Ver todos los resultados para "{searchQuery}"</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              ) : (
+                <div className="navbar__suggestions-empty">
+                  <p>No se encontraron productos para "{searchQuery}"</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Links */}
         <nav className="navbar__links" aria-label="Navegacion principal">

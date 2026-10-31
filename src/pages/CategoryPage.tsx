@@ -9,7 +9,13 @@ import { useCart } from "../context/CartContext";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { SlidersHorizontal, ChevronDown, ChevronUp } from "lucide-react";
-import { buildNormalizedProduct, normalizeDocumentData, resolveProductCategory, resolveProductSubcategory } from "../utils/productUtils";
+import { 
+  buildNormalizedProduct, 
+  normalizeDocumentData, 
+  resolveProductCategory, 
+  resolveProductSubcategory,
+  isProductInMaintenance
+} from "../utils/productUtils";
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -656,6 +662,9 @@ export function CategoryPage() {
         snapshot.docs.forEach((doc) => {
           const rawData = doc.data() as Record<string, unknown>;
           const data = normalizeDocumentData(rawData);
+
+          // Ocultar productos en mantenimiento para los clientes
+          if (isProductInMaintenance(data)) return;
 
           const matchesCat = matchesCategory(data, id);
           if (!matchesCat) return;

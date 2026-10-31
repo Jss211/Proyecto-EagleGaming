@@ -9,7 +9,7 @@ import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import type { Product } from "../components/home/ProductCard";
 import { CombosSection } from "../components/home/CombosSection";
-import { buildNormalizedProduct, normalizeDocumentData } from "../utils/productUtils";
+import { buildNormalizedProduct, normalizeDocumentData, isProductInMaintenance } from "../utils/productUtils";
 
 type CategoryKey =
   | "pc completa"
@@ -92,6 +92,10 @@ export function HomePage() {
         querySnapshot.docs.forEach((doc) => {
           const rawData = doc.data() as Record<string, unknown>;
           const data = normalizeDocumentData(rawData);
+
+          // Ocultar productos en mantenimiento para los clientes
+          if (isProductInMaintenance(data)) return;
+
           const product = buildNormalizedProduct(doc.id, data);
 
           if (isTrending(data)) {

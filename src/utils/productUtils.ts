@@ -481,6 +481,12 @@ export function extractProductSpecifications(
     "imagenes",
     "images",
     "stock",
+    "sku",
+    "codigo",
+    "enmantenimiento",
+    "mantenimiento",
+    "oculto",
+    "estado",
     "creadoen",
     "createdat",
     "actualizadoen",
@@ -521,6 +527,68 @@ export function extractProductSpecifications(
 }
 
 /**
+ * Genera un código SKU canónico para un producto basado en su categoría y su identificador único.
+ * Formato: EG-{PREFIJO}-{HASH_O_ID}
+ * Ejemplo: EG-PC-48A1, EG-GPU-9B2F, EG-PROC-3C8D
+ */
+export function generateCanonicalSku(category: string, idSuffix: string): string {
+  const normCat = (category || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  let prefix = "PROD";
+
+  if (normCat.includes("pc") || normCat.includes("computadora")) prefix = "PC";
+  else if (normCat.includes("tarjeta") || normCat.includes("video") || normCat.includes("grafica")) prefix = "GPU";
+  else if (normCat.includes("procesador") || normCat.includes("cpu")) prefix = "CPU";
+  else if (normCat.includes("ram") || normCat.includes("memoria ram")) prefix = "RAM";
+  else if (normCat.includes("disco") || normCat.includes("ssd") || normCat.includes("almacenamiento")) prefix = "SSD";
+  else if (normCat.includes("monitor")) prefix = "MON";
+  else if (normCat.includes("laptop")) prefix = "LAP";
+  else if (normCat.includes("placa") || normCat.includes("motherboard")) prefix = "MB";
+  else if (normCat.includes("fuente")) prefix = "PSU";
+  else if (normCat.includes("case") || normCat.includes("gabinete")) prefix = "CASE";
+  else if (normCat.includes("refrig") || normCat.includes("cooler")) prefix = "REF";
+  else if (normCat.includes("estabilizador") || normCat.includes("ups")) prefix = "EST";
+  else if (normCat.includes("periferic") || normCat.includes("audifono") || normCat.includes("teclado") || normCat.includes("mouse")) prefix = "PER";
+
+  const cleanSuffix = (idSuffix || Math.random().toString(36).substring(2, 7))
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(-4)
+    .toUpperCase()
+    .padStart(4, "0");
+
+  return `EG-${prefix}-${cleanSuffix}`;
+}
+
+/**
+ * Resuelve el SKU oficial de un producto. Si ya existe en Firestore (sku, SKU, codigo), lo devuelve limpio.
+ * Si aún no se ha guardado en la base de datos, genera uno determinista basado en su ID y categoría.
+ */
+export function resolveProductSku(id: string, data: Record<string, any>): string {
+  if (!data) return generateCanonicalSku("General", id);
+
+  const directSku = data.sku || data.SKU || data.codigo || data.Codigo || data.cod || data.Cod;
+  if (typeof directSku === "string" && directSku.trim()) {
+    return directSku.trim().toUpperCase();
+  }
+
+  const category = resolveProductCategory(data);
+  return generateCanonicalSku(category, id);
+}
+
+/**
+ * Determina si una publicación está en estado de mantenimiento (oculta del catálogo para clientes).
+ */
+export function isProductInMaintenance(data: Record<string, any>): boolean {
+  if (!data) return false;
+  return Boolean(
+    data.enMantenimiento === true ||
+    data.mantenimiento === true ||
+    data.oculto === true ||
+    data.estado === "mantenimiento" ||
+    data.estado === "oculto"
+  );
+}
+
+/**
  * Construye un objeto Product estándar para tarjetas y listados con todas las correcciones aplicadas.
  */
 export function buildNormalizedProduct(id: string, raw: Record<string, any>): Product {
@@ -529,6 +597,8 @@ export function buildNormalizedProduct(id: string, raw: Record<string, any>): Pr
   const price = parsePrice(clean.precio ?? clean.Precio);
   const imageUrl = resolveProductImage(clean);
   const category = String(clean.categoria || clean.Categoria || resolveProductCategory(clean));
+  const sku = resolveProductSku(id, clean);
+  const enMantenimiento = isProductInMaintenance(clean);
 
   return {
     id,
@@ -537,5 +607,59 @@ export function buildNormalizedProduct(id: string, raw: Record<string, any>): Pr
     price,
     imageUrl,
     inStock: clean.stock !== false && clean.stock !== 0,
+    sku,
+    enMantenimiento,
   };
+}
+
+/**
+ * Normaliza una cadena de texto para búsquedas: minúsculas, sin tildes ni caracteres extraños.
+ */
+export function normalizeSearchText(text: string): string {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .trim();
+}
+
+/**
+ * Genera variaciones y raíces gramaticales en español para soportar singular y plural.
+ * Ejemplo: "completas" -> ["completas", "completa"], "monitores" -> ["monitores", "monitor"].
+ */
+export function getWordStems(word: string): string[] {
+  const stems = [word];
+  if (word.length > 4 && word.endsWith("es")) {
+    stems.push(word.slice(0, -2));
+  }
+  if (word.length > 3 && word.endsWith("s")) {
+    stems.push(word.slice(0, -1));
+  }
+  return stems;
+}
+
+/**
+ * Motor de búsqueda inteligente:
+ * - Insensible a mayúsculas, minúsculas y tildes
+ * - Soporte bidireccional singular <-> plural ("pc completas" encuentra "PC Completa", "monitor" encuentra "Monitores")
+ * - Búsqueda multicampo y multitérmino en cualquier orden ("laptop lenovo 16gb")
+ */
+export function matchesSmartSearch(
+  fields: (string | number | undefined | null)[],
+  query: string
+): boolean {
+  if (!query || !query.trim()) return true;
+
+  const cleanQuery = normalizeSearchText(query);
+  const queryTokens = cleanQuery.split(/\s+/).filter(Boolean);
+  if (queryTokens.length === 0) return true;
+
+  const fullTarget = normalizeSearchText(fields.filter(Boolean).join(" "));
+
+  return queryTokens.every((token) => {
+    const stems = getWordStems(token);
+    return stems.some((stem) => fullTarget.includes(stem));
+  });
 }

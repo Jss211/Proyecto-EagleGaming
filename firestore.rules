@@ -38,16 +38,22 @@ service cloud.firestore {
                 && request.resource.data.stock <= 9999));
 
       allow update: if isAdmin()
-        && (!(request.resource.data.keys().hasAny(['titulo']))
+        // Solo valida los campos que REALMENTE cambian en este update
+        && (!(request.resource.data.diff(resource.data).affectedKeys().hasAny(['titulo']))
             || (request.resource.data.titulo is string
                 && request.resource.data.titulo.size() >= 2
                 && request.resource.data.titulo.size() <= 300))
-        && (!(request.resource.data.keys().hasAny(['precio']))
+        && (!(request.resource.data.diff(resource.data).affectedKeys().hasAny(['precio']))
             || isPositiveNumber(request.resource.data.precio))
-        && (!(request.resource.data.keys().hasAny(['stock']))
+        && (!(request.resource.data.diff(resource.data).affectedKeys().hasAny(['stock']))
             || (request.resource.data.stock is int
                 && request.resource.data.stock >= 0
-                && request.resource.data.stock <= 9999));
+                && request.resource.data.stock <= 9999))
+        && (!(request.resource.data.diff(resource.data).affectedKeys().hasAny(['sku']))
+            || (request.resource.data.sku is string
+                && request.resource.data.sku.size() <= 30))
+        && (!(request.resource.data.diff(resource.data).affectedKeys().hasAny(['enMantenimiento']))
+            || request.resource.data.enMantenimiento is bool);
 
       allow delete: if isAdmin();
     }

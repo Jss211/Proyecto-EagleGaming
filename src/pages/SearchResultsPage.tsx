@@ -7,7 +7,7 @@ import { db } from "../firebase";
 import { collection, getDocs, query } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import type { Product } from "../components/home/ProductCard";
-import { buildNormalizedProduct, normalizeDocumentData } from "../utils/productUtils";
+import { buildNormalizedProduct, normalizeDocumentData, isProductInMaintenance, matchesSmartSearch } from "../utils/productUtils";
 
 export function SearchResultsPage() {
   const [searchParams] = useSearchParams();
@@ -23,17 +23,27 @@ export function SearchResultsPage() {
       try {
         const querySnapshot = await getDocs(query(collection(db, "productos")));
         const filtered: Product[] = [];
-        const lowerTerm = term.toLowerCase();
 
         querySnapshot.docs.forEach((doc) => {
           const rawData = doc.data() as Record<string, unknown>;
           const data = normalizeDocumentData(rawData);
+
+          // Ocultar productos en mantenimiento para los clientes
+          if (isProductInMaintenance(data)) return;
+
           const product = buildNormalizedProduct(doc.id, data);
 
-          const nameMatch = product.name?.toLowerCase().includes(lowerTerm);
-          const categoryMatch = product.category?.toLowerCase().includes(lowerTerm);
+          const isMatch = matchesSmartSearch(
+            [
+              product.name,
+              product.category,
+              product.sku,
+              String(data.subcategoria || "")
+            ],
+            term
+          );
 
-          if (nameMatch || categoryMatch) {
+          if (isMatch) {
             filtered.push(product);
           }
         });
@@ -53,7 +63,7 @@ export function SearchResultsPage() {
       <SecondaryNav />
       <main className="home-main">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 w-full box-border">
-          <ProductGrid title={`Resultados para "${term}"`} products={results} />
+          <ProductGrid title={`Resultados para "${term}"`} products={results} mode="grid" />
         </div>
       </main>
       <Footer />

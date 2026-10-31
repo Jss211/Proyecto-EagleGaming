@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import { isProductInMaintenance } from "../utils/productUtils";
 
 export type CategoryAttribute = {
   id: string;
@@ -56,6 +57,7 @@ export function useCategoriesTree() {
 
         snapshot.docs.forEach(doc => {
           const data = doc.data();
+          if (isProductInMaintenance(data)) return;
           const rawCat = data.categoria || data.Categoria || "";
           if (!rawCat) return;
 

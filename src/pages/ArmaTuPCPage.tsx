@@ -268,9 +268,9 @@ export function ArmaTuPCPage() {
       setLoading(true);
       try {
         const snap = await getDocs(collection(db, "productos"));
-        const items: Product[] = snap.docs.map((doc) =>
-          buildProduct(doc.id, doc.data() as Record<string, unknown>)
-        );
+        const items: Product[] = snap.docs
+          .map((doc) => buildProduct(doc.id, doc.data() as Record<string, unknown>))
+          .filter((p) => !p.enMantenimiento);
         setAllDbProducts(items);
       } catch (err) {
         console.error("Error cargando productos de Firestore:", err);

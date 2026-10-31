@@ -1,6 +1,6 @@
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { parsePrice } from "./productUtils";
+import { parsePrice, isProductInMaintenance } from "./productUtils";
 import type { CartItem } from "../context/CartContext";
 
 export interface VerifiedCartItem {
@@ -59,6 +59,12 @@ export async function verifyCartWithFirestore(cartItems: CartItem[]): Promise<Ca
       const currentPrice = parsePrice(raw.precio ?? raw.Precio);
       const stock = typeof raw.stock === "number" ? raw.stock : 999;
       const title = (raw.titulo || raw.nombre || raw.título || item.name).trim();
+
+      if (isProductInMaintenance(raw)) {
+        result.errors.push(`El producto "${title}" se encuentra temporalmente en mantenimiento y no está disponible para compra.`);
+        result.valid = false;
+        continue;
+      }
 
       if (stock <= 0) {
         result.errors.push(`El producto "${title}" no cuenta con stock disponible en este momento.`);
