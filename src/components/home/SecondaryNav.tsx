@@ -45,8 +45,16 @@ export function SecondaryNav() {
         EL siguiente nivel de experiencia gaming
       </span>
 
-      {/* ── Centro: enlace directo a Arma tu PC ── */}
+      {/* ── Centro: enlaces directos ordenados y separados ── */}
       <div className="secondary-nav__center">
+        <NavLink
+          to="/blog"
+          className={({ isActive }) =>
+            `secondary-nav__link${isActive ? " active" : ""}`
+          }
+        >
+          BLOG
+        </NavLink>
         <NavLink
           to="/arma-tu-pc"
           className={({ isActive }) =>
@@ -60,7 +68,7 @@ export function SecondaryNav() {
       {/* ── Derecha: iconos enmarcados y horario ── */}
       <div className="secondary-nav__right">
         <a
-          href="https://www.instagram.com/eaglegaming_peru/"
+          href="https://www.instagram.com/eaglegaming_peru"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram"

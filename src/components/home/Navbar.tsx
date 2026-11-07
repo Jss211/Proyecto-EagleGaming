@@ -655,6 +655,7 @@ export function Navbar() {
       {mobileMenuOpen && (
         <nav className="navbar__mobile-nav">
           <NavLink to="/" end className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Inicio</NavLink>
+                    <NavLink to="/blog" className="navbar__mobile-link" onClick={() => setMobileMenuOpen(false)}>Blog</NavLink>
           <NavLink to="/arma-tu-pc" className="navbar__mobile-link font-bold text-[#e81950] flex items-center justify-between" onClick={() => setMobileMenuOpen(false)}>
             <span>Arma tu PC</span>
             <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Recomendado</span>

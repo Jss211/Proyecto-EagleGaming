@@ -14,27 +14,141 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+// ─── Iconos SVG del Stepper según diseño Figma ────────────────────────────────
+function IconCpu({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <rect x="9" y="9" width="6" height="6" />
+      <path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
+    </svg>
+  );
+}
+
+function IconMobo({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <rect x="6" y="6" width="6" height="6" />
+      <path d="M15 6h3v3h-3zM15 12h3M15 15h3M6 15h6v3H6zM15 18h3" />
+    </svg>
+  );
+}
+
+function IconRam({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-3v2h-2v-2H9v2H7v-2H4a2 2 0 0 1-2-2z" />
+      <path d="M6 9h2v4H6zm5 0h2v4h-2zm5 0h2v4h-2z" />
+    </svg>
+  );
+}
+
+function IconStorage({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <path d="M6 4v5h12V4" />
+      <circle cx="12" cy="14.5" r="2.5" />
+    </svg>
+  );
+}
+
+function IconGpu({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="8" cy="12" r="3" />
+      <circle cx="16" cy="12" r="3" />
+      <path d="M8 9v6M5 12h6M16 9v6M13 12h6M2 10h-1M2 14h-1" />
+    </svg>
+  );
+}
+
+function IconPsu({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M13 7l-3 5h4l-2 5" />
+      <circle cx="17" cy="7" r="1" fill={color} />
+      <circle cx="7" cy="17" r="1" fill={color} />
+    </svg>
+  );
+}
+
+function IconCase({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" />
+      <circle cx="12" cy="6" r="1" fill={color} />
+      <path d="M8 10h8M8 14h8M8 18h8" />
+    </svg>
+  );
+}
+
+function IconCooler({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M12 9.5C12 5.5 15.5 5 15.5 5S14 8 14.5 9.5" />
+      <path d="M14.5 12c4 0 4.5 3.5 4.5 3.5S16 14 14.5 14.5" />
+      <path d="M12 14.5c0 4-3.5 4.5-3.5 4.5S10 16 9.5 14.5" />
+      <path d="M9.5 12c-4 0-4.5-3.5-4.5-3.5S8 10 9.5 9.5" />
+    </svg>
+  );
+}
+
+function IconMonitor({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </svg>
+  );
+}
+
+function IconPeripherals({ active }: { active: boolean }) {
+  const color = active ? "#ffffff" : "#6b7280";
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="10" height="15" rx="5" />
+      <path d="M7 4v4" />
+      <path d="M16 6a4 4 0 0 1 4 4v7a3 3 0 0 1-3 3h-1" />
+      <path d="M15 13h2v4h-2z" />
+    </svg>
+  );
+}
+
 // ─── Definición de pasos ──────────────────────────────────────────────────────
 
 interface Step {
   id: string;
   label: string;
   categorySlug: string;
-  image: string;
   optional?: boolean;
+  renderIcon: (active: boolean) => React.ReactNode;
 }
 
 const STEPS: Step[] = [
-  { id: "procesador",     label: "PROCESADOR",       categorySlug: "procesadores",         image: "/categorias/procesadores.png" },
-  { id: "placa-madre",    label: "PLACA MADRE",      categorySlug: "placa-madre",          image: "/categorias/placa madre.png" },
-  { id: "memoria-ram",    label: "MEMORIA RAM",      categorySlug: "memoria-ram",          image: "/categorias/memoria RAM.png" },
-  { id: "almacenamiento", label: "ALMACENAMIENTO",   categorySlug: "memoria-ssd",          image: "/categorias/memoria ssd.png" },
-  { id: "tarjeta-video",  label: "TARJETA DE VIDEO", categorySlug: "tarjeta-grafica",      image: "/categorias/TARJETA gráfica.png" },
-  { id: "fuente-poder",   label: "FUENTE DE PODER",  categorySlug: "fuente-poder",         image: "/categorias/fuente de poder.png", optional: true },
-  { id: "case",           label: "CASE/GABINETE",    categorySlug: "case",                 image: "/categorias/case_4.png", optional: true },
-  { id: "refrigeracion",  label: "REFRIGERACIÓN",    categorySlug: "refrigeracion",        image: "/categorias/refrigeración líquida.png", optional: true },
-  { id: "monitor",        label: "MONITOR",          categorySlug: "monitores",            image: "/categorias/monitores.png", optional: true },
-  { id: "perifericos",    label: "PERIFERICOS",      categorySlug: "perifericos",          image: "/categorias/perifericos.png", optional: true },
+  { id: "procesador",     label: "PROCESADOR",       categorySlug: "procesadores",         renderIcon: (a) => <IconCpu active={a} /> },
+  { id: "placa-madre",    label: "PLACA MADRE",      categorySlug: "placa-madre",          renderIcon: (a) => <IconMobo active={a} /> },
+  { id: "memoria-ram",    label: "MEMORIA RAM",      categorySlug: "memoria-ram",          renderIcon: (a) => <IconRam active={a} /> },
+  { id: "almacenamiento", label: "ALMACENAMIENTO",   categorySlug: "memoria-ssd",          renderIcon: (a) => <IconStorage active={a} /> },
+  { id: "tarjeta-video",  label: "TARJETA DE VIDEO", categorySlug: "tarjeta-grafica",      renderIcon: (a) => <IconGpu active={a} /> },
+  { id: "fuente-poder",   label: "FUENTE DE PODER",  categorySlug: "fuente-poder",         renderIcon: (a) => <IconPsu active={a} />, optional: true },
+  { id: "case",           label: "CASE/GABINETE",    categorySlug: "case",                 renderIcon: (a) => <IconCase active={a} />, optional: true },
+  { id: "refrigeracion",  label: "REFRIGERACIÓN",    categorySlug: "refrigeracion",        renderIcon: (a) => <IconCooler active={a} />, optional: true },
+  { id: "monitor",        label: "MONITOR",          categorySlug: "monitores",            renderIcon: (a) => <IconMonitor active={a} />, optional: true },
+  { id: "perifericos",    label: "PERIFÉRICOS",      categorySlug: "perifericos",          renderIcon: (a) => <IconPeripherals active={a} />, optional: true },
 ];
 
 type Selection = Record<string, Product | null>;
@@ -57,11 +171,11 @@ function detectCpuInfo(name: string): { socket: CpuSocket; ram: RamType } {
   // Intel 12va, 13va, 14va Gen (LGA1700)
   if (
     n.includes("12100") || n.includes("12400") || n.includes("12600") || n.includes("12700") || n.includes("12900") ||
-    n.includes("13400") || n.includes("13600") || n.includes("13700") || n.includes("13900") ||
-    n.includes("14400") || n.includes("14600") || n.includes("14700") || n.includes("14900") ||
+    n.includes("13100") || n.includes("13400") || n.includes("13600") || n.includes("13700") || n.includes("13900") ||
+    n.includes("14100") || n.includes("14400") || n.includes("14600") || n.includes("14700") || n.includes("14900") ||
     n.includes("lga 1700") || n.includes("lga1700")
   ) {
-    return { socket: "LGA1700", ram: "DDR4" }; // Compatible con DDR4 / DDR5
+    return { socket: "LGA1700", ram: "DDR4" };
   }
 
   // Intel 10ma y 11va Gen (LGA1200)
@@ -82,17 +196,18 @@ function detectCpuInfo(name: string): { socket: CpuSocket; ram: RamType } {
 
   // AMD AM5 (Ryzen 7000 / 8000 / 9000)
   if (
-    n.includes("7600") || n.includes("7700") || n.includes("7800") || n.includes("7900") || n.includes("7950") ||
-    n.includes("8500") || n.includes("8600") || n.includes("8700") ||
+    n.includes("7500") || n.includes("7600") || n.includes("7700") || n.includes("7800") || n.includes("7900") || n.includes("7950") ||
+    n.includes("8400") || n.includes("8500") || n.includes("8600") || n.includes("8700") ||
+    n.includes("9600") || n.includes("9700") || n.includes("9800") || n.includes("9900") || n.includes("9950") ||
     n.includes("am5")
   ) {
     return { socket: "AM5", ram: "DDR5" };
   }
 
-  // AMD AM4 (Ryzen 1000 a 5000: 3600, 5600, 5700, 5800, etc.)
+  // AMD AM4 (Ryzen 1000 a 5000: 3200G, 3600, 4500, 5500, 5600, 5700, 5800, etc.)
   if (
     n.includes("5600") || n.includes("5700") || n.includes("5800") || n.includes("5500") || n.includes("5300") ||
-    n.includes("4600") || n.includes("4500") || n.includes("3600") || n.includes("3700") || n.includes("2600") ||
+    n.includes("4600") || n.includes("4500") || n.includes("4100") || n.includes("3600") || n.includes("3700") || n.includes("3200") || n.includes("2600") ||
     n.includes("am4")
   ) {
     return { socket: "AM4", ram: "DDR4" };
@@ -100,7 +215,7 @@ function detectCpuInfo(name: string): { socket: CpuSocket; ram: RamType } {
 
   return { socket: "OTHER", ram: "DDR4" };
 }
-// Helper to detect pre‑built PC or laptop entries
+
 function isPrebuiltPc(name: string, cat: string): boolean {
   const n = normalize(name);
   const c = normalize(cat);
@@ -118,7 +233,6 @@ function isPrebuiltPc(name: string, cat: string): boolean {
     "full pc",
   ];
   if (keywords.some((k) => c.includes(k) || n.includes(k))) return true;
-  // Heuristic: name contains two or more '+' symbols, typical for bundled specs
   if ((n.match(/\+/g) || []).length >= 2) return true;
   return false;
 }
@@ -134,7 +248,15 @@ interface SelectCardProps {
   onSelect: () => void;
 }
 
-function SelectCard({ product, stepLabel, badge = "NUEVO", badgeClass, isSelected, onSelect }: SelectCardProps) {
+function SelectCard({ product, stepLabel, badge, badgeClass, isSelected, onSelect }: SelectCardProps) {
+  // Categoría limpia para la tarjeta
+  const catLabel = useMemo(() => {
+    const n = normalize(product.name);
+    if (n.includes("intel")) return "INTEL PROCESADOR";
+    if (n.includes("amd") || n.includes("ryzen")) return "AMD PROCESADOR";
+    return stepLabel.toUpperCase();
+  }, [product.name, stepLabel]);
+
   return (
     <article
       onClick={onSelect}
@@ -144,7 +266,9 @@ function SelectCard({ product, stepLabel, badge = "NUEVO", badgeClass, isSelecte
       onKeyDown={(e) => e.key === "Enter" && onSelect()}
       aria-pressed={isSelected}
     >
-      <span className={`atp-card__badge ${badgeClass || ""}`}>{badge}</span>
+      {badge && (
+        <span className={`atp-card__badge ${badgeClass || ""}`}>{badge}</span>
+      )}
 
       {isSelected && (
         <span className="atp-card__check">
@@ -160,7 +284,7 @@ function SelectCard({ product, stepLabel, badge = "NUEVO", badgeClass, isSelecte
         />
       </div>
 
-      <p className="atp-card__cat">{stepLabel}</p>
+      <p className="atp-card__cat">{catLabel}</p>
       <h3 className="atp-card__name">{product.name}</h3>
 
       <div className="atp-card__stock">
@@ -212,7 +336,9 @@ function QuoteModal({ steps, selection, onClose }: QuoteModalProps) {
             const sel = selection[step.id];
             return (
               <li key={step.id} className={`atp-modal__row${sel ? "" : " atp-modal__row--empty"}`}>
-                <img src={step.image} alt={step.label} className="atp-modal__row-img" />
+                <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                  {step.renderIcon(false)}
+                </div>
                 <div className="atp-modal__row-info">
                   <span className="atp-modal__row-label">{step.label}</span>
                   <span className="atp-modal__row-product">
@@ -252,6 +378,8 @@ function QuoteModal({ steps, selection, onClose }: QuoteModalProps) {
 export function ArmaTuPCPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
+  const [selectedPlatform, setSelectedPlatform] = useState<"intel" | "amd" | null>(null);
+
   const [selection, setSelection] = useState<Selection>(() =>
     Object.fromEntries(STEPS.map((s) => [s.id, null]))
   );
@@ -288,6 +416,19 @@ export function ArmaTuPCPage() {
     return detectCpuInfo(selectedCpu.name);
   }, [selectedCpu]);
 
+  // Manejar selección de marca (Intel o AMD)
+  const handleSelectPlatform = (platform: "intel" | "amd") => {
+    if (selectedPlatform && selectedPlatform !== platform) {
+      setSelection((prev) => ({
+        ...prev,
+        procesador: null,
+        "placa-madre": null,
+      }));
+    }
+    setSelectedPlatform(platform);
+    setSearch("");
+  };
+
   // 3. Filtrar estrictamente por categoría y excluir ensambladas
   const stepProducts = useMemo(() => {
     if (allDbProducts.length === 0) return [];
@@ -296,23 +437,45 @@ export function ArmaTuPCPage() {
     const componentsOnly = allDbProducts.filter((p) => !isPrebuiltPc(p.name, p.category));
 
     const stepId = step.id;
-
     let matched: Product[] = [];
 
     if (stepId === "procesador") {
       matched = componentsOnly.filter((p) => {
         const c = normalize(p.category);
         const n = normalize(p.name);
-        return c.includes("procesador") || n.startsWith("procesador") || n.includes("core i") || n.includes("ryzen");
+        const isCpu = c.includes("procesador") || n.startsWith("procesador") || n.includes("core i") || n.includes("ryzen");
+        if (!isCpu) return false;
+
+        // Filtro por plataforma Intel o AMD si está seleccionada
+        if (selectedPlatform === "intel") {
+          return n.includes("intel") || n.includes("core i") || n.includes("celeron") || n.includes("pentium");
+        }
+        if (selectedPlatform === "amd") {
+          return n.includes("amd") || n.includes("ryzen") || n.includes("athlon");
+        }
+        return true;
       });
     } else if (stepId === "placa-madre") {
       matched = componentsOnly.filter((p) => {
         const c = normalize(p.category);
         const n = normalize(p.name);
-        const isMobo = c.includes("placa") || c.includes("mother") || n.includes("b450") || n.includes("b550") || n.includes("b650") || n.includes("b760") || n.includes("h610") || n.includes("h510") || n.includes("a520");
+        const isMobo =
+          c.includes("placa") ||
+          c.includes("mother") ||
+          n.includes("b450") ||
+          n.includes("b550") ||
+          n.includes("b650") ||
+          n.includes("b760") ||
+          n.includes("h610") ||
+          n.includes("h510") ||
+          n.includes("a520") ||
+          n.includes("z790") ||
+          n.includes("x670") ||
+          n.includes("h81") ||
+          n.includes("h110");
         if (!isMobo) return false;
 
-        // FILTRO DE COMPATIBILIDAD CON EL PROCESADOR SELECCIONADO:
+        // FILTRO DE COMPATIBILIDAD CON EL PROCESADOR O PLATAFORMA SELECCIONADA:
         if (cpuInfo) {
           if (cpuInfo.socket === "AM4") {
             return n.includes("am4") || n.includes("a320") || n.includes("b450") || n.includes("b550") || n.includes("x570") || n.includes("a520");
@@ -326,6 +489,36 @@ export function ArmaTuPCPage() {
           if (cpuInfo.socket === "LGA1200") {
             return n.includes("1200") || n.includes("h410") || n.includes("b460") || n.includes("h510") || n.includes("b560") || n.includes("z490") || n.includes("z590");
           }
+        } else if (selectedPlatform === "intel") {
+          return (
+            n.includes("1700") ||
+            n.includes("1200") ||
+            n.includes("1151") ||
+            n.includes("h610") ||
+            n.includes("b760") ||
+            n.includes("z790") ||
+            n.includes("b660") ||
+            n.includes("h510") ||
+            n.includes("b460") ||
+            n.includes("h410") ||
+            n.includes("h81") ||
+            n.includes("h110") ||
+            n.includes("lga")
+          );
+        } else if (selectedPlatform === "amd") {
+          return (
+            n.includes("am4") ||
+            n.includes("am5") ||
+            n.includes("a320") ||
+            n.includes("a520") ||
+            n.includes("b450") ||
+            n.includes("b550") ||
+            n.includes("x570") ||
+            n.includes("a620") ||
+            n.includes("b650") ||
+            n.includes("x670") ||
+            n.includes("b850")
+          );
         }
         return true;
       });
@@ -387,7 +580,7 @@ export function ArmaTuPCPage() {
     }
 
     return matched;
-  }, [allDbProducts, step.id, cpuInfo]);
+  }, [allDbProducts, step.id, selectedPlatform, cpuInfo]);
 
   // 4. Aplicar filtro de búsqueda si el usuario escribe
   const filteredProducts = useMemo(() => {
@@ -405,7 +598,6 @@ export function ArmaTuPCPage() {
       [step.id]: product,
     }));
 
-    // Auto-avance al siguiente paso compatible
     if (currentStep < STEPS.length - 1) {
       setTimeout(() => {
         setCurrentStep((s) => s + 1);
@@ -428,6 +620,16 @@ export function ArmaTuPCPage() {
   };
 
   const handlePrev = () => {
+    // Si estamos en procesadores y viendo el catálogo, volver a seleccionar Intel/AMD
+    if (currentStep === 0 && selectedPlatform !== null) {
+      setSelectedPlatform(null);
+      setSelection((prev) => ({
+        ...prev,
+        procesador: null,
+      }));
+      setSearch("");
+      return;
+    }
     if (currentStep > 0) {
       setCurrentStep((s) => s - 1);
       setSearch("");
@@ -435,92 +637,227 @@ export function ArmaTuPCPage() {
     }
   };
 
-  // Secciones divididas según diseño Figma
-  // Secciones con estructura del Figma pero criterio real de precios
-  const { secGaming, secDiseno, secAltaGama, secMejorValorada, secDestacados, secEconomico } = useMemo(() => {
+  // 6. Clasificación de Procesadores Intel (según Image 2)
+  const intelSections = useMemo(() => {
+    if (step.id !== "procesador" || selectedPlatform !== "intel") return null;
+
+    const procs = [...filteredProducts];
+    const s1Estudio: Product[] = [];
+    const s2Comienzos: Product[] = [];
+    const s3Multitarea: Product[] = [];
+    const s4Avanzado: Product[] = [];
+    const s5AltoRendimiento: Product[] = [];
+
+    const classified = new Set<string>();
+
+    procs.forEach((p) => {
+      const n = normalize(p.name);
+      // Tareas básicas: i3 10ma / Celeron / Pentium
+      if (n.includes("10100") || n.includes("10105") || n.includes("celeron") || n.includes("pentium") || n.includes("g6400")) {
+        s1Estudio.push(p);
+        classified.add(p.id);
+      }
+      // Comienzos gaming: i3 12va / 13va / 14va
+      else if (n.includes("12100") || n.includes("13100") || n.includes("14100")) {
+        s2Comienzos.push(p);
+        classified.add(p.id);
+      }
+      // Gaming o multitarea: i5 no K (10400, 11400, 12400, 13400, 14400)
+      else if (
+        (n.includes("i5") || n.includes("core i5")) &&
+        (n.includes("10400") || n.includes("11400") || n.includes("12400") || n.includes("13400") || n.includes("14400") || n.includes("10500") || n.includes("11500") || n.includes("12500")) &&
+        !n.includes("12600") && !n.includes("13600") && !n.includes("14600")
+      ) {
+        s3Multitarea.push(p);
+        classified.add(p.id);
+      }
+      // Gaming avanzado: i5 K (12600K, 13600K, 14600K) o i7 estándar (12700, 13700, 14700)
+      else if (
+        n.includes("12600k") || n.includes("13600k") || n.includes("14600k") ||
+        ((n.includes("i7") || n.includes("core i7")) && (n.includes("12700") || n.includes("13700") || n.includes("14700")) && !n.includes("kf") && !n.includes("14700k"))
+      ) {
+        s4Avanzado.push(p);
+        classified.add(p.id);
+      }
+      // Alto rendimiento: i7 K / KF / i9 (14700k, 14700kf, 13700k, 12700k, 10700k, 11700k, 12900, 13900, 14900)
+      else if (
+        n.includes("i9") || n.includes("core i9") ||
+        n.includes("14700k") || n.includes("14700kf") || n.includes("13700k") || n.includes("12700k") || n.includes("10700k") || n.includes("11700k")
+      ) {
+        s5AltoRendimiento.push(p);
+        classified.add(p.id);
+      }
+    });
+
+    // Asignación de procesadores que no hayan entrado en los filtros estrictos por precio
+    procs.forEach((p) => {
+      if (!classified.has(p.id)) {
+        if (p.price < 500) s1Estudio.push(p);
+        else if (p.price < 750) s2Comienzos.push(p);
+        else if (p.price < 1000) s3Multitarea.push(p);
+        else if (p.price < 1500) s4Avanzado.push(p);
+        else s5AltoRendimiento.push(p);
+      }
+    });
+
+    return {
+      secEstudio: s1Estudio,
+      secComienzos: s2Comienzos,
+      secMultitarea: s3Multitarea,
+      secAvanzado: s4Avanzado,
+      secAltoRendimiento: s5AltoRendimiento,
+    };
+  }, [filteredProducts, step.id, selectedPlatform]);
+
+  // 7. Clasificación de Procesadores AMD (según Image 3)
+  const amdSections = useMemo(() => {
+    if (step.id !== "procesador" || selectedPlatform !== "amd") return null;
+
+    const procs = [...filteredProducts];
+    const s1Estudio: Product[] = [];
+    const s2Comienzos: Product[] = [];
+    const s3Multitarea: Product[] = [];
+    const s4Avanzado: Product[] = [];
+    const s5AltoRendimiento: Product[] = [];
+
+    const classified = new Set<string>();
+
+    procs.forEach((p) => {
+      const n = normalize(p.name);
+      // Tareas básicas: Ryzen 3 / Athlon / Ryzen 5 4500
+      if (n.includes("3200g") || n.includes("3100") || n.includes("4100") || n.includes("4500") || n.includes("athlon")) {
+        s1Estudio.push(p);
+        classified.add(p.id);
+      }
+      // Comienzos gaming: Ryzen 5 5000 mainstream (5500, 5600, 5600g, 5600gt, 5600x)
+      else if (n.includes("5500") || n.includes("5600")) {
+        s2Comienzos.push(p);
+        classified.add(p.id);
+      }
+      // Multitarea: Ryzen 5 7000 / 8000 (7600, 7600x, 8400f, 8500g, 8600g)
+      else if (
+        n.includes("7500") || n.includes("7600") || n.includes("8400") || n.includes("8500") || n.includes("8600") || n.includes("9600")
+      ) {
+        s3Multitarea.push(p);
+        classified.add(p.id);
+      }
+      // Gaming avanzado: Ryzen 7 (5700x, 5700x3d, 5800x, 5800xt, 7700)
+      else if (
+        (n.includes("5700") || n.includes("5800") || n.includes("7700")) && !n.includes("7800")
+      ) {
+        s4Avanzado.push(p);
+        classified.add(p.id);
+      }
+      // Alto rendimiento: Ryzen 7 X3D (7800x3d) o Ryzen 9 (7900, 7950, 9900, 9950)
+      else if (
+        n.includes("7800x3d") || n.includes("9800x3d") || n.includes("ryzen 9") || n.includes("7900") || n.includes("7950") || n.includes("9900") || n.includes("9950")
+      ) {
+        s5AltoRendimiento.push(p);
+        classified.add(p.id);
+      }
+    });
+
+    // Fallback para no omitir ningún producto de la base de datos
+    procs.forEach((p) => {
+      if (!classified.has(p.id)) {
+        if (p.price < 400) s1Estudio.push(p);
+        else if (p.price < 700) s2Comienzos.push(p);
+        else if (p.price < 950) s3Multitarea.push(p);
+        else if (p.price < 1400) s4Avanzado.push(p);
+        else s5AltoRendimiento.push(p);
+      }
+    });
+
+    return {
+      secEstudio: s1Estudio,
+      secComienzos: s2Comienzos,
+      secMultitarea: s3Multitarea,
+      secAvanzado: s4Avanzado,
+      secAltoRendimiento: s5AltoRendimiento,
+    };
+  }, [filteredProducts, step.id, selectedPlatform]);
+
+  // 8. Secciones para los demás componentes (Placa Madre, etc. - según Image 4)
+  const generalSections = useMemo(() => {
+    if (step.id === "procesador") return null;
+
     const empty = {
-      secGaming: [],
-      secDiseno: [],
-      secAltaGama: [],
+      secGamingAlto: [] as Product[],
+      secOficinaBasico: [] as Product[],
       secMejorValorada: null as Product | null,
-      secDestacados: [],
-      secEconomico: [],
+      secPreciosEconomicos: [] as Product[],
+      secPrecioEconomico: [] as Product[],
+      secNuestrosProductos: [] as Product[],
     };
 
     if (filteredProducts.length === 0) return empty;
 
-    // Ordenar de mayor a menor precio para identificar los niveles
     const sorted = [...filteredProducts].sort((a, b) => b.price - a.price);
     const withPrice = sorted.filter((p) => p.price > 0);
 
-    // Caso: sin precios → mostrar todo como "económico"
-    if (withPrice.length === 0) return { ...empty, secEconomico: filteredProducts };
+    if (withPrice.length === 0) {
+      return { ...empty, secNuestrosProductos: filteredProducts };
+    }
 
     const prices = withPrice.map((p) => p.price);
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     const range = max - min;
 
-    // Caso: todos el mismo precio → todo en económico
-    if (range === 0) return { ...empty, secEconomico: filteredProducts };
+    const highCut = min + range * 0.65;
+    const midCut = min + range * 0.35;
 
-    const highCut = min + range * 0.67; // por encima → alta gama
-    const lowCut  = min + range * 0.34; // por debajo → económico
-    // entre lowCut y highCut → gama media
+    // Alta gama
+    const gamingAlto = sorted.filter((p) => p.price >= highCut).slice(0, 4);
 
-    // Alta gama: todos los productos en el tercio superior de precio (desc)
-    const altaGama = sorted.filter((p) => p.price > highCut);
+    // Oficina / básico (rango medio/alto)
+    const oficinaBasico = sorted
+      .filter((p) => p.price < highCut && p.price >= midCut)
+      .slice(0, 4);
 
-    // Gama media (incluye productos sin precio)
-    const mediaGama = [
-      ...sorted.filter((p) => p.price > lowCut && p.price <= highCut),
-      ...filteredProducts.filter((p) => p.price === 0),
-    ];
-
-    // Económicos: tercio inferior, ordenados de menor a mayor
-    const economico = filteredProducts
-      .filter((p) => p.price > 0 && p.price <= lowCut)
-      .sort((a, b) => a.price - b.price);
-
-    // "Recomendados para gaming" → los 2 más caros de alta gama (mayor rendimiento)
-    const gaming = altaGama.slice(0, 2);
-
-    // "Recomendados para Diseño" → los 2 siguientes en precio (rendimiento equilibrado)
-    const diseno = altaGama.length >= 4
-      ? altaGama.slice(2, 4)
-      : mediaGama.slice(0, 2);
-
-    // "Opciones de alta gama" → el resto de alta gama no usado en gaming/diseño
-    const usedInTop = new Set([...gaming, ...diseno].map((p) => p.id));
-    const altaGamaResto = altaGama.filter((p) => !usedInTop.has(p.id));
-
-    // "Mejor valorada" → producto en el punto medio del precio (relación calidad-precio)
-    const midPrice = min + range * 0.45;
+    // Mejor valorada (producto con precio representativo)
+    const midPrice = min + range * 0.5;
     const mejorValorada = withPrice.reduce((best, p) =>
       Math.abs(p.price - midPrice) < Math.abs(best.price - midPrice) ? p : best
     );
 
-    // "Destacados" → 3 productos de gama media no usados como mejor valorada
-    const destacados = mediaGama
-      .filter((p) => p.id !== mejorValorada.id)
-      .slice(0, 3);
+    // Precios económicos
+    const preciosEconomicos = sorted
+      .filter((p) => p.price < midCut && p.price > 0 && p.id !== mejorValorada?.id)
+      .slice(0, 4);
+
+    // Precio económico (rango más accesible)
+    const precioEconomico = sorted
+      .filter((p) => p.price <= min + range * 0.2 && p.id !== mejorValorada?.id)
+      .slice(0, 4);
+
+    // Resto en Nuestros productos
+    const usedIds = new Set([
+      ...gamingAlto.map((p) => p.id),
+      ...oficinaBasico.map((p) => p.id),
+      mejorValorada?.id,
+      ...preciosEconomicos.map((p) => p.id),
+      ...precioEconomico.map((p) => p.id),
+    ].filter(Boolean));
+
+    const nuestrosProductos = filteredProducts.filter((p) => !usedIds.has(p.id));
 
     return {
-      secGaming: gaming,
-      secDiseno: diseno,
-      secAltaGama: altaGamaResto,
+      secGamingAlto: gamingAlto,
+      secOficinaBasico: oficinaBasico,
       secMejorValorada: mejorValorada,
-      secDestacados: destacados,
-      secEconomico: economico,
+      secPreciosEconomicos: preciosEconomicos,
+      secPrecioEconomico: precioEconomico,
+      secNuestrosProductos: nuestrosProductos,
     };
-  }, [filteredProducts]);
+  }, [filteredProducts, step.id]);
 
   return (
-    <div className="home-page">
+    <div className="home-page bg-white min-h-screen flex flex-col font-sans">
       <Navbar />
       <SecondaryNav />
 
-      <main className="atp-page">
+      <main className="atp-page w-full flex-1">
         {/* ── Breadcrumb idéntico a la imagen ── */}
         <div className="atp-breadcrumb">
           <button onClick={() => navigate("/")} className="atp-breadcrumb__back">
@@ -529,15 +866,15 @@ export function ArmaTuPCPage() {
           </button>
         </div>
 
-        {/* ── Banner hero rosado ── */}
+        {/* ── Banner hero rosado estilo Figma ── */}
         <div className="atp-hero">
           <h1 className="atp-hero__title">PASOS PARA ARMAR TU PC</h1>
           <button className="atp-hero__review-btn" onClick={() => setShowQuote(true)}>
-            Revisar compra
+            Revisar PC
           </button>
         </div>
 
-        {/* ── Stepper de 10 iconos ── */}
+        {/* ── Stepper de 10 iconos circulares según Image 1 ── */}
         <div className="atp-stepper">
           {STEPS.map((s, idx) => {
             const isDone = !!selection[s.id];
@@ -547,6 +884,13 @@ export function ArmaTuPCPage() {
                 key={s.id}
                 className={`atp-stepper__item${isActive ? " atp-stepper__item--active" : ""}${isDone ? " atp-stepper__item--done" : ""}`}
                 onClick={() => {
+                  if (idx === 0 && currentStep === 0) {
+                    setSelectedPlatform(null);
+                    setSelection((prev) => ({
+                      ...prev,
+                      procesador: null,
+                    }));
+                  }
                   setCurrentStep(idx);
                   setSearch("");
                 }}
@@ -554,7 +898,7 @@ export function ArmaTuPCPage() {
                 aria-current={isActive ? "step" : undefined}
               >
                 <div className="atp-stepper__icon-wrap">
-                  <img src={s.image} alt={s.label} className="atp-stepper__img" />
+                  {s.renderIcon(isActive)}
                 </div>
                 <span className="atp-stepper__label">{s.label}</span>
               </button>
@@ -562,16 +906,16 @@ export function ArmaTuPCPage() {
           })}
         </div>
 
-        {/* ── Área de contenido a ancho completo (sin sidebar lateral) ── */}
-        <div className="atp-content-full">
+        {/* ── Área de contenido a ancho completo ── */}
+        <div className="atp-content-full max-w-7xl mx-auto px-4 sm:px-8 py-6">
           {/* Encabezado del paso */}
-          <div className="atp-step-header">
-            <h2 className="atp-step-header__title">
-              <span className="atp-step-header__name">{step.label}</span>
-              <span className="atp-step-header__hint">
-                Revisa tu progreso en la opción "revisar compra"
-              </span>
+          <div className="atp-step-header mb-4 flex flex-wrap items-baseline gap-2">
+            <h2 className="text-xl sm:text-2xl font-black text-[#e81950] tracking-tight uppercase">
+              {step.label}
             </h2>
+            <span className="text-xs sm:text-sm text-gray-500 font-medium">
+              Revisa tu progeso en la opcion "revisar compra"
+            </span>
           </div>
 
           {/* Banner de compatibilidad inteligente si hay procesador seleccionado */}
@@ -585,27 +929,27 @@ export function ArmaTuPCPage() {
               display: "flex",
               alignItems: "center",
               gap: "0.5rem",
-              fontSize: "0.88rem",
+              fontSize: "0.85rem",
               color: "#1e40af",
             }}>
               <AlertCircle size={18} />
               <span>
-                Filtro de compatibilidad activo con tu <strong>{selectedCpu.name}</strong> ({cpuInfo?.socket}). Mostrando únicamente componentes 100% compatibles sin cuello de botella.
+                Filtro de compatibilidad activo con tu <strong>{selectedCpu.name}</strong> ({cpuInfo?.socket}). Mostrando únicamente componentes 100% compatibles.
               </span>
             </div>
           )}
 
-          {/* Barra de controles */}
-          <div className="atp-controls">
+          {/* Barra de controles: Anterior / Buscar / Omitir */}
+          <div className="atp-controls mb-6">
             <button
               className="atp-controls__prev"
               onClick={handlePrev}
-              disabled={currentStep === 0}
+              disabled={currentStep === 0 && selectedPlatform === null}
             >
               ← Anterior
             </button>
 
-            <div className="atp-controls__search-wrap">
+            <div className="atp-controls__search-wrap flex-1">
               <input
                 type="text"
                 className="atp-controls__search"
@@ -629,14 +973,51 @@ export function ArmaTuPCPage() {
             </button>
           </div>
 
-          <p className="atp-step-optional">
-            Este paso es opcional. Puedes elegir un componente o hacer clic en 'Omitir este paso' para continuar.
-          </p>
+          {/* ══════════════════════════════════════════════════════════════════════
+              CASO 1: PASO PROCESADOR SIN PLATAFORMA SELECCIONADA (Image 1)
+             ══════════════════════════════════════════════════════════════════════ */}
+          {currentStep === 0 && selectedPlatform === null ? (
+            <div className="atp-platform-wrap">
+              <h3 className="atp-platform-title">Selecciona tu plataforma</h3>
+              <p className="atp-platform-subtitle">
+                Elige si quieres armar tu PC con Intel o AMD para filtrar los componentes compatibles.
+              </p>
 
-          {/* Estado de carga */}
-          {loading ? (
+              <div className="atp-platform-grid">
+                {/* Tarjeta Intel */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectPlatform("intel")}
+                  className="atp-platform-card"
+                  aria-label="Plataforma Intel"
+                >
+                  <img
+                    src="/armatupc-proce/intel.png"
+                    alt="Intel"
+                    className="atp-platform-img"
+                  />
+                </button>
+
+                {/* Tarjeta AMD */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectPlatform("amd")}
+                  className="atp-platform-card"
+                  aria-label="Plataforma AMD Ryzen"
+                >
+                  <img
+                    src="/armatupc-proce/AMD.png"
+                    alt="AMD Ryzen"
+                    className="atp-platform-img"
+                  />
+                </button>
+              </div>
+            </div>
+          ) : loading ? (
+            /* Estado de carga */
             <div className="atp-loading">Cargando catálogo de productos...</div>
           ) : filteredProducts.length === 0 ? (
+            /* Estado vacío */
             <div className="atp-empty">
               No hay productos registrados en esta categoría aún en la base de datos.
               <br />
@@ -645,7 +1026,9 @@ export function ArmaTuPCPage() {
               </small>
             </div>
           ) : search.trim() ? (
-            /* Vista de búsqueda: Grid simple */
+            /* ══════════════════════════════════════════════════════════════════════
+                VISTA DE BÚSQUEDA ACTIVA
+               ══════════════════════════════════════════════════════════════════════ */
             <div className="atp-products-grid">
               {filteredProducts.map((product) => (
                 <SelectCard
@@ -657,64 +1040,64 @@ export function ArmaTuPCPage() {
                 />
               ))}
             </div>
-          ) : (
-            /* Vista por secciones – estructura Figma con criterio real de precios */
+          ) : currentStep === 0 && selectedPlatform === "intel" && intelSections ? (
+            /* ══════════════════════════════════════════════════════════════════════
+                CASO 2: PROCESADORES INTEL (Image 2)
+               ══════════════════════════════════════════════════════════════════════ */
             <div className="atp-sections-wrap">
+              {/* Fila 1: 2 Columnas (Estudio | Comienzos gaming) */}
+              <div className="atp-sections-row-2col">
+                {intelSections.secEstudio.length > 0 && (
+                  <section className="atp-section">
+                    <div className="atp-section__header">
+                      <h3 className="atp-section__title">Procesador para estudio o tareas basicas</h3>
+                    </div>
+                    <div className="atp-products-grid">
+                      {intelSections.secEstudio.map((product) => (
+                        <SelectCard
+                          key={product.id}
+                          product={product}
+                          stepLabel="INTEL PROCESADOR"
+                          isSelected={selection[step.id]?.id === product.id}
+                          onSelect={() => handleSelect(product)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
 
-              {/* Fila 1: Recomendados gaming (más caros) | Diseño (siguiente rango) */}
-              {(secGaming.length > 0 || secDiseno.length > 0) && (
-                <div className="atp-sections-row-2col">
-                  {secGaming.length > 0 && (
-                    <section className="atp-section">
-                      <div className="atp-section__header">
-                        <h3 className="atp-section__title">Recomendados para gaming</h3>
-                      </div>
-                      <div className="atp-products-grid">
-                        {secGaming.map((product) => (
-                          <SelectCard
-                            key={product.id}
-                            product={product}
-                            stepLabel={step.label}
-                            isSelected={selection[step.id]?.id === product.id}
-                            onSelect={() => handleSelect(product)}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                  {secDiseno.length > 0 && (
-                    <section className="atp-section">
-                      <div className="atp-section__header">
-                        <h3 className="atp-section__title">Recomendados para diseño gráfico</h3>
-                      </div>
-                      <div className="atp-products-grid">
-                        {secDiseno.map((product) => (
-                          <SelectCard
-                            key={product.id}
-                            product={product}
-                            stepLabel={step.label}
-                            isSelected={selection[step.id]?.id === product.id}
-                            onSelect={() => handleSelect(product)}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                </div>
-              )}
+                {intelSections.secComienzos.length > 0 && (
+                  <section className="atp-section">
+                    <div className="atp-section__header">
+                      <h3 className="atp-section__title">Ideal para tus comienzos gaming</h3>
+                    </div>
+                    <div className="atp-products-grid">
+                      {intelSections.secComienzos.map((product) => (
+                        <SelectCard
+                          key={product.id}
+                          product={product}
+                          stepLabel="INTEL PROCESADOR"
+                          isSelected={selection[step.id]?.id === product.id}
+                          onSelect={() => handleSelect(product)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
 
-              {/* Fila 2: Alta gama – resto de productos de precio alto */}
-              {secAltaGama.length > 0 && (
-                <section className="atp-section">
+              {/* Fila 2: Gaming o multitarea */}
+              {intelSections.secMultitarea.length > 0 && (
+                <section className="atp-section mb-10">
                   <div className="atp-section__header">
-                    <h3 className="atp-section__title">Opciones de alta gama</h3>
+                    <h3 className="atp-section__title">Procesador para gaming o multitarea</h3>
                   </div>
                   <div className="atp-products-grid">
-                    {secAltaGama.map((product) => (
+                    {intelSections.secMultitarea.map((product) => (
                       <SelectCard
                         key={product.id}
                         product={product}
-                        stepLabel={step.label}
+                        stepLabel="INTEL PROCESADOR"
                         isSelected={selection[step.id]?.id === product.id}
                         onSelect={() => handleSelect(product)}
                       />
@@ -723,57 +1106,18 @@ export function ArmaTuPCPage() {
                 </section>
               )}
 
-              {/* Fila 3: Mejor valorada (punto medio precio) | Destacados (gama media) */}
-              {(secMejorValorada || secDestacados.length > 0) && (
-                <div className="atp-sections-row-aside">
-                  {secMejorValorada && (
-                    <section className="atp-section">
-                      <div className="atp-section__header">
-                        <h3 className="atp-section__title">Opción mejor valorada</h3>
-                      </div>
-                      <SelectCard
-                        product={secMejorValorada}
-                        stepLabel={step.label}
-                        badge="DESTACADO"
-                        badgeClass="atp-card__badge--ciberwow"
-                        isSelected={selection[step.id]?.id === secMejorValorada.id}
-                        onSelect={() => handleSelect(secMejorValorada)}
-                      />
-                    </section>
-                  )}
-                  {secDestacados.length > 0 && (
-                    <section className="atp-section">
-                      <div className="atp-section__header">
-                        <h3 className="atp-section__title">Destacados</h3>
-                      </div>
-                      <div className="atp-products-grid">
-                        {secDestacados.map((product) => (
-                          <SelectCard
-                            key={product.id}
-                            product={product}
-                            stepLabel={step.label}
-                            isSelected={selection[step.id]?.id === product.id}
-                            onSelect={() => handleSelect(product)}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                </div>
-              )}
-
-              {/* Fila 4: Precio económico – tercio inferior de precio */}
-              {secEconomico.length > 0 && (
-                <section className="atp-section">
+              {/* Fila 3: Gaming avanzado y creación de contenido */}
+              {intelSections.secAvanzado.length > 0 && (
+                <section className="atp-section mb-10">
                   <div className="atp-section__header">
-                    <h3 className="atp-section__title">Precio económico</h3>
+                    <h3 className="atp-section__title">Procesador para gaming avanzado y creación de contenido</h3>
                   </div>
                   <div className="atp-products-grid">
-                    {secEconomico.map((product) => (
+                    {intelSections.secAvanzado.map((product) => (
                       <SelectCard
                         key={product.id}
                         product={product}
-                        stepLabel={step.label}
+                        stepLabel="INTEL PROCESADOR"
                         isSelected={selection[step.id]?.id === product.id}
                         onSelect={() => handleSelect(product)}
                       />
@@ -782,14 +1126,283 @@ export function ArmaTuPCPage() {
                 </section>
               )}
 
+              {/* Fila 4: Procesadores de alto rendimiento */}
+              {intelSections.secAltoRendimiento.length > 0 && (
+                <section className="atp-section mb-10">
+                  <div className="atp-section__header">
+                    <h3 className="atp-section__title">Procesadores de alto rendimiento</h3>
+                  </div>
+                  <div className="atp-products-grid">
+                    {intelSections.secAltoRendimiento.map((product) => (
+                      <SelectCard
+                        key={product.id}
+                        product={product}
+                        stepLabel="INTEL PROCESADOR"
+                        isSelected={selection[step.id]?.id === product.id}
+                        onSelect={() => handleSelect(product)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
-          )}
+          ) : currentStep === 0 && selectedPlatform === "amd" && amdSections ? (
+            /* ══════════════════════════════════════════════════════════════════════
+                CASO 3: PROCESADORES AMD (Image 3)
+               ══════════════════════════════════════════════════════════════════════ */
+            <div className="atp-sections-wrap">
+              {/* Fila 1: 2 Columnas (Estudio | Comienzos gaming) */}
+              <div className="atp-sections-row-2col">
+                {amdSections.secEstudio.length > 0 && (
+                  <section className="atp-section">
+                    <div className="atp-section__header">
+                      <h3 className="atp-section__title">Procesador para estudio o tareas basicas</h3>
+                    </div>
+                    <div className="atp-products-grid">
+                      {amdSections.secEstudio.map((product) => (
+                        <SelectCard
+                          key={product.id}
+                          product={product}
+                          stepLabel="AMD PROCESADOR"
+                          isSelected={selection[step.id]?.id === product.id}
+                          onSelect={() => handleSelect(product)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {amdSections.secComienzos.length > 0 && (
+                  <section className="atp-section">
+                    <div className="atp-section__header">
+                      <h3 className="atp-section__title">Ideal para tus comienzos gaming</h3>
+                    </div>
+                    <div className="atp-products-grid">
+                      {amdSections.secComienzos.map((product) => (
+                        <SelectCard
+                          key={product.id}
+                          product={product}
+                          stepLabel="AMD PROCESADOR"
+                          isSelected={selection[step.id]?.id === product.id}
+                          onSelect={() => handleSelect(product)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+
+              {/* Fila 2: Gaming o multitarea */}
+              {amdSections.secMultitarea.length > 0 && (
+                <section className="atp-section mb-10">
+                  <div className="atp-section__header">
+                    <h3 className="atp-section__title">Procesador para gaming o multitarea</h3>
+                  </div>
+                  <div className="atp-products-grid">
+                    {amdSections.secMultitarea.map((product) => (
+                      <SelectCard
+                        key={product.id}
+                        product={product}
+                        stepLabel="AMD PROCESADOR"
+                        isSelected={selection[step.id]?.id === product.id}
+                        onSelect={() => handleSelect(product)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Fila 3: 2 Columnas (Gaming avanzado | Alto rendimiento) */}
+              <div className="atp-sections-row-2col">
+                {amdSections.secAvanzado.length > 0 && (
+                  <section className="atp-section">
+                    <div className="atp-section__header">
+                      <h3 className="atp-section__title">Procesador para gaming avanzado y creación de contenido</h3>
+                    </div>
+                    <div className="atp-products-grid">
+                      {amdSections.secAvanzado.map((product) => (
+                        <SelectCard
+                          key={product.id}
+                          product={product}
+                          stepLabel="AMD PROCESADOR"
+                          isSelected={selection[step.id]?.id === product.id}
+                          onSelect={() => handleSelect(product)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {amdSections.secAltoRendimiento.length > 0 && (
+                  <section className="atp-section">
+                    <div className="atp-section__header">
+                      <h3 className="atp-section__title">Procesadores de alto rendimiento</h3>
+                    </div>
+                    <div className="atp-products-grid">
+                      {amdSections.secAltoRendimiento.map((product) => (
+                        <SelectCard
+                          key={product.id}
+                          product={product}
+                          stepLabel="AMD PROCESADOR"
+                          isSelected={selection[step.id]?.id === product.id}
+                          onSelect={() => handleSelect(product)}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </div>
+            </div>
+          ) : generalSections ? (
+            /* ══════════════════════════════════════════════════════════════════════
+                CASO 4: PLACA MADRE Y DEMÁS PASOS (Image 4)
+               ══════════════════════════════════════════════════════════════════════ */
+            <div className="atp-sections-wrap">
+              {/* Fila 1: Opciones gaming alto rendimiento | Opciones oficina/estudio/gaming básico */}
+              {(generalSections.secGamingAlto.length > 0 || generalSections.secOficinaBasico.length > 0) && (
+                <div className="atp-sections-row-2col">
+                  {generalSections.secGamingAlto.length > 0 && (
+                    <section className="atp-section">
+                      <div className="atp-section__header">
+                        <h3 className="atp-section__title">Opciones gaming de alto rendimiento</h3>
+                      </div>
+                      <div className="atp-products-grid">
+                        {generalSections.secGamingAlto.map((product) => (
+                          <SelectCard
+                            key={product.id}
+                            product={product}
+                            stepLabel={step.label}
+                            isSelected={selection[step.id]?.id === product.id}
+                            onSelect={() => handleSelect(product)}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {generalSections.secOficinaBasico.length > 0 && (
+                    <section className="atp-section">
+                      <div className="atp-section__header">
+                        <h3 className="atp-section__title">Opciones para oficina, estudio y gaming básico</h3>
+                      </div>
+                      <div className="atp-products-grid">
+                        {generalSections.secOficinaBasico.map((product) => (
+                          <SelectCard
+                            key={product.id}
+                            product={product}
+                            stepLabel={step.label}
+                            isSelected={selection[step.id]?.id === product.id}
+                            onSelect={() => handleSelect(product)}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              )}
+
+              {/* Fila 2: Opción mejor valorada | Precios económicos */}
+              {(generalSections.secMejorValorada || generalSections.secPreciosEconomicos.length > 0) && (
+                <div className="atp-sections-row-aside">
+                  {generalSections.secMejorValorada && (
+                    <section className="atp-section">
+                      <div className="atp-section__header">
+                        <h3 className="atp-section__title">Opcion mejor valorada</h3>
+                      </div>
+                      <SelectCard
+                        product={generalSections.secMejorValorada}
+                        stepLabel={step.label}
+                        badge="CIBERWOW"
+                        badgeClass="atp-card__badge--ciberwow"
+                        isSelected={selection[step.id]?.id === generalSections.secMejorValorada.id}
+                        onSelect={() => handleSelect(generalSections.secMejorValorada!)}
+                      />
+                    </section>
+                  )}
+
+                  {generalSections.secPreciosEconomicos.length > 0 && (
+                    <section className="atp-section">
+                      <div className="atp-section__header">
+                        <h3 className="atp-section__title">Precios economicos</h3>
+                      </div>
+                      <div className="atp-products-grid">
+                        {generalSections.secPreciosEconomicos.map((product) => (
+                          <SelectCard
+                            key={product.id}
+                            product={product}
+                            stepLabel={step.label}
+                            isSelected={selection[step.id]?.id === product.id}
+                            onSelect={() => handleSelect(product)}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  )}
+                </div>
+              )}
+
+              {/* Fila 3: Precio económico */}
+              {generalSections.secPrecioEconomico.length > 0 && (
+                <section className="atp-section mb-10">
+                  <div className="atp-section__header">
+                    <h3 className="atp-section__title">Precio economico</h3>
+                  </div>
+                  <div className="atp-products-grid">
+                    {generalSections.secPrecioEconomico.map((product) => (
+                      <SelectCard
+                        key={product.id}
+                        product={product}
+                        stepLabel={step.label}
+                        badge="NUEVO"
+                        isSelected={selection[step.id]?.id === product.id}
+                        onSelect={() => handleSelect(product)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Fila 4: Nuestros productos (el resto del catálogo sin repetir) */}
+              {generalSections.secNuestrosProductos.length > 0 && (
+                <section className="atp-section mb-10">
+                  <div className="atp-section__header">
+                    <h3 className="atp-section__title">Nuestros productos</h3>
+                  </div>
+                  <div className="atp-products-grid">
+                    {generalSections.secNuestrosProductos.map((product) => (
+                      <SelectCard
+                        key={product.id}
+                        product={product}
+                        stepLabel={step.label}
+                        badge="NUEVO"
+                        isSelected={selection[step.id]?.id === product.id}
+                        onSelect={() => handleSelect(product)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </div>
+          ) : null}
+
+          {/* ── Banner de Boletín según Image 2, 3, 4 ── */}
+          <div className="atp-newsletter-bar">
+            <span className="atp-newsletter-bar__text">
+              Suscríbete a Nuestro Boletín Obtén la información sobre eventos, ventas y ofertas.
+            </span>
+            <button
+              className="atp-newsletter-bar__btn"
+              onClick={() => alert("¡Gracias por suscribirte a nuestro boletín!")}
+            >
+              Suscribirme
+            </button>
+          </div>
         </div>
       </main>
 
       <Footer />
 
-      {/* Modal cotización accesible con 'Revisar compra' */}
+      {/* Modal cotización accesible con 'Revisar PC' */}
       {showQuote && (
         <QuoteModal
           steps={STEPS}
@@ -800,3 +1413,5 @@ export function ArmaTuPCPage() {
     </div>
   );
 }
+
+export default ArmaTuPCPage;

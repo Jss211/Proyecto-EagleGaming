@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
   useLocation,
 } from "react-router-dom";
 
@@ -25,6 +26,8 @@ import { AboutPage } from "./pages/AboutPage";
 import { ContactPage } from "./pages/ContactPage";
 import { SearchResultsPage } from "./pages/SearchResultsPage";
 import { ArmaTuPCPage } from "./pages/ArmaTuPCPage";
+import { BlogPage } from "./pages/BlogPage";
+import { GuiaMonitorPage } from "./pages/GuiaMonitorPage";
 import { LibroDeReclamacionesPage } from "./pages/LibroDeReclamacionesPage";
 import { AdminLogin } from "./pages/AdminLogin";
 import { AdminPanel } from "./pages/AdminPanel";
@@ -89,6 +92,12 @@ export default function App() {
             />
 
             <Route path="/arma-tu-pc" element={<ArmaTuPCPage />} />
+
+            <Route path="/combos" element={<Navigate to="/categoria/pc-completa" replace />} />
+
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/guia-monitor" element={<GuiaMonitorPage />} />
+            <Route path="/blog/guia-monitores" element={<GuiaMonitorPage />} />
 
             <Route path="/carrito" element={<CartPage />} />
 
