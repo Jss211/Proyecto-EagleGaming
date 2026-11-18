@@ -35,7 +35,7 @@ import { AdminRoute } from "./components/AdminRoute";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { useDynamicTitle } from "./hooks/useDynamicTitle";
-// import { Chatbot } from "./chatbot-frontend/Chatbot";
+import { Chatbot } from "./chatbot-frontend/Chatbot";
 
 function PageNavigationHandler() {
   const { pathname } = useLocation();
@@ -49,8 +49,7 @@ function PageNavigationHandler() {
 }
 
 function ConditionalChatbot() {
-  // Desactivado temporalmente por solicitud del usuario
-  return null;
+  return <Chatbot />;
 }
 
 export default function App() {
