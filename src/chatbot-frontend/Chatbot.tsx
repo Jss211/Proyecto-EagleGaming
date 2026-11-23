@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { X, Send, User, Cpu, ShieldCheck, ExternalLink } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,6 +22,51 @@ interface Message {
   quickReplies?: string[];
 }
 
+function renderMessageText(content: string) {
+  const parts: (string | React.ReactNode)[] = [];
+  const regex = /(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*)/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(content)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push(content.substring(lastIndex, match.index));
+    }
+    const token = match[0];
+    if (token.startsWith("[") && token.includes("](")) {
+      const closeBracket = token.indexOf("]");
+      const label = token.substring(1, closeBracket);
+      const url = token.substring(closeBracket + 2, token.length - 1);
+      parts.push(
+        <a
+          key={match.index}
+          href={url}
+          target={url.startsWith("http") ? "_blank" : undefined}
+          rel={url.startsWith("http") ? "noopener noreferrer" : undefined}
+          className="text-red-400 hover:text-red-300 underline font-semibold inline-flex items-center gap-1 transition-colors"
+        >
+          <span>{label}</span>
+          {url.startsWith("http") && <ExternalLink size={11} className="inline ml-0.5" />}
+        </a>
+      );
+    } else if (token.startsWith("**") && token.endsWith("**")) {
+      const boldText = token.substring(2, token.length - 2);
+      parts.push(
+        <strong key={match.index} className="font-bold text-white">
+          {boldText}
+        </strong>
+      );
+    }
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < content.length) {
+    parts.push(content.substring(lastIndex));
+  }
+
+  return parts;
+}
+
 export function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -29,7 +74,7 @@ export function Chatbot() {
       id: "1",
       text: "¡Qué tal gamer! 🦅 Soy A.E.G.I.S., especialista de hardware de Eagle Gaming.\n\n¿Estás buscando armar una PC, cotizar una laptop, tarjeta gráfica u otro componente? ¡Dime qué necesitas y te ayudo al toque!",
       sender: "bot",
-      quickReplies: ["🔥 Laptops Gamer", "🛠️ Arma tu PC", "⚡ Tarjetas Gráficas", "📦 Envíos y Garantía"],
+      quickReplies: ["🎮 Catálogos de PCs", "🔥 Laptops Gamer", "🛠️ Arma tu PC", "📦 Envíos y Garantía"],
     },
   ]);
   const [inputValue, setInputValue] = useState("");
@@ -184,7 +229,9 @@ export function Chatbot() {
                         : "bg-zinc-900/90 text-zinc-100 border border-zinc-800/80 hover:border-red-950/80 rounded-bl-none backdrop-blur-sm"
                     }`}
                   >
-                    <p className="whitespace-pre-line">{msg.text}</p>
+                    <div className="whitespace-pre-line leading-relaxed">
+                      {renderMessageText(msg.text)}
+                    </div>
 
                     {/* Tarjetas de Producto estilo Inventario Gamer */}
                     {msg.products && msg.products.length > 0 && (
@@ -194,9 +241,20 @@ export function Chatbot() {
                             key={prod.id}
                             className="bg-black/60 border border-zinc-800 hover:border-red-600/50 rounded-xl p-3 flex flex-col gap-1.5 transition-all duration-200 group hover:shadow-[0_0_15px_rgba(220,38,38,0.2)]"
                           >
-                            <span className="font-bold text-white text-[13px] line-clamp-2 group-hover:text-red-400 transition-colors">
-                              {prod.name}
-                            </span>
+                            {prod.product_url ? (
+                              <a
+                                href={prod.product_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-bold text-white text-[13px] line-clamp-2 group-hover:text-red-400 transition-colors hover:underline"
+                              >
+                                {prod.name}
+                              </a>
+                            ) : (
+                              <span className="font-bold text-white text-[13px] line-clamp-2 group-hover:text-red-400 transition-colors">
+                                {prod.name}
+                              </span>
+                            )}
                             {prod.summary && (
                               <div className="flex flex-wrap gap-1 mt-0.5">
                                 <span className="bg-zinc-800/80 text-zinc-300 px-2 py-0.5 rounded text-[10.5px] border border-zinc-700/50">
